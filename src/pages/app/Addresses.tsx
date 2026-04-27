@@ -22,7 +22,8 @@ export default function Addresses() {
     const r = addressSchema.safeParse(form);
     if (!r.success) { toast.error(r.error.errors[0].message); return; }
     if (!user) return;
-    const { error } = await supabase.from("addresses").insert([{ ...r.data, user_id: user.id, is_default: (q.data ?? []).length === 0 }]);
+    const row = { ...(r.data as Required<typeof r.data>), user_id: user.id, is_default: (q.data ?? []).length === 0, details: r.data.details || null };
+    const { error } = await supabase.from("addresses").insert(row as any);
     if (error) { toast.error(error.message); return; }
     setShowNew(false);
     setForm({ label: "Home", recipient_name: "", phone: "", area: "Dipalpur", street: "", details: "" });
