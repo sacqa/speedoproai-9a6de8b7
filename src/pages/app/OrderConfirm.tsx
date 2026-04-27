@@ -27,8 +27,7 @@ export default function OrderConfirm() {
     `Status: ${statusLabel(order.status)}`,
     addr ? `Customer: ${addr.recipient_name} (${addr.phone})` : "",
     addr ? `Address: ${addr.street}, ${addr.area}` : "",
-    `Payment: ${statusLabel(order.payment_method ?? "")}`,
-    `Txn ID: ${order.payment_txn_id ?? "—"}`,
+    `Payment: Cash on Delivery`,
     "",
     "Items:",
     ...order.items.map((i: any) => `• ${i.name} × ${i.quantity} — ${formatPKR(i.price * i.quantity)}`),
@@ -42,8 +41,8 @@ export default function OrderConfirm() {
         <CheckCircle2 className="h-14 w-14 text-success" />
       </div>
       <h1 className="text-2xl font-extrabold">Order Placed!</h1>
-      <p className="text-muted-foreground">Order <b>{order.order_number}</b> is awaiting payment review.</p>
-      <p className="text-sm text-muted-foreground">Confirm details with our team on WhatsApp to speed things up.</p>
+      <p className="text-muted-foreground">Order <b>{order.order_number}</b> has been placed.</p>
+      <p className="text-sm text-muted-foreground">Pay <b>cash on delivery</b> when your order arrives. Confirm details on WhatsApp to speed things up.</p>
       <a href={buildWhatsAppUrl(lines)} target="_blank" rel="noopener noreferrer">
         <Button className="w-full h-12 rounded-pill bg-success hover:bg-success/90 text-white">💬 Confirm on WhatsApp</Button>
       </a>
