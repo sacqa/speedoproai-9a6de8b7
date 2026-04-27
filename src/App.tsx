@@ -24,6 +24,16 @@ import Profile from "./pages/app/Profile";
 import Addresses from "./pages/app/Addresses";
 import Help from "./pages/app/Help";
 import RequestForm from "./pages/app/RequestForm";
+import { RequireAdmin } from "@/components/admin/RequireAdmin";
+import { AdminLayout } from "@/components/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminOrders from "./pages/admin/Orders";
+import AdminOrderDetail from "./pages/admin/OrderDetail";
+import AdminProducts from "./pages/admin/Products";
+import AdminCategories from "./pages/admin/Categories";
+import AdminBanners from "./pages/admin/Banners";
+import AdminCustomers from "./pages/admin/Customers";
+import AdminPricing from "./pages/admin/Pricing";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +65,14 @@ const App = () => (
               <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
               <Route path="/addresses" element={<RequireAuth><Addresses /></RequireAuth>} />
               <Route path="/help" element={<Help />} />
+              <Route path="/admin" element={<RequireAdmin><AdminLayout><AdminDashboard /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/orders" element={<RequireAdmin><AdminLayout><AdminOrders /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/orders/:id" element={<RequireAdmin><AdminLayout><AdminOrderDetail /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/products" element={<RequireAdmin><AdminLayout><AdminProducts /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/categories" element={<RequireAdmin><AdminLayout><AdminCategories /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/banners" element={<RequireAdmin><AdminLayout><AdminBanners /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/customers" element={<RequireAdmin><AdminLayout><AdminCustomers /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/pricing" element={<RequireAdmin><AdminLayout><AdminPricing /></AdminLayout></RequireAdmin>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppShell>

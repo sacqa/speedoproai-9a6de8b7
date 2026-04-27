@@ -26,7 +26,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const cartQty = useCart((s) => s.totalQty());
   const { user, signOut } = useAuth();
   const location = useLocation();
-  const hideChrome = ["/login", "/otp", "/onboarding", "/splash"].some((p) => location.pathname.startsWith(p));
+  const hideChrome = ["/login", "/otp", "/onboarding", "/splash", "/admin"].some((p) => location.pathname.startsWith(p));
 
   if (hideChrome) {
     return <main className="min-h-screen bg-background">{children}</main>;

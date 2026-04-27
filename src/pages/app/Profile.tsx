@@ -1,10 +1,26 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, MapPin, ClipboardList, Bell, HelpCircle, LogOut } from "lucide-react";
+import { ChevronRight, MapPin, ClipboardList, Bell, HelpCircle, LogOut, Shield, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Profile() {
   const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
+
+  const claimAdmin = async () => {
+    const { data, error } = await supabase.rpc("claim_admin_if_none");
+    if (error) return toast.error(error.message);
+    if (data === true) {
+      toast.success("You are now an admin! Reloading…");
+      setTimeout(() => window.location.reload(), 800);
+    } else {
+      toast.error("An admin already exists. Ask them to grant you access.");
+    }
+  };
+
   return (
     <div className="p-4 lg:p-0 space-y-4 max-w-md mx-auto">
       <div className="bg-card rounded-xl shadow-card p-5 flex items-center gap-4">
@@ -30,6 +46,15 @@ export default function Profile() {
           </Link>
         ))}
       </div>
+      {isAdmin ? (
+        <Link to="/admin" className="block">
+          <Button className="w-full h-12 rounded-pill"><ShieldCheck className="h-4 w-4 mr-2" />Open Admin Dashboard</Button>
+        </Link>
+      ) : (
+        <Button variant="outline" className="w-full h-12 rounded-pill" onClick={claimAdmin}>
+          <Shield className="h-4 w-4 mr-2" />Become Admin (first user only)
+        </Button>
+      )}
       <Button variant="outline" className="w-full h-12 rounded-pill" onClick={signOut}>
         <LogOut className="h-4 w-4 mr-2" /> Logout
       </Button>
