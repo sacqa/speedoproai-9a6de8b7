@@ -18,7 +18,6 @@ export default function Checkout() {
   const { items, subtotal, clear } = useCart();
   const nav = useNavigate();
   const [addressId, setAddressId] = useState<string>("");
-  const [method, setMethod] = useState<"jazzcash" | "easypaisa" | "bank_transfer">("jazzcash");
   const [busy, setBusy] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState({ label: "Home", recipient_name: "", phone: "", area: "Dipalpur", street: "", details: "" });
@@ -68,9 +67,9 @@ export default function Checkout() {
 
     const { data: order, error } = await supabase.from("orders").insert({
       user_id: user.id, type: "speedmart" as const, address_id: useAddrId,
-      address_snapshot: addr, payment_method: method, payment_status: "pending" as const,
+      address_snapshot: addr, payment_method: "cod" as any, payment_status: "pending" as const,
       subtotal: sub, delivery_fee: delivery, service_charge: service, total,
-      status: "awaiting_payment" as const,
+      status: "submitted" as const,
     }).select().single();
     if (error || !order) { toast.error(error?.message ?? "Failed"); setBusy(false); return; }
 
@@ -80,7 +79,7 @@ export default function Checkout() {
     const { error: e2 } = await supabase.from("order_items").insert(orderItems);
     if (e2) { toast.error(e2.message); setBusy(false); return; }
     clear();
-    nav(`/orders/${order.id}/payment`, { replace: true });
+    nav(`/orders/${order.id}/confirm`, { replace: true });
   };
 
   if (items.length === 0) { nav("/cart", { replace: true }); return null; }
@@ -121,24 +120,15 @@ export default function Checkout() {
         )}
       </section>
 
-      <section className="bg-card rounded-xl shadow-card p-4 space-y-3">
+      <section className="bg-card rounded-xl shadow-card p-4 space-y-2">
         <h2 className="font-bold">Payment Method</h2>
-        <p className="text-xs text-muted-foreground">Cash on delivery is not available. Please pay digitally and upload proof on the next step.</p>
-        <RadioGroup value={method} onValueChange={(v) => setMethod(v as any)} className="space-y-2">
-          {[
-            { v: "jazzcash", l: "JazzCash", a: "0333-7339009 — Speedo Dipalpur" },
-            { v: "easypaisa", l: "EasyPaisa", a: "0333-7339009 — Speedo Dipalpur" },
-            { v: "bank_transfer", l: "Bank Transfer", a: "Meezan Bank · 1234567890 — Speedo" },
-          ].map((m) => (
-            <label key={m.v} className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer ${method === m.v ? "border-primary bg-primary-tint" : "border-border"}`}>
-              <RadioGroupItem value={m.v} />
-              <div className="flex-1">
-                <div className="font-semibold text-sm">{m.l}</div>
-                <div className="text-xs text-muted-foreground">{m.a}</div>
-              </div>
-            </label>
-          ))}
-        </RadioGroup>
+        <div className="flex items-center gap-3 p-3 rounded-lg border-2 border-primary bg-primary-tint">
+          <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">₨</div>
+          <div className="flex-1">
+            <div className="font-semibold text-sm">Cash on Delivery</div>
+            <div className="text-xs text-muted-foreground">Pay in cash to the rider when your order arrives.</div>
+          </div>
+        </div>
       </section>
 
       <section className="bg-card rounded-xl shadow-card p-4 space-y-2 text-sm">

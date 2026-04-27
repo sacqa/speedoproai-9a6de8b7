@@ -5,8 +5,7 @@ import { formatPKR, statusLabel } from "@/lib/format";
 import { Check } from "lucide-react";
 
 const FLOW = [
-  "submitted","awaiting_payment","payment_under_review","payment_verified",
-  "rider_assigned","purchasing_items","out_for_delivery","delivered",
+  "submitted","rider_assigned","purchasing_items","out_for_delivery","delivered",
 ];
 
 export default function OrderDetails() {
@@ -36,11 +35,9 @@ export default function OrderDetails() {
       </div>
 
       <div className="bg-card rounded-xl shadow-card p-4">
-        <span className={`inline-block px-3 py-1 rounded-pill text-xs font-bold ${
-          order.payment_status === "approved" ? "bg-success/10 text-success" :
-          order.payment_status === "rejected" ? "bg-destructive/10 text-destructive" :
-          "bg-warning/10 text-warning"
-        }`}>Payment: {statusLabel(order.payment_status)}</span>
+        <span className="inline-block px-3 py-1 rounded-pill text-xs font-bold bg-primary-tint text-primary">
+          Payment: Cash on Delivery
+        </span>
       </div>
 
       <div className="bg-card rounded-xl shadow-card p-4">

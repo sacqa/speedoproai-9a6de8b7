@@ -16,7 +16,6 @@ import Search from "./pages/app/Search";
 import SpeedMart from "./pages/app/SpeedMart";
 import Cart from "./pages/app/Cart";
 import Checkout from "./pages/app/Checkout";
-import PaymentProof from "./pages/app/PaymentProof";
 import OrderConfirm from "./pages/app/OrderConfirm";
 import OrderDetails from "./pages/app/OrderDetails";
 import Orders from "./pages/app/Orders";
@@ -51,7 +50,6 @@ const App = () => (
               <Route path="/checkout" element={<RequireAuth><Checkout /></RequireAuth>} />
               <Route path="/orders" element={<RequireAuth><Orders /></RequireAuth>} />
               <Route path="/orders/:id" element={<RequireAuth><OrderDetails /></RequireAuth>} />
-              <Route path="/orders/:id/payment" element={<RequireAuth><PaymentProof /></RequireAuth>} />
               <Route path="/orders/:id/confirm" element={<RequireAuth><OrderConfirm /></RequireAuth>} />
               <Route path="/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
               <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
