@@ -15,6 +15,6 @@ export const addressSchema = z.object({
   street: z.string().trim().min(2).max(120),
   details: z.string().trim().max(200).optional().or(z.literal("")),
   is_default: z.boolean().optional(),
-});
+}).required({ label: true, recipient_name: true, phone: true, area: true, street: true });
 
 export type AddressInput = z.infer<typeof addressSchema>;
