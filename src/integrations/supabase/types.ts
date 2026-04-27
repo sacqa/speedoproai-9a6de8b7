@@ -457,7 +457,7 @@ export type Database = {
         | "delivered"
         | "cancelled"
       order_type: "speedmart" | "pharmacy" | "speedsend" | "custom"
-      payment_method: "jazzcash" | "easypaisa" | "bank_transfer"
+      payment_method: "jazzcash" | "easypaisa" | "bank_transfer" | "cod"
       payment_status: "pending" | "submitted" | "approved" | "rejected"
     }
     CompositeTypes: {
@@ -600,7 +600,7 @@ export const Constants = {
         "cancelled",
       ],
       order_type: ["speedmart", "pharmacy", "speedsend", "custom"],
-      payment_method: ["jazzcash", "easypaisa", "bank_transfer"],
+      payment_method: ["jazzcash", "easypaisa", "bank_transfer", "cod"],
       payment_status: ["pending", "submitted", "approved", "rejected"],
     },
   },
