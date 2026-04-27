@@ -47,7 +47,7 @@ export default function Checkout() {
     const r = addressSchema.safeParse(form);
     if (!r.success) { toast.error(r.error.errors[0].message); return null; }
     if (!user) return null;
-    const { data, error } = await supabase.from("addresses").insert({ ...r.data, user_id: user.id, is_default: addrs.data?.length === 0 }).select().single();
+    const { data, error } = await supabase.from("addresses").insert([{ ...r.data, user_id: user.id, is_default: addrs.data?.length === 0 }]).select().single();
     if (error) { toast.error(error.message); return null; }
     addrs.refetch();
     return data;
