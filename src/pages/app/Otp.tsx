@@ -18,18 +18,32 @@ export default function Otp() {
     // Mock OTP: sign user in via email/password derived from phone (no real email needed).
     const email = `${phone}@speedo.local`;
     const password = `speedo_${phone}_pwd!`;
-    let { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      const { error: signUpErr } = await supabase.auth.signUp({
-        email, password,
-        options: { data: { full_name: name, phone }, emailRedirectTo: window.location.origin },
-      });
-      if (signUpErr) { toast.error(signUpErr.message); setBusy(false); return; }
-      const r = await supabase.auth.signInWithPassword({ email, password });
-      if (r.error) { toast.error(r.error.message); setBusy(false); return; }
+    try {
+      let { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        // Try to create the account; ignore "already registered" errors.
+        const { error: signUpErr } = await supabase.auth.signUp({
+          email, password,
+          options: { data: { full_name: name, phone }, emailRedirectTo: window.location.origin },
+        });
+        if (signUpErr && !/registered|exists/i.test(signUpErr.message)) {
+          toast.error(signUpErr.message);
+          setBusy(false);
+          return;
+        }
+        const r = await supabase.auth.signInWithPassword({ email, password });
+        if (r.error) {
+          toast.error(r.error.message);
+          setBusy(false);
+          return;
+        }
+      }
+      toast.success("Signed in!");
+      nav("/", { replace: true });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Sign-in failed");
+      setBusy(false);
     }
-    toast.success("Signed in!");
-    nav("/", { replace: true });
   };
 
   return (
