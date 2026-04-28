@@ -116,6 +116,9 @@
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
   .safe-top { padding-top: env(safe-area-inset-top); }
   .gradient-primary { background: var(--gradient-primary); }
+  .gradient-lime { background: var(--gradient-lime); }
+  .gradient-orange { background: var(--gradient-orange); }
+  .gradient-hero { background: var(--gradient-hero); }
   .gradient-purple-soft { background: var(--gradient-purple-soft); }
   .shadow-card { box-shadow: var(--shadow-card); }
   .shadow-elevated { box-shadow: var(--shadow-elevated); }
