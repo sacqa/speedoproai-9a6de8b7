@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 96%;            /* #F5F5F5 */
+    --background: 0 0% 100%;           /* pure white like reference */
     --foreground: 0 0% 10%;            /* #1A1A1A */
 
     --card: 0 0% 100%;
@@ -24,12 +24,12 @@
     --secondary: 0 0% 100%;
     --secondary-foreground: 0 0% 10%;
 
-    --muted: 220 13% 95%;
+    --muted: 220 14% 96%;              /* soft gray for search/pills */
     --muted-foreground: 220 9% 46%;    /* #6B7280 */
 
-    --accent: 89 59% 49%;              /* #7ec832 Bright lime */
-    --accent-foreground: 133 60% 16%;  /* deep green text on lime */
-    --accent-soft: 89 60% 94%;         /* light lime bg */
+    --accent: 133 56% 23%;             /* #1a5c2a Deep green (used for active nav) */
+    --accent-foreground: 0 0% 100%;
+    --accent-soft: 133 40% 92%;        /* soft green tint for active tab bg */
 
     --lime: 89 59% 49%;                /* #7ec832 Bright lime */
     --lime-foreground: 133 60% 16%;    /* dark green text on lime */
@@ -42,8 +42,8 @@
     --success: 89 59% 49%;             /* lime */
     --warning: 19 92% 47%;             /* burnt orange */
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
+    --border: 220 13% 93%;
+    --input: 220 13% 93%;
     --ring: 19 92% 47%;
 
     --radius: 0.75rem;
@@ -96,13 +96,14 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-tap-highlight-color: transparent;
   }
 
   h1, h2, h3, h4, .font-display {
-    font-family: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, sans-serif;
-    letter-spacing: -0.01em;
+    font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
+    letter-spacing: -0.02em;
+    font-weight: 700;
   }
 
   html, body, #root {
