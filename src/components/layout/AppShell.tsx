@@ -64,7 +64,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link to="/cart" className="p-2 rounded-full hover:bg-muted relative">
             <ShoppingCart className="h-5 w-5" />
             {cartQty > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1">
+              <span className="absolute -top-0.5 -right-0.5 bg-orange text-orange-foreground text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1">
                 {cartQty}
               </span>
             )}
@@ -128,8 +128,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Bell className="h-5 w-5" />
           </Link>
         </div>
-        <div className="bg-primary/10 px-4 py-1.5 text-[11px] text-primary-dark font-medium overflow-hidden whitespace-nowrap">
-          🟢 Open now · Free delivery on orders over Rs 1500
+        <div className="gradient-hero px-4 py-1.5 text-[11px] text-white font-semibold overflow-hidden whitespace-nowrap flex items-center gap-2">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-lime animate-pulse" />
+          Open now · <span className="text-lime">Free delivery</span> on orders over Rs 1500
         </div>
       </header>
 
@@ -146,8 +147,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           <BottomTab to="/" icon={Home} label="Home" />
           <BottomTab to="/search" icon={Search} label="Search" />
           <Link to="/speedmart" className="flex justify-center -mt-6">
-            <div className="h-14 w-14 rounded-full gradient-primary shadow-elevated flex items-center justify-center ring-4 ring-card">
-              <SpeedoLogo size={28} variant="mark" className="text-white [&>path]:fill-white" />
+            <div className="h-14 w-14 rounded-full gradient-lime shadow-elevated flex items-center justify-center ring-4 ring-card">
+              <SpeedoLogo size={28} variant="mark" className="[&>path]:fill-[hsl(var(--primary-dark))]" />
             </div>
           </Link>
           <BottomTab to="/cart" icon={ShoppingCart} label="Cart" badge={cartQty} />
@@ -172,7 +173,7 @@ function BottomTab({ to, icon: Icon, label, badge }: { to: string; icon: React.E
       <div className="relative">
         <Icon className="h-5 w-5" />
         {badge !== undefined && badge > 0 && (
-          <span className="absolute -top-1.5 -right-2 bg-primary text-primary-foreground text-[9px] font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-1">
+          <span className="absolute -top-1.5 -right-2 bg-orange text-orange-foreground text-[9px] font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-1">
             {badge}
           </span>
         )}

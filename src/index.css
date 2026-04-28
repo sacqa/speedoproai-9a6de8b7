@@ -18,7 +18,8 @@
     --primary: 133 56% 23%;            /* #1a5c2a Deep green */
     --primary-foreground: 0 0% 100%;
     --primary-dark: 133 60% 16%;       /* darker green */
-    --primary-tint: 100 50% 95%;       /* light green bg */
+    --primary-tint: 89 60% 94%;        /* light lime bg */
+    --primary-glow: 89 59% 49%;        /* #7ec832 lime glow */
 
     --secondary: 0 0% 100%;
     --secondary-foreground: 0 0% 10%;
@@ -26,13 +27,19 @@
     --muted: 220 13% 95%;
     --muted-foreground: 220 9% 46%;    /* #6B7280 */
 
-    --accent: 89 59% 49%;              /* #7ec832 Lime green */
-    --accent-foreground: 0 0% 10%;
+    --accent: 19 92% 47%;              /* #e84c0a Burnt orange */
+    --accent-foreground: 0 0% 100%;
+    --accent-soft: 19 92% 95%;         /* light orange bg */
 
-    --destructive: 19 92% 47%;         /* #e84c0a Burnt orange/red */
+    --lime: 89 59% 49%;                /* #7ec832 Bright lime */
+    --lime-foreground: 133 60% 16%;    /* dark green text on lime */
+    --orange: 19 92% 47%;              /* #e84c0a */
+    --orange-foreground: 0 0% 100%;
+
+    --destructive: 19 92% 47%;         /* #e84c0a */
     --destructive-foreground: 0 0% 100%;
 
-    --success: 133 56% 23%;            /* deep green */
+    --success: 89 59% 49%;             /* lime */
     --warning: 19 92% 47%;             /* burnt orange */
 
     --border: 220 13% 91%;
@@ -42,9 +49,12 @@
     --radius: 0.75rem;
 
     --shadow-card: 0 2px 8px hsl(0 0% 0% / 0.08);
-    --shadow-elevated: 0 8px 24px hsl(133 56% 23% / 0.22);
+    --shadow-elevated: 0 8px 24px hsl(133 56% 23% / 0.25);
     --gradient-primary: linear-gradient(135deg, hsl(133 56% 23%), hsl(89 59% 49%));
-    --gradient-purple-soft: linear-gradient(135deg, hsl(100 50% 95%), hsl(100 50% 90%));
+    --gradient-lime: linear-gradient(135deg, hsl(89 59% 49%), hsl(89 70% 60%));
+    --gradient-orange: linear-gradient(135deg, hsl(19 92% 47%), hsl(28 95% 55%));
+    --gradient-hero: linear-gradient(135deg, hsl(133 56% 23%) 0%, hsl(133 50% 30%) 50%, hsl(89 59% 49%) 100%);
+    --gradient-purple-soft: linear-gradient(135deg, hsl(89 60% 94%), hsl(89 60% 88%));
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -106,6 +116,9 @@
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
   .safe-top { padding-top: env(safe-area-inset-top); }
   .gradient-primary { background: var(--gradient-primary); }
+  .gradient-lime { background: var(--gradient-lime); }
+  .gradient-orange { background: var(--gradient-orange); }
+  .gradient-hero { background: var(--gradient-hero); }
   .gradient-purple-soft { background: var(--gradient-purple-soft); }
   .shadow-card { box-shadow: var(--shadow-card); }
   .shadow-elevated { box-shadow: var(--shadow-elevated); }
