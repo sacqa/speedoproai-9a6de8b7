@@ -128,7 +128,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Bell className="h-5 w-5" />
           </Link>
         </div>
-        <div className="gradient-hero px-4 py-1.5 text-[11px] text-white font-semibold overflow-hidden whitespace-nowrap flex items-center gap-2">
+        <div className="bg-accent px-4 py-1.5 text-[11px] text-accent-foreground font-semibold overflow-hidden whitespace-nowrap flex items-center gap-2">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-lime animate-pulse" />
           Open now · <span className="text-lime">Free delivery</span> on orders over Rs 1500
         </div>
@@ -145,14 +145,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border safe-bottom">
         <div className="grid grid-cols-5 h-16 items-center">
           <BottomTab to="/" icon={Home} label="Home" />
-          <BottomTab to="/search" icon={Search} label="Search" />
+          <BottomTab to="/search" icon={Search} label="Explore" />
           <Link to="/speedmart" className="flex justify-center -mt-6">
-            <div className="h-14 w-14 rounded-full gradient-lime shadow-elevated flex items-center justify-center ring-4 ring-card">
-              <SpeedoLogo size={28} variant="mark" className="[&>path]:fill-[hsl(var(--primary-dark))]" />
+            <div className="h-14 w-14 rounded-2xl bg-primary shadow-elevated flex items-center justify-center ring-4 ring-card">
+              <SpeedoLogo size={28} variant="mark" className="[&>path]:fill-white" />
             </div>
           </Link>
           <BottomTab to="/cart" icon={ShoppingCart} label="Cart" badge={cartQty} />
-          <BottomTab to={user ? "/profile" : "/login"} icon={User} label={user ? "Profile" : "Login"} />
+          <BottomTab to={user ? "/profile" : "/login"} icon={User} label={user ? "Profile" : "More"} />
         </div>
       </nav>
     </div>
@@ -165,20 +165,24 @@ function BottomTab({ to, icon: Icon, label, badge }: { to: string; icon: React.E
       to={to}
       end={to === "/"}
       className={({ isActive }) =>
-        `flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${
-          isActive ? "text-primary" : "text-muted-foreground"
+        `flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold ${
+          isActive ? "text-accent" : "text-muted-foreground"
         }`
       }
     >
-      <div className="relative">
-        <Icon className="h-5 w-5" />
-        {badge !== undefined && badge > 0 && (
-          <span className="absolute -top-1.5 -right-2 bg-orange text-orange-foreground text-[9px] font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-1">
-            {badge}
-          </span>
-        )}
-      </div>
-      {label}
+      {({ isActive }) => (
+        <>
+          <div className={`relative px-4 py-1 rounded-full transition-colors ${isActive ? "bg-accent-soft" : ""}`}>
+            <Icon className="h-5 w-5" />
+            {badge !== undefined && badge > 0 && (
+              <span className="absolute -top-0.5 -right-1 bg-orange text-orange-foreground text-[9px] font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-1">
+                {badge}
+              </span>
+            )}
+          </div>
+          {label}
+        </>
+      )}
     </NavLink>
   );
 }
