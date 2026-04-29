@@ -24,7 +24,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <div className="gradient-primary text-white px-6 pt-14 pb-10 rounded-b-3xl">
+      <div className="bg-primary text-white px-6 pt-14 pb-10 rounded-b-3xl">
         <SpeedoLogo size={48} />
         <h1 className="mt-4 text-3xl font-extrabold">Welcome to Speedo</h1>
         <p className="opacity-90 mt-1">Sign in to start ordering</p>

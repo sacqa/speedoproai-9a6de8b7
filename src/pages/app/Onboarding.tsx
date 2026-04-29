@@ -20,7 +20,7 @@ export default function Onboarding() {
         <button onClick={finish} className="text-sm font-semibold text-muted-foreground">Skip</button>
       </div>
       <div className="flex-1 flex flex-col items-center justify-center px-6 text-center animate-fade-in" key={i}>
-        <div className="h-32 w-32 rounded-full gradient-purple-soft flex items-center justify-center mb-8">
+        <div className="h-32 w-32 rounded-full bg-accent-soft flex items-center justify-center mb-8">
           <S.icon className="h-14 w-14 text-primary" />
         </div>
         <h2 className="text-2xl font-extrabold mb-3">{S.title}</h2>
