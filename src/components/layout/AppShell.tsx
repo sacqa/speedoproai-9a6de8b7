@@ -191,7 +191,7 @@ function MobileMenu() {
   const { user, signOut } = useAuth();
   return (
     <div className="flex flex-col h-full">
-      <div className="p-5 gradient-primary text-white">
+      <div className="p-5 bg-primary text-primary-foreground">
         <SpeedoWordmark className="[&_span]:text-white [&_svg_rect]:fill-white/20" />
         <p className="text-sm mt-3 opacity-90">Hyperlocal delivery in Dipalpur</p>
       </div>
