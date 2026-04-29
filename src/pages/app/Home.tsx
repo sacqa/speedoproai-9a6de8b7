@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Zap, Calendar, ChevronLeft, ChevronRight, ShoppingBasket, Pill, Package, PenSquare, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShoppingBasket, Pill, Package, PenSquare, ArrowRight } from "lucide-react";
 import { ProductCard } from "@/components/speedo/ProductCard";
 import { SectionHeader } from "@/components/speedo/SectionHeader";
 
@@ -41,7 +41,6 @@ export default function Home() {
         </Link>
       </div>
 
-      <DeliveryModeSelector />
       <BannerSlider banners={banners.data ?? []} />
       <ServiceShortcuts />
 
@@ -51,7 +50,7 @@ export default function Home() {
           <div className="flex gap-4 px-4 lg:px-0 pb-2">
             {(cats.data ?? []).map((c) => (
               <Link to={`/speedmart?cat=${c.slug}`} key={c.id} className="flex-shrink-0 w-20 text-center group">
-                <div className="h-20 w-20 rounded-2xl gradient-purple-soft flex items-center justify-center text-3xl shadow-card group-hover:scale-105 transition-transform">
+                <div className="h-20 w-20 rounded-2xl bg-accent-soft flex items-center justify-center text-3xl shadow-card group-hover:scale-105 transition-transform">
                   {c.icon}
                 </div>
                 <p className="mt-2 text-[11px] font-semibold leading-tight line-clamp-2">{c.name}</p>
@@ -178,8 +177,8 @@ function ServiceShortcuts() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {services.map((s) => (
           <Link key={s.to} to={s.to} className="bg-card rounded-2xl p-4 shadow-card flex items-center gap-3 hover:shadow-elevated transition-shadow">
-            <div className="h-12 w-12 rounded-xl gradient-purple-soft flex items-center justify-center flex-shrink-0">
-              <s.icon className="h-6 w-6 text-primary" />
+            <div className="h-12 w-12 rounded-xl bg-accent-soft flex items-center justify-center flex-shrink-0">
+              <s.icon className="h-6 w-6 text-accent" />
             </div>
             <div className="min-w-0">
               <div className="font-bold text-sm truncate">{s.name}</div>
