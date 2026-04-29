@@ -8,8 +8,6 @@ import { buildWhatsAppUrl, formatPKR, statusLabel } from "@/lib/format";
 export default function OrderConfirm() {
   const { id } = useParams();
   const [order, setOrder] = useState<any>(null);
-  const [waUrl, setWaUrl] = useState<string>("");
-  const [autoSent, setAutoSent] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -19,6 +17,30 @@ export default function OrderConfirm() {
       setOrder({ ...o, items: items ?? [] });
     })();
   }, [id]);
+
+  useEffect(() => {
+    if (!order) return;
+    const addr = order.address_snapshot;
+    const lines = [
+      `*Speedo Order ${order.order_number}*`,
+      `Type: ${statusLabel(order.type)}`,
+      `Status: ${statusLabel(order.status)}`,
+      addr ? `Customer: ${addr.recipient_name} (${addr.phone})` : "",
+      addr ? `Address: ${addr.street}, ${addr.area}` : "",
+      `Payment: Cash on Delivery`,
+      "",
+      "Items:",
+      ...order.items.map((i: any) => `• ${i.name} × ${i.quantity} — ${formatPKR(i.price * i.quantity)}`),
+      "",
+      `Total: ${formatPKR(Number(order.total))}`,
+    ].filter(Boolean).join("\n");
+    const key = `wa-sent-${order.id}`;
+    if (!sessionStorage.getItem(key)) {
+      sessionStorage.setItem(key, "1");
+      const url = buildWhatsAppUrl(lines);
+      setTimeout(() => window.open(url, "_blank", "noopener,noreferrer"), 500);
+    }
+  }, [order]);
 
   if (!order) return <div className="p-10 text-center text-muted-foreground">Loading…</div>;
 
@@ -36,13 +58,6 @@ export default function OrderConfirm() {
     "",
     `Total: ${formatPKR(Number(order.total))}`,
   ].filter(Boolean).join("\n");
-
-  const url = waUrl || buildWhatsAppUrl(lines);
-  if (!autoSent && order && typeof window !== "undefined") {
-    setAutoSent(true);
-    setWaUrl(buildWhatsAppUrl(lines));
-    setTimeout(() => { window.open(buildWhatsAppUrl(lines), "_blank", "noopener,noreferrer"); }, 600);
-  }
 
   return (
     <div className="p-6 lg:p-0 max-w-md mx-auto text-center space-y-5">
