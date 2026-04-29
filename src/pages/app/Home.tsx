@@ -103,7 +103,6 @@ function DeliveryModeSelector() {
           mode === "instant" ? "border-primary bg-primary-tint" : "border-border bg-card"
         }`}
       >
-        <Zap className="h-5 w-5 text-primary" />
         <div>
           <div className="text-xs text-muted-foreground">Instant Delivery</div>
           <div className="text-sm font-bold">In 40 mins</div>
@@ -115,7 +114,6 @@ function DeliveryModeSelector() {
           mode === "scheduled" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"
         }`}
       >
-        <Calendar className="h-5 w-5" />
         <div>
           <div className="text-xs opacity-80">Scheduled</div>
           <div className="text-sm font-bold">Today 8–10am</div>
