@@ -8,6 +8,7 @@ import { SpeedoLogo, SpeedoWordmark } from "@/components/speedo/SpeedoLogo";
 import { useCart } from "@/store/cart";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { formatPKR } from "@/lib/format";
 import {
   Sheet, SheetContent, SheetTrigger,
 } from "@/components/ui/sheet";
@@ -24,9 +25,11 @@ const navItems = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const cartQty = useCart((s) => s.totalQty());
+  const cartSubtotal = useCart((s) => s.subtotal());
   const { user, signOut } = useAuth();
   const location = useLocation();
   const hideChrome = ["/login", "/otp", "/onboarding", "/splash", "/admin"].some((p) => location.pathname.startsWith(p));
+  const hideCheckoutBar = ["/cart", "/checkout", "/order"].some((p) => location.pathname.startsWith(p));
 
   if (hideChrome) {
     return <main className="min-h-screen bg-background">{children}</main>;
@@ -155,6 +158,28 @@ export function AppShell({ children }: { children: ReactNode }) {
           <BottomTab to={user ? "/profile" : "/login"} icon={User} label={user ? "Profile" : "More"} />
         </div>
       </nav>
+
+      {/* PROCEED TO CHECKOUT STICKY BAR */}
+      {cartQty > 0 && !hideCheckoutBar && (
+        <Link
+          to="/cart"
+          className="fixed left-1/2 -translate-x-1/2 bottom-20 lg:bottom-6 z-50 w-[92%] max-w-md flex items-center justify-between gap-3 bg-primary text-primary-foreground rounded-2xl shadow-elevated px-4 py-3 hover:scale-[1.02] transition-transform"
+        >
+          <div className="flex items-center gap-3">
+            <div className="relative h-9 w-9 rounded-xl bg-white/20 flex items-center justify-center">
+              <ShoppingCart className="h-5 w-5" />
+              <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1">
+                {cartQty}
+              </span>
+            </div>
+            <div className="leading-tight">
+              <div className="text-[11px] opacity-90">{cartQty} item{cartQty > 1 ? "s" : ""} · {formatPKR(cartSubtotal)}</div>
+              <div className="text-sm font-bold">Proceed to Checkout</div>
+            </div>
+          </div>
+          <div className="h-9 w-9 rounded-xl bg-white/20 flex items-center justify-center font-bold">→</div>
+        </Link>
+      )}
     </div>
   );
 }
