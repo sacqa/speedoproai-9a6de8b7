@@ -80,8 +80,8 @@ export default {
         pill: "9999px",
       },
       fontFamily: {
-        sans: ['Xelgos', 'Inter', 'system-ui', 'sans-serif'],
-        display: ['Xelgos', 'DM Sans', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['Michroma', 'Inter', 'system-ui', 'sans-serif'],
+        display: ['Michroma', 'DM Sans', 'Inter', 'system-ui', 'sans-serif'],
       },
       keyframes: {
         "accordion-down": {

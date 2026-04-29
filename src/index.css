@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: 'Xelgos';
-  src: url('/fonts/xelgos.otf') format('opentype');
-  font-weight: 100 900;
+  font-family: 'Michroma';
+  src: url('/fonts/Michroma-Regular.ttf') format('truetype');
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
@@ -104,12 +104,12 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Xelgos', 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Michroma', 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-tap-highlight-color: transparent;
   }
 
   h1, h2, h3, h4, .font-display {
-    font-family: 'Xelgos', 'DM Sans', 'Inter', system-ui, sans-serif;
+    font-family: 'Michroma', 'DM Sans', 'Inter', system-ui, sans-serif;
     letter-spacing: -0.02em;
     font-weight: 700;
   }
