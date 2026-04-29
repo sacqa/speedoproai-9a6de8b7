@@ -67,7 +67,7 @@ export default function OrderConfirm() {
       <h1 className="text-2xl font-extrabold">Order Placed!</h1>
       <p className="text-muted-foreground">Order <b>{order.order_number}</b> has been placed.</p>
       <p className="text-sm text-muted-foreground">Your order details have been sent to our WhatsApp. Pay <b>cash on delivery</b> when your order arrives.</p>
-      <a href={url} target="_blank" rel="noopener noreferrer">
+      <a href={buildWhatsAppUrl(lines)} target="_blank" rel="noopener noreferrer">
         <Button className="w-full h-12 rounded-pill bg-success hover:bg-success/90 text-white">💬 Send Order on WhatsApp</Button>
       </a>
       <Link to={`/orders/${order.id}`} className="block"><Button variant="outline" className="w-full h-12 rounded-pill">Track Order</Button></Link>
