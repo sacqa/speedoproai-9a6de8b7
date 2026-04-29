@@ -8,6 +8,8 @@ import { buildWhatsAppUrl, formatPKR, statusLabel } from "@/lib/format";
 export default function OrderConfirm() {
   const { id } = useParams();
   const [order, setOrder] = useState<any>(null);
+  const [waUrl, setWaUrl] = useState<string>("");
+  const [autoSent, setAutoSent] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -35,6 +37,13 @@ export default function OrderConfirm() {
     `Total: ${formatPKR(Number(order.total))}`,
   ].filter(Boolean).join("\n");
 
+  const url = waUrl || buildWhatsAppUrl(lines);
+  if (!autoSent && order && typeof window !== "undefined") {
+    setAutoSent(true);
+    setWaUrl(buildWhatsAppUrl(lines));
+    setTimeout(() => { window.open(buildWhatsAppUrl(lines), "_blank", "noopener,noreferrer"); }, 600);
+  }
+
   return (
     <div className="p-6 lg:p-0 max-w-md mx-auto text-center space-y-5">
       <div className="animate-scale-in mx-auto h-24 w-24 rounded-full bg-success/10 flex items-center justify-center">
@@ -42,9 +51,9 @@ export default function OrderConfirm() {
       </div>
       <h1 className="text-2xl font-extrabold">Order Placed!</h1>
       <p className="text-muted-foreground">Order <b>{order.order_number}</b> has been placed.</p>
-      <p className="text-sm text-muted-foreground">Pay <b>cash on delivery</b> when your order arrives. Confirm details on WhatsApp to speed things up.</p>
-      <a href={buildWhatsAppUrl(lines)} target="_blank" rel="noopener noreferrer">
-        <Button className="w-full h-12 rounded-pill bg-success hover:bg-success/90 text-white">💬 Confirm on WhatsApp</Button>
+      <p className="text-sm text-muted-foreground">Your order details have been sent to our WhatsApp. Pay <b>cash on delivery</b> when your order arrives.</p>
+      <a href={url} target="_blank" rel="noopener noreferrer">
+        <Button className="w-full h-12 rounded-pill bg-success hover:bg-success/90 text-white">💬 Send Order on WhatsApp</Button>
       </a>
       <Link to={`/orders/${order.id}`} className="block"><Button variant="outline" className="w-full h-12 rounded-pill">Track Order</Button></Link>
       <Link to="/" className="block text-sm text-muted-foreground">Back to Home</Link>
