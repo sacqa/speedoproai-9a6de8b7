@@ -1,30 +1,42 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, MapPin, ClipboardList, Bell, HelpCircle, LogOut, Shield, ShieldCheck } from "lucide-react";
+import { ChevronRight, MapPin, ClipboardList, Bell, HelpCircle, LogOut } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
 
 export default function Profile() {
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const nav = useNavigate();
+  const [tapCount, setTapCount] = useState(0);
 
-  const claimAdmin = async () => {
-    const { data, error } = await supabase.rpc("claim_admin_if_none");
-    if (error) return toast.error(error.message);
-    if (data === true) {
-      toast.success("You are now an admin! Reloading…");
-      setTimeout(() => window.location.reload(), 800);
-    } else {
-      toast.error("An admin already exists. Ask them to grant you access.");
+  const handleSecretTap = async () => {
+    const next = tapCount + 1;
+    setTapCount(next);
+    if (next >= 5) {
+      setTapCount(0);
+      if (isAdmin) {
+        nav("/admin");
+      } else {
+        const { data, error } = await supabase.rpc("claim_admin_if_none");
+        if (error) return toast.error(error.message);
+        if (data === true) {
+          toast.success("Admin access granted. Reloading…");
+          setTimeout(() => window.location.reload(), 800);
+        } else {
+          toast.error("Access denied.");
+        }
+      }
     }
   };
 
   return (
     <div className="p-4 lg:p-0 space-y-4 max-w-md mx-auto">
       <div className="bg-card rounded-xl shadow-card p-5 flex items-center gap-4">
-        <div className="h-14 w-14 rounded-full gradient-primary text-white flex items-center justify-center text-xl font-extrabold">
+        <div className="h-14 w-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-extrabold">
           {user?.user_metadata?.full_name?.[0]?.toUpperCase() ?? "S"}
         </div>
         <div>
@@ -46,18 +58,18 @@ export default function Profile() {
           </Link>
         ))}
       </div>
-      {isAdmin ? (
-        <Link to="/admin" className="block">
-          <Button className="w-full h-12 rounded-pill"><ShieldCheck className="h-4 w-4 mr-2" />Open Admin Dashboard</Button>
-        </Link>
-      ) : (
-        <Button variant="outline" className="w-full h-12 rounded-pill" onClick={claimAdmin}>
-          <Shield className="h-4 w-4 mr-2" />Become Admin (first user only)
-        </Button>
-      )}
       <Button variant="outline" className="w-full h-12 rounded-pill" onClick={signOut}>
         <LogOut className="h-4 w-4 mr-2" /> Logout
       </Button>
+      <div className="text-center pt-4">
+        <button
+          onClick={handleSecretTap}
+          className="text-[10px] text-muted-foreground/40 hover:text-muted-foreground tracking-widest"
+          aria-label="App version"
+        >
+          v1.0.0{tapCount > 0 && tapCount < 5 ? ` · ${5 - tapCount}` : ""}
+        </button>
+      </div>
     </div>
   );
 }

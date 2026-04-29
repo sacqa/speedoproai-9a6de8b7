@@ -18,6 +18,30 @@ export default function OrderConfirm() {
     })();
   }, [id]);
 
+  useEffect(() => {
+    if (!order) return;
+    const addr = order.address_snapshot;
+    const lines = [
+      `*Speedo Order ${order.order_number}*`,
+      `Type: ${statusLabel(order.type)}`,
+      `Status: ${statusLabel(order.status)}`,
+      addr ? `Customer: ${addr.recipient_name} (${addr.phone})` : "",
+      addr ? `Address: ${addr.street}, ${addr.area}` : "",
+      `Payment: Cash on Delivery`,
+      "",
+      "Items:",
+      ...order.items.map((i: any) => `• ${i.name} × ${i.quantity} — ${formatPKR(i.price * i.quantity)}`),
+      "",
+      `Total: ${formatPKR(Number(order.total))}`,
+    ].filter(Boolean).join("\n");
+    const key = `wa-sent-${order.id}`;
+    if (!sessionStorage.getItem(key)) {
+      sessionStorage.setItem(key, "1");
+      const url = buildWhatsAppUrl(lines);
+      setTimeout(() => window.open(url, "_blank", "noopener,noreferrer"), 500);
+    }
+  }, [order]);
+
   if (!order) return <div className="p-10 text-center text-muted-foreground">Loading…</div>;
 
   const addr = order.address_snapshot;
@@ -42,9 +66,9 @@ export default function OrderConfirm() {
       </div>
       <h1 className="text-2xl font-extrabold">Order Placed!</h1>
       <p className="text-muted-foreground">Order <b>{order.order_number}</b> has been placed.</p>
-      <p className="text-sm text-muted-foreground">Pay <b>cash on delivery</b> when your order arrives. Confirm details on WhatsApp to speed things up.</p>
+      <p className="text-sm text-muted-foreground">Your order details have been sent to our WhatsApp. Pay <b>cash on delivery</b> when your order arrives.</p>
       <a href={buildWhatsAppUrl(lines)} target="_blank" rel="noopener noreferrer">
-        <Button className="w-full h-12 rounded-pill bg-success hover:bg-success/90 text-white">💬 Confirm on WhatsApp</Button>
+        <Button className="w-full h-12 rounded-pill bg-success hover:bg-success/90 text-white">💬 Send Order on WhatsApp</Button>
       </a>
       <Link to={`/orders/${order.id}`} className="block"><Button variant="outline" className="w-full h-12 rounded-pill">Track Order</Button></Link>
       <Link to="/" className="block text-sm text-muted-foreground">Back to Home</Link>

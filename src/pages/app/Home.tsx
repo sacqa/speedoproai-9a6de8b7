@@ -137,7 +137,7 @@ function BannerSlider({ banners }: { banners: any[] }) {
     <div className="px-4 lg:px-0">
       <div className="relative rounded-2xl overflow-hidden h-44 lg:h-80 shadow-card" ref={ref}>
         <img src={b.image_url} alt={b.title} className="absolute inset-0 w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-0 p-5 lg:p-10 flex flex-col justify-center text-white max-w-md">
           <h3 className="text-xl lg:text-3xl font-extrabold leading-tight">{b.title}</h3>
           {b.subtitle && <p className="mt-1 lg:mt-2 text-sm lg:text-base opacity-95">{b.subtitle}</p>}

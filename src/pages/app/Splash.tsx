@@ -10,7 +10,7 @@ export default function Splash() {
     return () => clearTimeout(t);
   }, [nav]);
   return (
-    <div className="min-h-screen gradient-primary flex flex-col items-center justify-center text-white">
+    <div className="min-h-screen bg-primary flex flex-col items-center justify-center text-white">
       <div className="animate-bolt-pulse">
         <SpeedoLogo size={120} />
       </div>
