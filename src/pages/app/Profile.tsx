@@ -3,15 +3,17 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, MapPin, ClipboardList, Bell, HelpCircle, LogOut } from "lucide-react";
+import { ChevronRight, MapPin, ClipboardList, Bell, HelpCircle, LogOut, BellRing } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
+import { usePushSubscription } from "@/hooks/usePushSubscription";
 
 export default function Profile() {
   const { user, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
   const nav = useNavigate();
   const [tapCount, setTapCount] = useState(0);
+  const push = usePushSubscription();
 
   const handleSecretTap = async () => {
     const next = tapCount + 1;
@@ -57,6 +59,34 @@ export default function Profile() {
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </Link>
         ))}
+      </div>
+      <div className="bg-card rounded-xl shadow-card p-4 flex items-center gap-3">
+        <BellRing className="h-5 w-5 text-primary" />
+        <div className="flex-1">
+          <div className="font-semibold text-sm">Push Notifications</div>
+          <div className="text-xs text-muted-foreground">
+            {push.permission === "unsupported"
+              ? "Not supported on this device"
+              : push.subscribed ? "On — you'll get updates & offers" : "Off"}
+          </div>
+        </div>
+        {push.permission !== "unsupported" && (
+          <Button
+            size="sm"
+            variant={push.subscribed ? "outline" : "default"}
+            disabled={push.busy}
+            onClick={async () => {
+              if (push.subscribed) { await push.unsubscribe(); toast.success("Push notifications disabled"); }
+              else {
+                const ok = await push.subscribe();
+                if (ok) toast.success("Push notifications enabled");
+                else toast.error("Permission denied");
+              }
+            }}
+          >
+            {push.subscribed ? "Disable" : "Enable"}
+          </Button>
+        )}
       </div>
       <Button variant="outline" className="w-full h-12 rounded-pill" onClick={signOut}>
         <LogOut className="h-4 w-4 mr-2" /> Logout

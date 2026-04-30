@@ -7,6 +7,7 @@ import {
 import { SpeedoLogo, SpeedoWordmark } from "@/components/speedo/SpeedoLogo";
 import { useCart } from "@/store/cart";
 import { useAuth } from "@/hooks/useAuth";
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { Button } from "@/components/ui/button";
 import { formatPKR } from "@/lib/format";
 import {
@@ -28,6 +29,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const cartSubtotal = useCart((s) => s.subtotal());
   const { user, signOut } = useAuth();
   const location = useLocation();
+  useRealtimeNotifications();
   const hideChrome = ["/login", "/otp", "/onboarding", "/splash", "/admin"].some((p) => location.pathname.startsWith(p));
   const hideCheckoutBar = ["/cart", "/checkout", "/order"].some((p) => location.pathname.startsWith(p));
 
