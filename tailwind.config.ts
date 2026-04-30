@@ -80,8 +80,8 @@ export default {
         pill: "9999px",
       },
       fontFamily: {
-        sans: ['Fredoka', 'Inter', 'system-ui', 'sans-serif'],
-        display: ['Fredoka', 'DM Sans', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['Mulish', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Mulish', 'Inter', 'system-ui', 'sans-serif'],
       },
       keyframes: {
         "accordion-down": {
