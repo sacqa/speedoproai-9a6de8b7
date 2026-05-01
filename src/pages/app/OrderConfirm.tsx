@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, MessageCircle, Pencil, Phone, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { buildWhatsAppUrl, formatPKR, statusLabel } from "@/lib/format";
+import { buildWhatsAppUrl, formatPKR, statusLabel, WHATSAPP_NUMBER } from "@/lib/format";
 
 export default function OrderConfirm() {
   const { id } = useParams();
@@ -45,7 +45,7 @@ export default function OrderConfirm() {
   if (!order) return <div className="p-10 text-center text-muted-foreground">Loading…</div>;
 
   const addr = order.address_snapshot;
-  const lines = [
+  const summaryLines = [
     `*Speedo Order ${order.order_number}*`,
     `Type: ${statusLabel(order.type)}`,
     `Status: ${statusLabel(order.status)}`,
@@ -59,19 +59,61 @@ export default function OrderConfirm() {
     `Total: ${formatPKR(Number(order.total))}`,
   ].filter(Boolean).join("\n");
 
+  const supportText = `Hi Speedo support 👋\nI just placed order *${order.order_number}*. Please process it as fast as possible.`;
+  const editText = `Hi Speedo 👋\nI'd like to *edit* my order *${order.order_number}*.\n\nCurrent details:\n${summaryLines}\n\nChanges I want:\n• `;
+
   return (
-    <div className="p-6 lg:p-0 max-w-md mx-auto text-center space-y-5">
-      <div className="animate-scale-in mx-auto h-24 w-24 rounded-full bg-success/10 flex items-center justify-center">
-        <CheckCircle2 className="h-14 w-14 text-success" />
+    <div className="p-5 lg:p-0 max-w-md mx-auto space-y-5">
+      <div className="text-center space-y-3 pt-4">
+        <div className="animate-scale-in mx-auto h-24 w-24 rounded-full bg-success/10 flex items-center justify-center">
+          <CheckCircle2 className="h-14 w-14 text-success" />
+        </div>
+        <h1 className="text-2xl font-extrabold">Order Placed!</h1>
+        <p className="text-muted-foreground text-sm">
+          Order <b className="text-foreground">{order.order_number}</b> has been received. Pay <b>cash on delivery</b> when it arrives.
+        </p>
       </div>
-      <h1 className="text-2xl font-extrabold">Order Placed!</h1>
-      <p className="text-muted-foreground">Order <b>{order.order_number}</b> has been placed.</p>
-      <p className="text-sm text-muted-foreground">Your order details have been sent to our WhatsApp. Pay <b>cash on delivery</b> when your order arrives.</p>
-      <a href={buildWhatsAppUrl(lines)} target="_blank" rel="noopener noreferrer">
-        <Button className="w-full h-12 rounded-pill bg-success hover:bg-success/90 text-white">💬 Send Order on WhatsApp</Button>
-      </a>
-      <Link to={`/orders/${order.id}`} className="block"><Button variant="outline" className="w-full h-12 rounded-pill">Track Order</Button></Link>
-      <Link to="/" className="block text-sm text-muted-foreground">Back to Home</Link>
+
+      <div className="rounded-2xl bg-success/5 border border-success/20 p-4 space-y-3">
+        <div className="flex items-start gap-3">
+          <div className="h-9 w-9 rounded-full bg-success/15 text-success flex items-center justify-center shrink-0">
+            <MessageCircle className="h-5 w-5" />
+          </div>
+          <div className="leading-tight">
+            <div className="font-bold text-sm">Need it fast or want to change something?</div>
+            <div className="text-xs text-muted-foreground mt-0.5">Chat with our team on WhatsApp — fastest way to get help with your order.</div>
+          </div>
+        </div>
+
+        <a href={buildWhatsAppUrl(supportText)} target="_blank" rel="noopener noreferrer" className="block">
+          <Button className="w-full h-12 rounded-pill bg-success hover:bg-success/90 text-white gap-2">
+            <MessageCircle className="h-5 w-5" />
+            Chat with Support to Make It Fast
+          </Button>
+        </a>
+
+        <a href={buildWhatsAppUrl(editText)} target="_blank" rel="noopener noreferrer" className="block">
+          <Button variant="outline" className="w-full h-12 rounded-pill border-success/40 text-success hover:bg-success/10 gap-2">
+            <Pencil className="h-5 w-5" />
+            Edit Your Order via WhatsApp
+          </Button>
+        </a>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <Link to={`/orders/${order.id}`}>
+          <Button variant="outline" className="w-full h-12 rounded-pill gap-2">
+            <Truck className="h-4 w-4" /> Track
+          </Button>
+        </Link>
+        <a href={`tel:+${WHATSAPP_NUMBER}`}>
+          <Button variant="outline" className="w-full h-12 rounded-pill gap-2">
+            <Phone className="h-4 w-4" /> Call
+          </Button>
+        </a>
+      </div>
+
+      <Link to="/" className="block text-center text-sm text-muted-foreground pt-2">Back to Home</Link>
     </div>
   );
 }
