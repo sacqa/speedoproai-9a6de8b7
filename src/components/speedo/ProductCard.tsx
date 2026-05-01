@@ -50,18 +50,18 @@ export function ProductCard({ p }: { p: Product }) {
 
         {/* Floating ADD button (dark green squircle) bottom-right of image */}
         {inCart ? (
-          <div className="absolute -bottom-3 right-3 flex items-center gap-1 bg-accent text-accent-foreground rounded-2xl p-1 shadow-elevated">
+          <div className="absolute bottom-2 right-2 flex items-center gap-0.5 bg-accent text-accent-foreground rounded-2xl p-1 shadow-elevated max-w-[calc(100%-1rem)]">
             <button
               onClick={() => setQty(p.id, inCart.quantity - 1)}
-              className="h-8 w-8 rounded-xl bg-white/15 flex items-center justify-center"
+              className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 active:scale-95 transition-transform"
               aria-label="Decrease"
             >
               <Minus className="h-4 w-4" />
             </button>
-            <span className="text-sm font-extrabold min-w-[1.25ch] text-center px-1">{inCart.quantity}</span>
+            <span className="text-sm font-extrabold tabular-nums min-w-[1.5ch] text-center px-1">{inCart.quantity}</span>
             <button
               onClick={() => setQty(p.id, inCart.quantity + 1)}
-              className="h-8 w-8 rounded-xl bg-white/15 flex items-center justify-center"
+              className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 active:scale-95 transition-transform"
               aria-label="Increase"
             >
               <Plus className="h-4 w-4" />
@@ -79,9 +79,9 @@ export function ProductCard({ p }: { p: Product }) {
               })
             }
             aria-label="Add to cart"
-            className="absolute bottom-3 right-3 h-12 w-12 rounded-2xl bg-accent text-accent-foreground flex items-center justify-center shadow-elevated hover:bg-accent/90 active:scale-95 transition-all"
+            className="absolute bottom-2 right-2 h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-accent text-accent-foreground flex items-center justify-center shadow-elevated hover:bg-accent/90 active:scale-95 transition-all"
           >
-            <Plus className="h-6 w-6" strokeWidth={2.5} />
+            <Plus className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.5} />
           </button>
         )}
       </div>
