@@ -35,6 +35,7 @@ import AdminBanners from "./pages/admin/Banners";
 import AdminCustomers from "./pages/admin/Customers";
 import AdminPricing from "./pages/admin/Pricing";
 import AdminBroadcast from "./pages/admin/Broadcast";
+import AdminReplies from "./pages/admin/Replies";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +76,7 @@ const App = () => (
               <Route path="/admin/customers" element={<RequireAdmin><AdminLayout><AdminCustomers /></AdminLayout></RequireAdmin>} />
               <Route path="/admin/pricing" element={<RequireAdmin><AdminLayout><AdminPricing /></AdminLayout></RequireAdmin>} />
               <Route path="/admin/broadcast" element={<RequireAdmin><AdminLayout><AdminBroadcast /></AdminLayout></RequireAdmin>} />
+              <Route path="/admin/replies" element={<RequireAdmin><AdminLayout><AdminReplies /></AdminLayout></RequireAdmin>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppShell>
