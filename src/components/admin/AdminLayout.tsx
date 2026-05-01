@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Package, FolderTree, ShoppingBag, Users, Image as ImageIcon,
-  DollarSign, LogOut, Menu, Megaphone,
+  DollarSign, LogOut, Menu, Megaphone, MessageSquare,
 } from "lucide-react";
 import { SpeedoLogo } from "@/components/speedo/SpeedoLogo";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,6 +18,7 @@ const items = [
   { to: "/admin/customers", label: "Customers", icon: Users },
   { to: "/admin/pricing", label: "Pricing Rules", icon: DollarSign },
   { to: "/admin/broadcast", label: "Broadcast", icon: Megaphone },
+  { to: "/admin/replies", label: "Replies", icon: MessageSquare },
 ];
 
 export function AdminLayout({ children }: { children: ReactNode }) {

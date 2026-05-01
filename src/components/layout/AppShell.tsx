@@ -29,16 +29,17 @@ export function AppShell({ children }: { children: ReactNode }) {
   const cartSubtotal = useCart((s) => s.subtotal());
   const { user, signOut } = useAuth();
   const location = useLocation();
-  useRealtimeNotifications();
+  const { Banner } = useRealtimeNotifications();
   const hideChrome = ["/login", "/otp", "/onboarding", "/splash", "/admin"].some((p) => location.pathname.startsWith(p));
   const hideCheckoutBar = ["/cart", "/checkout", "/order"].some((p) => location.pathname.startsWith(p));
 
   if (hideChrome) {
-    return <main className="min-h-screen bg-background">{children}</main>;
+    return <main className="min-h-screen bg-background">{Banner}{children}</main>;
   }
 
   return (
     <div className="min-h-screen bg-background">
+      {Banner}
       {/* DESKTOP HEADER */}
       <header className="hidden lg:flex sticky top-0 z-40 h-16 items-center bg-card border-b border-border shadow-card px-6">
         <Link to="/" className="flex items-center gap-3 mr-6">
