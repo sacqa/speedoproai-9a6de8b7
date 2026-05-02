@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR, statusLabel } from "@/lib/format";
 import { Check } from "lucide-react";
+import InstructionsThread from "@/components/order/InstructionsThread";
 
 const FLOW = [
   "submitted","rider_assigned","purchasing_items","out_for_delivery","delivered",
@@ -92,6 +93,8 @@ export default function OrderDetails() {
           <p className="text-muted-foreground">{order.address_snapshot.street}, {order.address_snapshot.area}</p>
         </div>
       )}
+
+      <InstructionsThread orderId={order.id} />
     </div>
   );
 }
