@@ -1,13 +1,22 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { CheckCircle2, MessageCircle, Pencil, Phone, Truck } from "lucide-react";
+import { CheckCircle2, MessageCircle, Pencil, Phone, Truck, MessageSquarePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { buildWhatsAppUrl, formatPKR, statusLabel, WHATSAPP_NUMBER } from "@/lib/format";
+import InstructionsThread from "@/components/order/InstructionsThread";
 
 export default function OrderConfirm() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [order, setOrder] = useState<any>(null);
+  const [open, setOpen] = useState(false);
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -62,6 +71,24 @@ export default function OrderConfirm() {
   const supportText = `Hi Speedo support 👋\nI just placed order *${order.order_number}*. Please process it as fast as possible.`;
   const editText = `Hi Speedo 👋\nI'd like to *edit* my order *${order.order_number}*.\n\nCurrent details:\n${summaryLines}\n\nChanges I want:\n• `;
 
+  const submitNote = async () => {
+    const trimmed = note.trim();
+    if (!trimmed || !user) return;
+    if (trimmed.length > 1000) { toast.error("Message too long"); return; }
+    setBusy(true);
+    const { error } = await supabase.from("order_instructions").insert({
+      order_id: order.id,
+      user_id: user.id,
+      author_role: "customer",
+      message: trimmed,
+    });
+    setBusy(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Note sent to admin");
+    setNote("");
+    setOpen(false);
+  };
+
   return (
     <div className="p-5 lg:p-0 max-w-md mx-auto space-y-5">
       <div className="text-center space-y-3 pt-4">
@@ -98,6 +125,15 @@ export default function OrderConfirm() {
             Edit Your Order via WhatsApp
           </Button>
         </a>
+
+        <Button
+          variant="outline"
+          onClick={() => setOpen(true)}
+          className="w-full h-12 rounded-pill border-primary/40 text-primary hover:bg-primary/10 gap-2"
+        >
+          <MessageSquarePlus className="h-5 w-5" />
+          Add Instructions In-App
+        </Button>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -113,7 +149,30 @@ export default function OrderConfirm() {
         </a>
       </div>
 
+      <InstructionsThread orderId={order.id} compact />
+
       <Link to="/" className="block text-center text-sm text-muted-foreground pt-2">Back to Home</Link>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add instructions to your order</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Add changes or special requests. Our team will see this on your order in admin.
+          </p>
+          <Textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value.slice(0, 1000))}
+            placeholder="e.g. Please add 1 extra packet of milk, no onions, leave at gate, etc."
+            className="min-h-28"
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button onClick={submitNote} disabled={busy || !note.trim()}>Send</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
