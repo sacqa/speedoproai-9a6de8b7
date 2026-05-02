@@ -189,6 +189,33 @@ export type Database = {
           },
         ]
       }
+      order_instructions: {
+        Row: {
+          author_role: string
+          created_at: string
+          id: string
+          message: string
+          order_id: string
+          user_id: string
+        }
+        Insert: {
+          author_role?: string
+          created_at?: string
+          id?: string
+          message: string
+          order_id: string
+          user_id: string
+        }
+        Update: {
+          author_role?: string
+          created_at?: string
+          id?: string
+          message?: string
+          order_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           id: string
