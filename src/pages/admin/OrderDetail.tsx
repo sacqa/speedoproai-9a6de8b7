@@ -58,9 +58,9 @@ export default function AdminOrderDetail() {
     return true;
   };
 
-  const updateItem = async (itemId: string, patch: Partial<any>) => {
+  const updateItem = async (itemId: string, patch: Record<string, any>) => {
     setBusy(true);
-    const { error } = await supabase.from("order_items").update(patch).eq("id", itemId);
+    const { error } = await supabase.from("order_items").update(patch as any).eq("id", itemId);
     if (error) { toast.error(error.message); setBusy(false); return; }
     const nextItems = items.map((i) => (i.id === itemId ? { ...i, ...patch } : i));
     setItems(nextItems);
