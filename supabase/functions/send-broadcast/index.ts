@@ -80,6 +80,14 @@ Deno.serve(async (req) => {
     }));
     if (stale.length) await admin.from("push_subscriptions").delete().in("endpoint", stale);
 
+    // Log into broadcast_history for re-send feature
+    await admin.from("broadcast_history").insert({
+      title, message, url,
+      users_count: userIds.length,
+      push_sent: sent,
+      created_by: uid,
+    });
+
     return json({ ok: true, users: userIds.length, push_sent: sent, push_failed: failed, removed_stale: stale.length });
   } catch (e: any) {
     return json({ error: e?.message ?? "Server error" }, 500);

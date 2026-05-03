@@ -53,6 +53,74 @@ export type Database = {
         }
         Relationships: []
       }
+      announcement_dismissals: {
+        Row: {
+          announcement_id: string
+          dismissed_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          announcement_id: string
+          dismissed_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          announcement_id?: string
+          dismissed_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_dismissals_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "announcements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      announcements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          cta_label: string | null
+          cta_url: string | null
+          expires_at: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          message: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          cta_label?: string | null
+          cta_url?: string | null
+          expires_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          message: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          cta_label?: string | null
+          cta_url?: string | null
+          expires_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          message?: string
+          title?: string
+        }
+        Relationships: []
+      }
       banners: {
         Row: {
           cta_label: string | null
@@ -83,6 +151,39 @@ export type Database = {
           sort_order?: number
           subtitle?: string | null
           title?: string
+        }
+        Relationships: []
+      }
+      broadcast_history: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          message: string
+          push_sent: number
+          title: string
+          url: string | null
+          users_count: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message: string
+          push_sent?: number
+          title: string
+          url?: string | null
+          users_count?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message?: string
+          push_sent?: number
+          title?: string
+          url?: string | null
+          users_count?: number
         }
         Relationships: []
       }
