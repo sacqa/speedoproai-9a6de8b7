@@ -2,12 +2,13 @@ import { ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Package, FolderTree, ShoppingBag, Users, Image as ImageIcon,
-  DollarSign, LogOut, Menu, Megaphone, MessageSquare,
+  DollarSign, LogOut, Menu, Megaphone, MessageSquare, Sparkles,
 } from "lucide-react";
 import { SpeedoLogo } from "@/components/speedo/SpeedoLogo";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAdminOrderAlert } from "@/hooks/useAdminOrderAlert";
 
 const items = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -18,12 +19,14 @@ const items = [
   { to: "/admin/customers", label: "Customers", icon: Users },
   { to: "/admin/pricing", label: "Pricing Rules", icon: DollarSign },
   { to: "/admin/broadcast", label: "Broadcast", icon: Megaphone },
+  { to: "/admin/announcements", label: "Announcements", icon: Sparkles },
   { to: "/admin/replies", label: "Replies", icon: MessageSquare },
 ];
 
 export function AdminLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const location = useLocation();
+  useAdminOrderAlert(true);
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-40 h-14 bg-card border-b border-border flex items-center px-4 gap-3">
