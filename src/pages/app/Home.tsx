@@ -36,7 +36,7 @@ export default function Home() {
     <div className="space-y-7 lg:space-y-10 pb-4">
       {/* Mobile search */}
       <div className="lg:hidden px-4 pt-4">
-        <Link to="/search" className="flex items-center gap-2 bg-card rounded-pill px-4 py-3 shadow-card border border-border">
+        <Link to="/search" className="flex items-center gap-2 glass-card !rounded-pill px-4 py-3">
           <span className="text-muted-foreground text-sm flex-1">🔍 Search for fresh food, medicine, anything…</span>
         </Link>
       </div>
@@ -50,7 +50,7 @@ export default function Home() {
           <div className="flex gap-4 px-4 lg:px-0 pb-2">
             {(cats.data ?? []).map((c) => (
               <Link to={`/speedmart?cat=${c.slug}`} key={c.id} className="flex-shrink-0 w-20 text-center group">
-                <div className="h-20 w-20 rounded-2xl bg-accent-soft flex items-center justify-center text-3xl shadow-card group-hover:scale-105 transition-transform">
+                <div className="h-20 w-20 neu flex items-center justify-center text-3xl group-hover:scale-105 transition-transform">
                   {c.icon}
                 </div>
                 <p className="mt-2 text-[11px] font-semibold leading-tight line-clamp-2">{c.name}</p>
@@ -174,8 +174,8 @@ function ServiceShortcuts() {
     <div className="px-4 lg:px-0">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {services.map((s) => (
-          <Link key={s.to} to={s.to} className="bg-card rounded-2xl p-4 shadow-card flex items-center gap-3 hover:shadow-elevated transition-shadow">
-            <div className="h-12 w-12 rounded-xl bg-accent-soft flex items-center justify-center flex-shrink-0">
+          <Link key={s.to} to={s.to} className="glass-card p-4 flex items-center gap-3 hover:scale-[1.02] transition-transform">
+            <div className="h-12 w-12 rounded-2xl neu-inset flex items-center justify-center flex-shrink-0">
               <s.icon className="h-6 w-6 text-accent" />
             </div>
             <div className="min-w-0">
