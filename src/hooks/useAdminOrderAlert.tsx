@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
 export const RINGTONES = [
+  { id: "shopify", label: "Shopify Cha-ching", url: "/sounds/shopify.mp3" },
   { id: "ding", label: "Ding", url: "/sounds/ding.mp3" },
   { id: "chime", label: "Chime", url: "/sounds/chime.mp3" },
   { id: "bell", label: "Bell", url: "/sounds/bell.mp3" },
@@ -11,7 +12,7 @@ export const RINGTONES = [
 ];
 
 export function getAdminTone() {
-  return localStorage.getItem("admin_tone") || "ding";
+  return localStorage.getItem("admin_tone") || "shopify";
 }
 export function setAdminTone(id: string) {
   localStorage.setItem("admin_tone", id);
