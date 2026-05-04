@@ -3,10 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard } from "@/components/speedo/ProductCard";
 import { Search as SearchIcon } from "lucide-react";
+import { SmartSuggestions } from "@/components/app/SmartSuggestions";
+import { useCart } from "@/store/cart";
 
 export default function Search() {
   const [q, setQ] = useState("");
   const [debounced, setDebounced] = useState("");
+  const cartIds = useCart((s) => s.items.map((i) => i.product_id));
   useEffect(() => {
     const t = setTimeout(() => setDebounced(q.trim()), 250);
     return () => clearTimeout(t);
@@ -37,7 +40,7 @@ export default function Search() {
         />
       </div>
       {debounced.length <= 1 ? (
-        <p className="text-center text-muted-foreground py-12">Start typing to search products</p>
+        <SmartSuggestions mode="explore" recent={cartIds} title="Recommended for you" />
       ) : results.isLoading ? (
         <p className="text-center text-muted-foreground py-12">Searching…</p>
       ) : results.data?.length ? (
