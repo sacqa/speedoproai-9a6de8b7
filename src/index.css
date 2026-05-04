@@ -123,4 +123,64 @@
   .gradient-purple-soft { background: var(--gradient-purple-soft); }
   .shadow-card { box-shadow: var(--shadow-card); }
   .shadow-elevated { box-shadow: var(--shadow-elevated); }
+
+  /* ===== Glassmorphism + Neumorphism ===== */
+  .glass {
+    background: hsl(0 0% 100% / 0.65);
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    border: 1px solid hsl(0 0% 100% / 0.6);
+  }
+  .glass-dark {
+    background: hsl(240 10% 8% / 0.55);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid hsl(0 0% 100% / 0.08);
+  }
+  .glass-card {
+    background: linear-gradient(135deg, hsl(0 0% 100% / 0.75), hsl(0 0% 100% / 0.45));
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid hsl(0 0% 100% / 0.7);
+    box-shadow:
+      0 8px 32px hsl(19 92% 47% / 0.08),
+      inset 0 1px 0 hsl(0 0% 100% / 0.9);
+    border-radius: 1.25rem;
+  }
+  .neu {
+    background: hsl(220 14% 97%);
+    box-shadow:
+      8px 8px 20px hsl(220 14% 85% / 0.7),
+      -8px -8px 20px hsl(0 0% 100% / 0.95);
+    border-radius: 1.25rem;
+  }
+  .neu-inset {
+    background: hsl(220 14% 97%);
+    box-shadow:
+      inset 5px 5px 12px hsl(220 14% 85% / 0.7),
+      inset -5px -5px 12px hsl(0 0% 100% / 0.95);
+    border-radius: 1rem;
+  }
+  .btn-glossy {
+    background: linear-gradient(180deg, hsl(19 95% 55%), hsl(19 92% 42%));
+    box-shadow:
+      0 6px 18px hsl(19 92% 47% / 0.45),
+      inset 0 1px 0 hsl(0 0% 100% / 0.45),
+      inset 0 -2px 0 hsl(19 92% 30% / 0.4);
+    color: hsl(0 0% 100%);
+    border-radius: 1rem;
+    transition: transform .15s ease, box-shadow .2s ease;
+  }
+  .btn-glossy:hover { transform: translateY(-1px); }
+  .btn-glossy:active { transform: translateY(1px); box-shadow: 0 2px 8px hsl(19 92% 47% / 0.4), inset 0 2px 6px hsl(19 92% 30% / 0.5); }
+  .floating-nav {
+    background: hsl(0 0% 100% / 0.72);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border: 1px solid hsl(0 0% 100% / 0.7);
+    box-shadow:
+      0 12px 40px hsl(240 30% 15% / 0.18),
+      inset 0 1px 0 hsl(0 0% 100% / 0.9);
+    border-radius: 28px;
+  }
 }

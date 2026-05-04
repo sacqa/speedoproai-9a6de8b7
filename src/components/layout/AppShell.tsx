@@ -150,12 +150,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       </main>
 
       {/* MOBILE BOTTOM NAV */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border safe-bottom">
-        <div className="grid grid-cols-5 h-16 items-center">
+      <nav className="lg:hidden fixed bottom-3 left-3 right-3 z-40 floating-nav safe-bottom">
+        <div className="grid grid-cols-5 h-16 items-center px-1">
           <BottomTab to="/" icon={Home} label="Home" />
           <BottomTab to="/search" icon={Search} label="Explore" />
           <Link to="/speedmart" className="flex justify-center -mt-6">
-            <div className="h-14 w-14 rounded-2xl bg-primary shadow-elevated flex items-center justify-center ring-4 ring-card">
+            <div className="h-14 w-14 rounded-2xl btn-glossy flex items-center justify-center ring-4 ring-white/70">
               <SpeedoLogo size={28} variant="mark" className="[&>path]:fill-white" />
             </div>
           </Link>
@@ -168,7 +168,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {cartQty > 0 && !hideCheckoutBar && (
         <Link
           to="/cart"
-          className="fixed left-1/2 -translate-x-1/2 bottom-20 lg:bottom-6 z-50 w-[92%] max-w-md flex items-center justify-between gap-3 bg-primary text-primary-foreground rounded-2xl shadow-elevated px-4 py-3 hover:scale-[1.02] transition-transform"
+          className="fixed left-1/2 -translate-x-1/2 bottom-24 lg:bottom-6 z-50 w-[92%] max-w-md flex items-center justify-between gap-3 btn-glossy px-4 py-3 hover:scale-[1.02] transition-transform"
         >
           <div className="flex items-center gap-3">
             <div className="relative h-9 w-9 rounded-xl bg-white/20 flex items-center justify-center">
