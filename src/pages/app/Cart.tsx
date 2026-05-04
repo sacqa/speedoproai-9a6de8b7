@@ -3,6 +3,7 @@ import { useCart } from "@/store/cart";
 import { Button } from "@/components/ui/button";
 import { Plus, Minus, Trash2, ShoppingCart } from "lucide-react";
 import { formatPKR } from "@/lib/format";
+import { SmartSuggestions } from "@/components/app/SmartSuggestions";
 
 export default function Cart() {
   const { items, setQty, remove, subtotal } = useCart();
@@ -52,6 +53,7 @@ export default function Cart() {
         </div>
       </div>
       <Button className="w-full h-12 rounded-pill text-base" onClick={() => nav("/checkout")}>Proceed to Checkout</Button>
+      <SmartSuggestions mode="cart" cartItems={items.map((i) => i.product_id)} />
     </div>
   );
 }
