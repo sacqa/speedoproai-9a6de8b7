@@ -41,7 +41,7 @@ export default function AdminDashboard() {
         <Stat icon={Package} label="Active Products" value={s?.productsCount ?? "—"} />
         <Stat icon={Users} label="Customers" value={s?.customersCount ?? "—"} />
       </div>
-      <div className="bg-card rounded-xl shadow-card p-4">
+      <div className="glass-card p-5">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-bold">Recent Orders</h2>
           <Link to="/admin/orders" className="text-primary text-sm font-semibold">View all →</Link>
@@ -74,9 +74,9 @@ export default function AdminDashboard() {
 
 function Stat({ icon: Icon, label, value }: { icon: any; label: string; value: any }) {
   return (
-    <div className="bg-card rounded-xl shadow-card p-4">
+    <div className="glass-card p-4">
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-lg bg-primary-tint text-primary flex items-center justify-center"><Icon className="h-5 w-5" /></div>
+        <div className="h-11 w-11 rounded-2xl neu-inset text-primary flex items-center justify-center"><Icon className="h-5 w-5" /></div>
         <div>
           <div className="text-xs text-muted-foreground">{label}</div>
           <div className="text-xl font-extrabold">{value}</div>

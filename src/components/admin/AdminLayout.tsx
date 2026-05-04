@@ -29,7 +29,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   useAdminOrderAlert(true);
   return (
     <div className="min-h-screen bg-muted/30">
-      <header className="sticky top-0 z-40 h-14 bg-card border-b border-border flex items-center px-4 gap-3">
+      <header className="sticky top-0 z-40 h-14 glass border-b border-white/40 flex items-center px-4 gap-3">
         <Sheet>
           <SheetTrigger asChild>
             <button className="lg:hidden p-1.5 -ml-1.5"><Menu className="h-5 w-5" /></button>
@@ -51,7 +51,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
       <div className="flex">
-        <aside className="hidden lg:block w-60 shrink-0 border-r border-border bg-card min-h-[calc(100vh-3.5rem)]">
+        <aside className="hidden lg:block w-60 shrink-0 border-r border-white/40 glass min-h-[calc(100vh-3.5rem)]">
           <SidebarBody pathname={location.pathname} />
         </aside>
         <main className="flex-1 p-4 lg:p-8 max-w-6xl mx-auto w-full">{children}</main>

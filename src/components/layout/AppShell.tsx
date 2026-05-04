@@ -43,7 +43,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {Banner}
       <AnnouncementPopup />
       {/* DESKTOP HEADER */}
-      <header className="hidden lg:flex sticky top-0 z-40 h-16 items-center bg-card border-b border-border shadow-card px-6">
+      <header className="hidden lg:flex sticky top-0 z-40 h-16 items-center glass border-b border-white/40 px-6">
         <Link to="/" className="flex items-center gap-3 mr-6">
           <SpeedoLogo size={36} />
           <span className="text-xl font-extrabold tracking-tight">Speedo</span>
@@ -90,7 +90,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       {/* DESKTOP SIDEBAR */}
-      <aside className="hidden lg:flex fixed left-0 top-16 bottom-0 w-60 bg-card border-r border-border flex-col py-6 px-3">
+      <aside className="hidden lg:flex fixed left-0 top-16 bottom-0 w-60 glass border-r border-white/40 flex-col py-6 px-3">
         <nav className="flex flex-col gap-1">
           {navItems.map((it) => (
             <NavLink
@@ -113,7 +113,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       {/* MOBILE TOP BAR */}
-      <header className="lg:hidden sticky top-0 z-40 bg-card border-b border-border shadow-card safe-top">
+      <header className="lg:hidden sticky top-0 z-40 glass border-b border-white/40 safe-top">
         <div className="flex items-center justify-between h-14 px-4">
           <Sheet>
             <SheetTrigger asChild>
