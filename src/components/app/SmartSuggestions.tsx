@@ -22,6 +22,13 @@ export function SmartSuggestions({
 
   useEffect(() => {
     let cancelled = false;
+    const hasInput = (mode === "cart" ? cartItems.length : recent.length) > 0;
+    if (!hasInput) {
+      setItems([]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
     async function run() {
       setLoading(true);
       setError(null);
