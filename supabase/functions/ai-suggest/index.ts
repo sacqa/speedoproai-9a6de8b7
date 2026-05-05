@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
 
     const userPrompt =
       mode === "cart"
-        ? `Cart items:\n${cartItems.join(", ") || "(empty)"}\n\nProduct catalog (id|name):\n${catalog}`
+        ? `Cart items:\n${cartItems.join(", ") || "(empty)"}\nRecently viewed: ${recent.join(", ") || "(none)"}\n\nProduct catalog (id|name):\n${catalog}`
         : `Recently viewed: ${recent.join(", ") || "(none)"}\n\nProduct catalog (id|name):\n${catalog}`;
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
