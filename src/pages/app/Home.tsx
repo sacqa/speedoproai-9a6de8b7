@@ -93,36 +93,6 @@ export default function Home() {
   );
 }
 
-function DeliveryModeSelector() {
-  const [mode, setMode] = useState<"instant" | "scheduled">("instant");
-  return (
-    <div className="px-4 lg:px-0 grid grid-cols-2 gap-2">
-      <button
-        onClick={() => setMode("instant")}
-        className={`flex items-center gap-2 p-3 rounded-xl border-2 text-left transition-all ${
-          mode === "instant" ? "border-primary bg-primary-tint" : "border-border bg-card"
-        }`}
-      >
-        <div>
-          <div className="text-xs text-muted-foreground">Instant Delivery</div>
-          <div className="text-sm font-bold">In 40 mins</div>
-        </div>
-      </button>
-      <button
-        onClick={() => setMode("scheduled")}
-        className={`flex items-center gap-2 p-3 rounded-xl border-2 text-left transition-all ${
-          mode === "scheduled" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"
-        }`}
-      >
-        <div>
-          <div className="text-xs opacity-80">Scheduled</div>
-          <div className="text-sm font-bold">Today 8–10am</div>
-        </div>
-      </button>
-    </div>
-  );
-}
-
 function BannerSlider({ banners }: { banners: any[] }) {
   const [i, setI] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
