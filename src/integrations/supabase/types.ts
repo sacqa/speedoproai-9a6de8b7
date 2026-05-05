@@ -295,6 +295,7 @@ export type Database = {
           author_role: string
           created_at: string
           id: string
+          image_url: string | null
           message: string
           order_id: string
           user_id: string
@@ -303,6 +304,7 @@ export type Database = {
           author_role?: string
           created_at?: string
           id?: string
+          image_url?: string | null
           message: string
           order_id: string
           user_id: string
@@ -311,6 +313,7 @@ export type Database = {
           author_role?: string
           created_at?: string
           id?: string
+          image_url?: string | null
           message?: string
           order_id?: string
           user_id?: string

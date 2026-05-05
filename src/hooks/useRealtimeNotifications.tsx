@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { Bell, Send, X } from "lucide-react";
+import { BellRing, Send, X, Package } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 type BannerNotif = {
   id: string;
@@ -15,9 +16,40 @@ type BannerNotif = {
 export function useRealtimeNotifications() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [banner, setBanner] = useState<BannerNotif | null>(null);
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const unlockedRef = useRef(false);
+
+  // Unlock audio on first user gesture (iOS/Android autoplay policy)
+  useEffect(() => {
+    const unlock = async () => {
+      if (unlockedRef.current) return;
+      try {
+        const a = new Audio("/sounds/shopify.mp3");
+        a.preload = "auto"; a.muted = true; a.volume = 0;
+        await a.play().catch(() => {});
+        a.pause(); a.currentTime = 0; a.muted = false; a.volume = 0.85;
+        audioRef.current = a;
+        unlockedRef.current = true;
+      } catch {}
+    };
+    window.addEventListener("pointerdown", unlock, { passive: true, once: false });
+    window.addEventListener("touchstart", unlock, { passive: true, once: false });
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("touchstart", unlock);
+    };
+  }, []);
+
+  const playTone = () => {
+    try { (navigator as any).vibrate?.([120, 60, 120]); } catch {}
+    const el = audioRef.current ?? new Audio("/sounds/shopify.mp3");
+    el.currentTime = 0; el.volume = 0.85;
+    el.play().catch(() => {});
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -30,6 +62,7 @@ export function useRealtimeNotifications() {
         const n: any = payload.new;
         setBanner({ id: n.id, title: n.title, message: n.message, order_id: n.order_id ?? null });
         setReply("");
+        playTone();
         // Try OS-level notification when tab is hidden / installed PWA
         if (typeof window !== "undefined" && "Notification" in window) {
           if (Notification.permission === "granted" && document.visibilityState !== "visible") {
@@ -71,37 +104,47 @@ export function useRealtimeNotifications() {
   };
 
   const Banner = banner ? (
-    <div className="fixed top-2 left-2 right-2 z-[60] mx-auto max-w-xl animate-fade-in">
-      <div className="rounded-2xl bg-primary text-primary-foreground shadow-elevated p-3 pr-2">
+    <div className="fixed top-3 left-3 right-3 z-[60] mx-auto max-w-md animate-fade-in safe-top">
+      <div
+        className="glass-card p-3 pr-2 cursor-pointer"
+        onClick={() => banner.order_id && navigate(`/orders/${banner.order_id}`)}
+      >
         <div className="flex items-start gap-3">
-          <div className="h-9 w-9 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-            <Bell className="h-4 w-4" />
+          <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shrink-0 shadow-elevated">
+            <BellRing className="h-5 w-5 text-white animate-pulse" />
           </div>
           <div className="flex-1 min-w-0 leading-tight">
-            <div className="font-bold text-sm truncate">{banner.title}</div>
-            <div className="text-xs opacity-90 line-clamp-2">{banner.message}</div>
+            <div className="flex items-center gap-1.5">
+              <Package className="h-3 w-3 text-primary" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-primary">Order Update</span>
+            </div>
+            <div className="font-bold text-sm text-foreground truncate">{banner.title}</div>
+            <div className="text-xs text-muted-foreground line-clamp-2">{banner.message}</div>
           </div>
           <button
             aria-label="Dismiss"
-            onClick={() => setBanner(null)}
-            className="p-1 rounded-full hover:bg-white/15 shrink-0"
+            onClick={(e) => { e.stopPropagation(); setBanner(null); }}
+            className="p-1.5 rounded-full hover:bg-muted shrink-0 text-muted-foreground"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="mt-2 flex items-center gap-2 bg-white/15 rounded-pill pl-3 pr-1 py-1">
+        <div
+          className="mt-2.5 flex items-center gap-2 neu-inset rounded-pill pl-4 pr-1 py-1"
+          onClick={(e) => e.stopPropagation()}
+        >
           <input
             value={reply}
             onChange={(e) => setReply(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") sendReply(); }}
             placeholder="Reply to support…"
-            className="flex-1 bg-transparent outline-none text-sm placeholder:text-primary-foreground/70"
+            className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground"
           />
           <button
             onClick={sendReply}
             disabled={sending || !reply.trim()}
             aria-label="Send reply"
-            className="h-8 w-8 rounded-full bg-white/25 hover:bg-white/35 flex items-center justify-center disabled:opacity-50"
+            className="h-8 w-8 rounded-full btn-glossy flex items-center justify-center disabled:opacity-50"
           >
             <Send className="h-4 w-4" />
           </button>
