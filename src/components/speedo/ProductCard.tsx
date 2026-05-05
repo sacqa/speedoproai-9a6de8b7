@@ -1,5 +1,6 @@
 import { Plus, Minus, Heart } from "lucide-react";
 import { useCart } from "@/store/cart";
+import { useRecentlyViewed } from "@/store/recentlyViewed";
 import { formatPKR } from "@/lib/format";
 import { useState } from "react";
 
@@ -15,6 +16,7 @@ export function ProductCard({ p }: { p: Product }) {
   const items = useCart((s) => s.items);
   const add = useCart((s) => s.add);
   const setQty = useCart((s) => s.setQty);
+  const trackView = useRecentlyViewed((s) => s.push);
   const inCart = items.find((i) => i.product_id === p.id);
   const [liked, setLiked] = useState(false);
 
@@ -69,15 +71,16 @@ export function ProductCard({ p }: { p: Product }) {
           </div>
         ) : (
           <button
-            onClick={() =>
+            onClick={() => {
+              trackView(p.id);
               add({
                 product_id: p.id,
                 name: p.name,
                 price: Number(p.price),
                 unit: p.unit,
                 image_url: p.image_url,
-              })
-            }
+              });
+            }}
             aria-label="Add to cart"
             className="absolute bottom-2 right-2 h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-accent text-accent-foreground flex items-center justify-center shadow-elevated hover:bg-accent/90 active:scale-95 transition-all"
           >
