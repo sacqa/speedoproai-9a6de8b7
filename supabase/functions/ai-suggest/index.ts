@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
     // Fetch active product catalog (slim list).
     const { data: products, error } = await supabase
       .from("products")
-      .select("id,name,unit,price,category_id,is_active")
+      .select("id,name,unit,price,category_id,is_active,image_url")
       .eq("is_active", true)
       .limit(400);
     if (error) throw error;
@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
 
     const userPrompt =
       mode === "cart"
-        ? `Cart items:\n${cartItems.join(", ") || "(empty)"}\n\nProduct catalog (id|name):\n${catalog}`
+        ? `Cart items:\n${cartItems.join(", ") || "(empty)"}\nRecently viewed: ${recent.join(", ") || "(none)"}\n\nProduct catalog (id|name):\n${catalog}`
         : `Recently viewed: ${recent.join(", ") || "(none)"}\n\nProduct catalog (id|name):\n${catalog}`;
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
