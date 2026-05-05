@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Plus, Minus, Trash2, ShoppingCart } from "lucide-react";
 import { formatPKR } from "@/lib/format";
 import { SmartSuggestions } from "@/components/app/SmartSuggestions";
+import { useRecentlyViewed } from "@/store/recentlyViewed";
 
 export default function Cart() {
   const { items, setQty, remove, subtotal } = useCart();
+  const recent = useRecentlyViewed((s) => s.ids);
   const nav = useNavigate();
   const sub = subtotal();
   const delivery = sub > 1500 || sub === 0 ? 0 : 99;
@@ -53,7 +55,7 @@ export default function Cart() {
         </div>
       </div>
       <Button className="w-full h-12 rounded-pill text-base" onClick={() => nav("/checkout")}>Proceed to Checkout</Button>
-      <SmartSuggestions mode="cart" cartItems={items.map((i) => i.product_id)} />
+      <SmartSuggestions mode="cart" cartItems={items.map((i) => i.product_id)} recent={recent} />
     </div>
   );
 }
