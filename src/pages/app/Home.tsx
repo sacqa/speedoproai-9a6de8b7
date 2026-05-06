@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, ChevronRight, ShoppingBasket, Pill, Package, PenSquare, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShoppingBasket, Pill, Package, PenSquare, ArrowRight, Search as SearchIcon, Mic } from "lucide-react";
 import { ProductCard } from "@/components/speedo/ProductCard";
 import { SectionHeader } from "@/components/speedo/SectionHeader";
 
@@ -36,8 +36,15 @@ export default function Home() {
     <div className="space-y-7 lg:space-y-10 pb-4">
       {/* Mobile search */}
       <div className="lg:hidden px-4 pt-4">
-        <Link to="/search" className="flex items-center gap-2 glass-card !rounded-pill px-4 py-3">
-          <span className="text-muted-foreground text-sm flex-1">🔍 Search for fresh food, medicine, anything…</span>
+        <Link
+          to="/search"
+          className="flex items-center gap-3 glass-card !rounded-pill px-4 py-3.5 shadow-card border border-border/60"
+        >
+          <SearchIcon className="h-5 w-5 text-primary shrink-0" />
+          <span className="text-muted-foreground text-sm flex-1 truncate">
+            Search fresh food, medicine, anything…
+          </span>
+          <Mic className="h-5 w-5 text-muted-foreground shrink-0" />
         </Link>
       </div>
 

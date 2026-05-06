@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatPKR, statusLabel } from "@/lib/format";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Save } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, Pill, ExternalLink } from "lucide-react";
 import InstructionsThread from "@/components/order/InstructionsThread";
 
 const STATUSES = ["submitted","rider_assigned","purchasing_items","out_for_delivery","delivered","cancelled"];
@@ -22,6 +22,7 @@ export default function AdminOrderDetail() {
   const [fees, setFees] = useState({ delivery_fee: 0, service_charge: 0 });
   const [notes, setNotes] = useState("");
   const [newItem, setNewItem] = useState({ name: "", price: "", quantity: "1", unit: "" });
+  const [prescriptionSignedUrl, setPrescriptionSignedUrl] = useState<string | null>(null);
 
   const load = async () => {
     if (!id) return;
@@ -37,6 +38,14 @@ export default function AdminOrderDetail() {
       setEditAddr(o.address_snapshot ?? { recipient_name: "", phone: "", street: "", area: "", details: "" });
       setFees({ delivery_fee: Number(o.delivery_fee) || 0, service_charge: Number(o.service_charge) || 0 });
       setNotes(o.notes ?? "");
+      if (o.prescription_url) {
+        const { data: signed } = await supabase.storage
+          .from("prescriptions")
+          .createSignedUrl(o.prescription_url, 60 * 60);
+        setPrescriptionSignedUrl(signed?.signedUrl ?? null);
+      } else {
+        setPrescriptionSignedUrl(null);
+      }
     }
   };
   useEffect(() => { load(); }, [id]);
@@ -139,6 +148,29 @@ export default function AdminOrderDetail() {
       </div>
 
       <InstructionsThread orderId={order.id} asAdmin />
+
+      {(order.type === "pharmacy" || order.prescription_url) && (
+        <div className="bg-card rounded-xl shadow-card p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Pill className="h-4 w-4 text-primary" />
+            <h2 className="font-bold">Prescription</h2>
+          </div>
+          {prescriptionSignedUrl ? (
+            <a href={prescriptionSignedUrl} target="_blank" rel="noreferrer" className="block">
+              <img
+                src={prescriptionSignedUrl}
+                alt="Prescription"
+                className="rounded-xl max-h-96 object-contain w-full bg-muted"
+              />
+              <span className="mt-2 inline-flex items-center gap-1 text-xs text-primary font-semibold">
+                Open full size <ExternalLink className="h-3 w-3" />
+              </span>
+            </a>
+          ) : (
+            <p className="text-xs text-muted-foreground">No prescription image uploaded.</p>
+          )}
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-4">
         <div className="bg-card rounded-xl shadow-card p-4 text-sm space-y-2">

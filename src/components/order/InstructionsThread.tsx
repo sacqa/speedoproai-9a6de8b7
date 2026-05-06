@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { MessageSquare, Send, Paperclip, X, ImageIcon } from "lucide-react";
+import { compressImage } from "@/lib/imageCompress";
 
 interface Msg {
   id: string;
@@ -68,10 +69,14 @@ export default function InstructionsThread({ orderId, asAdmin = false, compact =
     setBusy(true);
     let image_url: string | null = null;
     if (pendingFile) {
-      const ext = pendingFile.name.split(".").pop()?.toLowerCase() || "jpg";
+      let toUpload = pendingFile;
+      try {
+        toUpload = await compressImage(pendingFile, { maxDimension: 1280, quality: 0.78 });
+      } catch { /* fall back to original */ }
+      const ext = toUpload.name.split(".").pop()?.toLowerCase() || "jpg";
       const path = `${user.id}/${orderId}/${Date.now()}.${ext}`;
-      const up = await supabase.storage.from("order-images").upload(path, pendingFile, {
-        cacheControl: "3600", upsert: false, contentType: pendingFile.type,
+      const up = await supabase.storage.from("order-images").upload(path, toUpload, {
+        cacheControl: "3600", upsert: false, contentType: toUpload.type,
       });
       if (up.error) {
         setBusy(false);
