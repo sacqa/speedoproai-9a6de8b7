@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
+import { compressImage } from "@/lib/imageCompress";
 
 type Mode = "pharmacy" | "speedsend" | "custom";
 const TITLE: Record<Mode, string> = { pharmacy: "Pharmacy Order", speedsend: "SpeedSend Parcel", custom: "Custom Order" };
@@ -27,8 +28,12 @@ export default function RequestForm({ mode }: { mode: Mode }) {
     setBusy(true);
     let prescriptionUrl: string | undefined;
     if (mode === "pharmacy" && file) {
-      const path = `${user.id}/${Date.now()}-${file.name}`;
-      const up = await supabase.storage.from("prescriptions").upload(path, file);
+      let toUpload = file;
+      try { toUpload = await compressImage(file, { maxDimension: 1600, quality: 0.8 }); } catch {}
+      const path = `${user.id}/${Date.now()}-${toUpload.name}`;
+      const up = await supabase.storage.from("prescriptions").upload(path, toUpload, {
+        cacheControl: "3600", upsert: false, contentType: toUpload.type,
+      });
       if (up.error) { toast.error(up.error.message); setBusy(false); return; }
       prescriptionUrl = path;
     }
