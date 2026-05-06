@@ -50,11 +50,11 @@ export default function SpeedMart() {
       </div>
 
       <div className="overflow-x-auto no-scrollbar -mx-4 px-4 lg:mx-0 lg:px-0">
-        <div className="flex gap-2">
-          <Chip active={cat === "all"} onClick={() => { setParams({}); setShown(PAGE); }}>All</Chip>
+        <div className="flex gap-3 py-1">
+          <Chip active={cat === "all"} onClick={() => { setParams({}); setShown(PAGE); }} icon="🛒">All</Chip>
           {(cats.data ?? []).map((c: any) => (
-            <Chip key={c.id} active={cat === c.slug} onClick={() => { setParams({ cat: c.slug }); setShown(PAGE); }}>
-              {c.icon} {c.name}
+            <Chip key={c.id} active={cat === c.slug} onClick={() => { setParams({ cat: c.slug }); setShown(PAGE); }} icon={c.icon}>
+              {c.name}
             </Chip>
           ))}
         </div>
@@ -64,7 +64,7 @@ export default function SpeedMart() {
         <p className="text-center text-muted-foreground py-12">Loading…</p>
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
             {filtered.slice(0, shown).map((p: any) => <ProductCard key={p.id} p={p} />)}
           </div>
           {shown < filtered.length && (
@@ -81,15 +81,18 @@ export default function SpeedMart() {
   );
 }
 
-function Chip({ active, children, onClick }: { active: boolean; children: React.ReactNode; onClick: () => void }) {
+function Chip({ active, children, onClick, icon }: { active: boolean; children: React.ReactNode; onClick: () => void; icon?: string }) {
   return (
     <button
       onClick={onClick}
-      className={`flex-shrink-0 px-4 py-2 rounded-pill text-xs font-semibold whitespace-nowrap border transition-colors ${
-        active ? "bg-primary text-primary-foreground border-primary" : "bg-card text-foreground border-border"
+      className={`flex-shrink-0 flex items-center gap-2 px-5 py-3 rounded-2xl text-sm font-bold whitespace-nowrap border-2 shadow-sm transition-all active:scale-95 ${
+        active
+          ? "bg-primary text-primary-foreground border-primary shadow-md scale-[1.02]"
+          : "bg-card text-foreground border-border hover:border-primary/40"
       }`}
     >
-      {children}
+      {icon && <span className="text-base leading-none">{icon}</span>}
+      <span>{children}</span>
     </button>
   );
 }
