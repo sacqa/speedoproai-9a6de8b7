@@ -1,4 +1,4 @@
-import { Plus, Minus, Heart } from "lucide-react";
+import { Plus, Minus, Heart, ImageOff } from "lucide-react";
 import { useCart } from "@/store/cart";
 import { useRecentlyViewed } from "@/store/recentlyViewed";
 import { formatPKR } from "@/lib/format";
@@ -19,20 +19,26 @@ export function ProductCard({ p }: { p: Product }) {
   const trackView = useRecentlyViewed((s) => s.push);
   const inCart = items.find((i) => i.product_id === p.id);
   const [liked, setLiked] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   return (
     <div className="relative flex flex-col group">
       {/* Image card: white, large rounded corners, soft border */}
       <div className="relative aspect-square bg-white rounded-3xl border border-border/60 overflow-hidden flex items-center justify-center p-4 sm:p-5">
-        {p.image_url ? (
+        {p.image_url && !imgError ? (
           <img
             src={p.image_url}
             alt={p.name}
             loading="lazy"
+            decoding="async"
             className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+            onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-full h-full bg-muted rounded-xl" />
+          <div className="w-full h-full bg-muted rounded-xl flex flex-col items-center justify-center text-muted-foreground/50 gap-1">
+            <ImageOff className="h-8 w-8" />
+            <span className="text-[10px] font-semibold uppercase tracking-wide">No image</span>
+          </div>
         )}
 
         {/* Heart (wishlist) - top right */}

@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { registerSW } from "virtual:pwa-register";
+import { HelmetProvider } from "react-helmet-async";
 
 // PWA registration guard: never register inside the Lovable preview iframe / preview hosts.
 const isInIframe = (() => {
@@ -20,4 +21,8 @@ if (isInIframe || isPreviewHost) {
   registerSW({ immediate: true });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <HelmetProvider>
+    <App />
+  </HelmetProvider>,
+);

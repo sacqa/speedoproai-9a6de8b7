@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   Home, Search, ShoppingCart, User, Bell, MapPin, ChevronDown, Menu,
-  ShoppingBasket, Pill, Package, PenSquare, ClipboardList, LogOut,
+  ShoppingBasket, Pill, Package, UtensilsCrossed, ClipboardList, LogOut,
 } from "lucide-react";
 import { SpeedoLogo, SpeedoWordmark } from "@/components/speedo/SpeedoLogo";
 import { useCart } from "@/store/cart";
@@ -20,7 +20,7 @@ const navItems = [
   { to: "/speedmart", label: "SpeedMart", icon: ShoppingBasket },
   { to: "/pharmacy", label: "Pharmacy", icon: Pill },
   { to: "/speedsend", label: "SpeedSend", icon: Package },
-  { to: "/custom", label: "Custom Orders", icon: PenSquare },
+  { to: "/food", label: "Food", icon: UtensilsCrossed },
   { to: "/orders", label: "Orders", icon: ClipboardList },
   { to: "/profile", label: "Profile", icon: User },
 ];
