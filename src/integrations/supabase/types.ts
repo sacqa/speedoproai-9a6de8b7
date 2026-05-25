@@ -214,6 +214,155 @@ export type Database = {
         }
         Relationships: []
       }
+      food_menu_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_menu_categories_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "food_vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_menu_items: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_available: boolean
+          name: string
+          price: number
+          sort_order: number
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean
+          name: string
+          price: number
+          sort_order?: number
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean
+          name?: string
+          price?: number
+          sort_order?: number
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_menu_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "food_menu_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_menu_items_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "food_vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_vendors: {
+        Row: {
+          address: string | null
+          cover_url: string | null
+          created_at: string
+          cuisine: string | null
+          delivery_time_min: number
+          description: string | null
+          id: string
+          is_active: boolean
+          is_open: boolean
+          logo_url: string | null
+          min_order: number
+          name: string
+          phone: string | null
+          rating: number
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          cover_url?: string | null
+          created_at?: string
+          cuisine?: string | null
+          delivery_time_min?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_open?: boolean
+          logo_url?: string | null
+          min_order?: number
+          name: string
+          phone?: string | null
+          rating?: number
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          cover_url?: string | null
+          created_at?: string
+          cuisine?: string | null
+          delivery_time_min?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_open?: boolean
+          logo_url?: string | null
+          min_order?: number
+          name?: string
+          phone?: string | null
+          rating?: number
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notification_replies: {
         Row: {
           created_at: string
@@ -424,6 +573,7 @@ export type Database = {
           type: Database["public"]["Enums"]["order_type"]
           updated_at: string
           user_id: string
+          vendor_id: string | null
         }
         Insert: {
           address_id?: string | null
@@ -448,6 +598,7 @@ export type Database = {
           type: Database["public"]["Enums"]["order_type"]
           updated_at?: string
           user_id: string
+          vendor_id?: string | null
         }
         Update: {
           address_id?: string | null
@@ -472,6 +623,7 @@ export type Database = {
           type?: Database["public"]["Enums"]["order_type"]
           updated_at?: string
           user_id?: string
+          vendor_id?: string | null
         }
         Relationships: [
           {
@@ -479,6 +631,13 @@ export type Database = {
             columns: ["address_id"]
             isOneToOne: false
             referencedRelation: "addresses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "food_vendors"
             referencedColumns: ["id"]
           },
         ]
@@ -656,7 +815,7 @@ export type Database = {
         | "out_for_delivery"
         | "delivered"
         | "cancelled"
-      order_type: "speedmart" | "pharmacy" | "speedsend" | "custom"
+      order_type: "speedmart" | "pharmacy" | "speedsend" | "custom" | "food"
       payment_method: "jazzcash" | "easypaisa" | "bank_transfer" | "cod"
       payment_status: "pending" | "submitted" | "approved" | "rejected"
     }
@@ -799,7 +958,7 @@ export const Constants = {
         "delivered",
         "cancelled",
       ],
-      order_type: ["speedmart", "pharmacy", "speedsend", "custom"],
+      order_type: ["speedmart", "pharmacy", "speedsend", "custom", "food"],
       payment_method: ["jazzcash", "easypaisa", "bank_transfer", "cod"],
       payment_status: ["pending", "submitted", "approved", "rejected"],
     },
