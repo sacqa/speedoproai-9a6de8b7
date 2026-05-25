@@ -2,13 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, ChevronRight, ShoppingBasket, Pill, Package, PenSquare, ArrowRight, Search as SearchIcon, Mic } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShoppingBasket, Pill, Package, UtensilsCrossed, ArrowRight, Search as SearchIcon, Mic } from "lucide-react";
 import { ProductCard } from "@/components/speedo/ProductCard";
 import { SectionHeader } from "@/components/speedo/SectionHeader";
+import { Seo } from "@/components/seo/Seo";
 
 export default function Home() {
   const banners = useQuery({
     queryKey: ["banners"],
+    staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase.from("banners").select("*").eq("is_active", true).order("sort_order");
       if (error) throw error;
@@ -17,6 +19,7 @@ export default function Home() {
   });
   const cats = useQuery({
     queryKey: ["categories"],
+    staleTime: 5 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase.from("categories").select("*").eq("is_active", true).order("sort_order");
       if (error) throw error;
@@ -25,6 +28,7 @@ export default function Home() {
   });
   const featured = useQuery({
     queryKey: ["featured"],
+    staleTime: 2 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase.from("products").select("*").eq("is_active", true).eq("is_featured", true).limit(8);
       if (error) throw error;
@@ -34,6 +38,18 @@ export default function Home() {
 
   return (
     <div className="space-y-7 lg:space-y-10 pb-4">
+      <Seo
+        title="Speedo — Groceries, Pharmacy, Food & Parcels in Dipalpur"
+        description="Order groceries, medicines, food and send parcels across Dipalpur. Fast hyperlocal delivery via Speedo."
+        path="/"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Speedo",
+          url: "https://speedoproai.lovable.app",
+          areaServed: "Dipalpur, Pakistan",
+        }}
+      />
       {/* Mobile search */}
       <div className="lg:hidden px-4 pt-4">
         <Link
@@ -145,7 +161,7 @@ function ServiceShortcuts() {
     { to: "/speedmart", icon: ShoppingBasket, name: "SpeedMart", desc: "Groceries & Essentials" },
     { to: "/pharmacy", icon: Pill, name: "Pharmacy", desc: "Medicines & Health" },
     { to: "/speedsend", icon: Package, name: "SpeedSend", desc: "Send a Parcel" },
-    { to: "/custom", icon: PenSquare, name: "Custom", desc: "Any Custom Request" },
+    { to: "/food", icon: UtensilsCrossed, name: "Food", desc: "Restaurants & Cafés" },
   ];
   return (
     <div className="px-4 lg:px-0">
