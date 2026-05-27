@@ -45,6 +45,7 @@ const AdminReplies = lazy(() => import("./pages/admin/Replies"));
 const AdminAnnouncements = lazy(() => import("./pages/admin/Announcements"));
 const AdminFoodVendors = lazy(() => import("./pages/admin/FoodVendors"));
 const AdminFoodVendorMenu = lazy(() => import("./pages/admin/FoodVendorMenu"));
+const AdminRoles = lazy(() => import("./pages/admin/Roles"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -109,6 +110,7 @@ const App = () => (
               <Route path="/admin/replies" element={<AdminPage><AdminReplies /></AdminPage>} />
               <Route path="/admin/food-vendors" element={<AdminPage><AdminFoodVendors /></AdminPage>} />
               <Route path="/admin/food-vendors/:id/menu" element={<AdminPage><AdminFoodVendorMenu /></AdminPage>} />
+              <Route path="/admin/roles" element={<AdminPage><AdminRoles /></AdminPage>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppShell>

@@ -57,13 +57,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </div>
         <div className="flex-1 max-w-2xl">
-          <div className="flex items-center gap-2 bg-muted rounded-pill px-4 py-2.5">
+          <Link
+            to="/search"
+            className="flex items-center gap-2 bg-muted rounded-pill px-4 py-2.5 hover:bg-muted/80 transition-colors"
+          >
             <Search className="h-4 w-4 text-muted-foreground" />
-            <input
-              className="bg-transparent flex-1 outline-none text-sm placeholder:text-muted-foreground"
-              placeholder="Search for fresh food, medicine, anything..."
-            />
-          </div>
+            <span className="flex-1 text-sm text-muted-foreground">
+              Search for fresh food, medicine, anything...
+            </span>
+          </Link>
         </div>
         <div className="flex items-center gap-2 ml-6">
           <Link to="/notifications" className="p-2 rounded-full hover:bg-muted relative">

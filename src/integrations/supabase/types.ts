@@ -719,6 +719,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          is_banned: boolean
           phone: string | null
           updated_at: string
         }
@@ -727,6 +728,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          is_banned?: boolean
           phone?: string | null
           updated_at?: string
         }
@@ -735,6 +737,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_banned?: boolean
           phone?: string | null
           updated_at?: string
         }
@@ -803,7 +806,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "customer" | "rider"
+      app_role: "admin" | "customer" | "rider" | "super_admin" | "staff"
       order_status:
         | "submitted"
         | "waiting_for_estimate"
@@ -945,7 +948,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "customer", "rider"],
+      app_role: ["admin", "customer", "rider", "super_admin", "staff"],
       order_status: [
         "submitted",
         "waiting_for_estimate",

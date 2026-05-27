@@ -68,7 +68,15 @@ export function AnnouncementPopup() {
     <Dialog open onOpenChange={(o) => !o && setItem(null)}>
       <DialogContent className="max-w-md p-0 overflow-hidden">
         {item.image_url && (
-          <img src={item.image_url} alt={item.title} className="w-full h-48 object-cover" />
+          <div className="p-5 pb-0 flex justify-center">
+            <img
+              src={item.image_url}
+              alt={item.title}
+              className="aspect-square w-full max-w-xs rounded-2xl object-cover object-center"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
         )}
         <div className="p-5 space-y-3">
           <DialogHeader>

@@ -18,7 +18,7 @@ export default function Login() {
     if (!r.success) { toast.error(r.error.errors[0].message); return; }
     sessionStorage.setItem("speedo-otp-phone", phone);
     sessionStorage.setItem("speedo-otp-name", name.trim());
-    toast.success("OTP sent. Use 123456 (mock).");
+    toast.success("Verify via WhatsApp on the next screen.");
     nav("/otp");
   };
 
@@ -48,7 +48,7 @@ export default function Login() {
               maxLength={11}
             />
           </div>
-          <p className="text-xs text-muted-foreground mt-1.5">We'll send a 6-digit OTP. Use <b>123456</b> for testing.</p>
+          <p className="text-xs text-muted-foreground mt-1.5">You'll verify with a 6-digit code via WhatsApp on the next screen.</p>
         </div>
         <Button type="submit" className="w-full h-12 rounded-pill text-base">Send OTP</Button>
         <p className="text-xs text-center text-muted-foreground pt-4">
