@@ -80,8 +80,8 @@ export default {
         pill: "9999px",
       },
       fontFamily: {
-        sans: ['Montserrat', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['Montserrat', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['Figtree', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Outfit', 'Figtree', 'system-ui', 'sans-serif'],
       },
       keyframes: {
         "accordion-down": {
