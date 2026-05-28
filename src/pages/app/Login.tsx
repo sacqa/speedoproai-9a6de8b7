@@ -10,38 +10,53 @@ import { supabase } from "@/integrations/supabase/client";
 
 type Mode = "signin" | "signup";
 
+// Convert phone + 4-digit PIN into the internal credentials used by auth.
+// Customers never see these — they only enter phone + PIN.
+const phoneEmail = (phone: string) => `${phone}@phone.speedo.local`;
+const phonePass = (phone: string, pin: string) => `spd-${pin}-${phone.slice(-4)}-pin`;
+
 export default function Login() {
   const [mode, setMode] = useState<Mode>("signup");
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
+  const [dob, setDob] = useState("");
+  const [pin, setPin] = useState("");
   const [busy, setBusy] = useState(false);
   const nav = useNavigate();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.includes("@")) { toast.error("Enter a valid email"); return; }
-    if (password.length < 6) { toast.error("Password must be at least 6 characters"); return; }
+    const r = pkPhone.safeParse(phone);
+    if (!r.success) { toast.error(r.error.errors[0].message); return; }
+    if (!/^\d{4}$/.test(pin)) { toast.error("PIN must be 4 digits"); return; }
     setBusy(true);
     try {
       if (mode === "signup") {
-        const r = pkPhone.safeParse(phone);
-        if (!r.success) { toast.error(r.error.errors[0].message); setBusy(false); return; }
         if (!name.trim()) { toast.error("Enter your name"); setBusy(false); return; }
+        if (!dob) { toast.error("Enter your date of birth"); setBusy(false); return; }
         const { error } = await supabase.auth.signUp({
-          email, password,
-          options: { data: { full_name: name.trim(), phone }, emailRedirectTo: window.location.origin },
+          email: phoneEmail(phone),
+          password: phonePass(phone, pin),
+          options: {
+            data: { full_name: name.trim(), phone, dob },
+            emailRedirectTo: window.location.origin,
+          },
         });
-        if (error) { toast.error(error.message); setBusy(false); return; }
-        // Sign in immediately (auto-confirm may be off; try to sign in anyway)
-        await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          if (/registered|exists/i.test(error.message)) toast.error("This phone is already registered. Please sign in.");
+          else toast.error(error.message);
+          setBusy(false); return;
+        }
+        await supabase.auth.signInWithPassword({
+          email: phoneEmail(phone), password: phonePass(phone, pin),
+        });
         toast.success("Account created. Awaiting admin approval.");
         nav("/pending", { replace: true });
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) { toast.error(error.message); setBusy(false); return; }
-        // Check approval status
+        const { error } = await supabase.auth.signInWithPassword({
+          email: phoneEmail(phone), password: phonePass(phone, pin),
+        });
+        if (error) { toast.error("Wrong phone or PIN"); setBusy(false); return; }
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data: p } = await supabase.from("profiles").select("approval_status").eq("id", user.id).maybeSingle();
@@ -73,29 +88,34 @@ export default function Login() {
         </div>
         <form onSubmit={submit} className="space-y-4">
           {mode === "signup" && (
-            <>
-              <div>
-                <Label htmlFor="name">Full name</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ali Khan" className="mt-1.5 h-12 rounded-xl" maxLength={60} required />
-              </div>
-              <div>
-                <Label htmlFor="phone">Mobile number</Label>
-                <div className="mt-1.5 flex">
-                  <span className="inline-flex items-center px-3 h-12 rounded-l-xl border border-r-0 border-input bg-muted text-sm font-semibold">PK +92</span>
-                  <Input id="phone" inputMode="numeric" value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
-                    placeholder="03xxxxxxxxx" className="h-12 rounded-r-xl rounded-l-none" maxLength={11} required />
-                </div>
-              </div>
-            </>
+            <div>
+              <Label htmlFor="name">Full name</Label>
+              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ali Khan" className="mt-1.5 h-12 rounded-xl" maxLength={60} required />
+            </div>
           )}
           <div>
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="mt-1.5 h-12 rounded-xl" required />
+            <Label htmlFor="phone">Mobile number</Label>
+            <div className="mt-1.5 flex">
+              <span className="inline-flex items-center px-3 h-12 rounded-l-xl border border-r-0 border-input bg-muted text-sm font-semibold">PK +92</span>
+              <Input id="phone" inputMode="numeric" value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                placeholder="03xxxxxxxxx" className="h-12 rounded-r-xl rounded-l-none" maxLength={11} required />
+            </div>
           </div>
+          {mode === "signup" && (
+            <div>
+              <Label htmlFor="dob">Date of birth</Label>
+              <Input id="dob" type="date" value={dob} onChange={(e) => setDob(e.target.value)}
+                max={new Date().toISOString().slice(0,10)}
+                className="mt-1.5 h-12 rounded-xl" required />
+              <p className="text-xs text-muted-foreground mt-1.5">Enter your real birthday to receive a surprise gift on your birthday.</p>
+            </div>
+          )}
           <div>
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" className="mt-1.5 h-12 rounded-xl" required />
+            <Label htmlFor="pin">4-digit PIN</Label>
+            <Input id="pin" inputMode="numeric" type="password" value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              placeholder="••••" className="mt-1.5 h-12 rounded-xl tracking-[0.5em] text-center" maxLength={4} required />
           </div>
           <Button type="submit" disabled={busy} className="w-full h-12 rounded-pill text-base">
             {busy ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
