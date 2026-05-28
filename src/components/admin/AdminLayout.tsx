@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Package, FolderTree, ShoppingBag, Users, Image as ImageIcon,
-  DollarSign, LogOut, Menu, Megaphone, MessageSquare, Sparkles, UtensilsCrossed, Shield,
+  DollarSign, LogOut, Menu, Megaphone, MessageSquare, Sparkles, UtensilsCrossed, Shield, UserCheck,
 } from "lucide-react";
 import { SpeedoLogo } from "@/components/speedo/SpeedoLogo";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,6 +22,7 @@ const items = [
   { to: "/admin/broadcast", label: "Broadcast", icon: Megaphone },
   { to: "/admin/announcements", label: "Announcements", icon: Sparkles },
   { to: "/admin/replies", label: "Replies", icon: MessageSquare },
+  { to: "/admin/approvals", label: "Approvals", icon: UserCheck },
   { to: "/admin/roles", label: "Roles & Users", icon: Shield },
 ];
 
