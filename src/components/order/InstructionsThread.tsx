@@ -26,6 +26,7 @@ interface Props {
 export default function InstructionsThread({ orderId, asAdmin = false, compact = false }: Props) {
   const { user } = useAuth();
   const [msgs, setMsgs] = useState<Msg[]>([]);
+  const [customerPhone, setCustomerPhone] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -44,6 +45,14 @@ export default function InstructionsThread({ orderId, asAdmin = false, compact =
 
   useEffect(() => {
     load();
+    if (asAdmin) {
+      (async () => {
+        const { data: o } = await supabase.from("orders").select("user_id").eq("id", orderId).maybeSingle();
+        if (!o?.user_id) return;
+        const { data: p } = await supabase.from("profiles").select("phone").eq("id", o.user_id).maybeSingle();
+        setCustomerPhone(p?.phone ?? null);
+      })();
+    }
     const ch = supabase
       .channel(`order-instructions-${orderId}`)
       .on(
@@ -132,8 +141,11 @@ export default function InstructionsThread({ orderId, asAdmin = false, compact =
                 }`}
               >
                 <div className="text-[10px] opacity-70 mb-0.5 uppercase tracking-wide">
-                  {m.author_role === "admin" ? "Speedo Team" : "Customer"} ·{" "}
-                  {new Date(m.created_at).toLocaleString()}
+                  {m.author_role === "admin" ? "Speedo Team" : "Customer"}
+                  {asAdmin && m.author_role !== "admin" && customerPhone && (
+                    <> · 📞 +92 {customerPhone}</>
+                  )}
+                  {" · "}{new Date(m.created_at).toLocaleString()}
                 </div>
                 {m.image_url && (
                   <a href={m.image_url} target="_blank" rel="noreferrer" className="block">
