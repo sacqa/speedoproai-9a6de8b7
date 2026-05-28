@@ -39,6 +39,7 @@ const AdminProducts = lazy(() => import("./pages/admin/Products"));
 const AdminCategories = lazy(() => import("./pages/admin/Categories"));
 const AdminBanners = lazy(() => import("./pages/admin/Banners"));
 const AdminCustomers = lazy(() => import("./pages/admin/Customers"));
+const AdminCustomerDetail = lazy(() => import("./pages/admin/CustomerDetail"));
 const AdminPricing = lazy(() => import("./pages/admin/Pricing"));
 const AdminBroadcast = lazy(() => import("./pages/admin/Broadcast"));
 const AdminReplies = lazy(() => import("./pages/admin/Replies"));
@@ -106,6 +107,7 @@ const App = () => (
               <Route path="/admin/categories" element={<AdminPage><AdminCategories /></AdminPage>} />
               <Route path="/admin/banners" element={<AdminPage><AdminBanners /></AdminPage>} />
               <Route path="/admin/customers" element={<AdminPage><AdminCustomers /></AdminPage>} />
+              <Route path="/admin/customers/:id" element={<AdminPage><AdminCustomerDetail /></AdminPage>} />
               <Route path="/admin/pricing" element={<AdminPage><AdminPricing /></AdminPage>} />
               <Route path="/admin/broadcast" element={<AdminPage><AdminBroadcast /></AdminPage>} />
               <Route path="/admin/announcements" element={<AdminPage><AdminAnnouncements /></AdminPage>} />
