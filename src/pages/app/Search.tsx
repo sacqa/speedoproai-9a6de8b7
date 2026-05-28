@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard } from "@/components/speedo/ProductCard";
@@ -10,8 +10,9 @@ import { useRecentlyViewed } from "@/store/recentlyViewed";
 export default function Search() {
   const [q, setQ] = useState("");
   const [debounced, setDebounced] = useState("");
-  const cartIds = useCart((s) => s.items.map((i) => i.product_id));
+  const cartItems = useCart((s) => s.items);
   const recent = useRecentlyViewed((s) => s.ids);
+  const cartIds = useMemo(() => cartItems.map((i) => i.product_id), [cartItems]);
   useEffect(() => {
     const t = setTimeout(() => setDebounced(q.trim()), 250);
     return () => clearTimeout(t);
