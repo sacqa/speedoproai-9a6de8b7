@@ -11,7 +11,7 @@ import { RequireAuth } from "@/components/speedo/RequireAuth";
 import Splash from "./pages/app/Splash";
 import Onboarding from "./pages/app/Onboarding";
 import Login from "./pages/app/Login";
-import Otp from "./pages/app/Otp";
+import Waiting from "./pages/app/Waiting";
 import Home from "./pages/app/Home";
 import Search from "./pages/app/Search";
 import SpeedMart from "./pages/app/SpeedMart";
@@ -46,6 +46,7 @@ const AdminAnnouncements = lazy(() => import("./pages/admin/Announcements"));
 const AdminFoodVendors = lazy(() => import("./pages/admin/FoodVendors"));
 const AdminFoodVendorMenu = lazy(() => import("./pages/admin/FoodVendorMenu"));
 const AdminRoles = lazy(() => import("./pages/admin/Roles"));
+const AdminApprovals = lazy(() => import("./pages/admin/Approvals"));
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 
 const queryClient = new QueryClient({
@@ -79,7 +80,7 @@ const App = () => (
               <Route path="/splash" element={<Splash />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/otp" element={<Otp />} />
+              <Route path="/pending" element={<Waiting />} />
               <Route path="/" element={<Home />} />
               <Route path="/search" element={<Search />} />
               <Route path="/speedmart" element={<SpeedMart />} />
@@ -112,6 +113,7 @@ const App = () => (
               <Route path="/admin/food-vendors" element={<AdminPage><AdminFoodVendors /></AdminPage>} />
               <Route path="/admin/food-vendors/:id/menu" element={<AdminPage><AdminFoodVendorMenu /></AdminPage>} />
               <Route path="/admin/roles" element={<AdminPage><AdminRoles /></AdminPage>} />
+              <Route path="/admin/approvals" element={<AdminPage><AdminApprovals /></AdminPage>} />
               <Route path="/admin/login" element={<Suspense fallback={null}><AdminLogin /></Suspense>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
