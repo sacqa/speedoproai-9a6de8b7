@@ -24,8 +24,7 @@ export default function FoodCheckout() {
 
   const sub = cart.subtotal();
   const delivery = sub > 1500 ? 0 : 79;
-  const service = sub > 0 ? 20 : 0;
-  const total = sub + delivery + service;
+  const total = sub + delivery;
 
   const addrs = useQuery({
     queryKey: ["addresses", user?.id],
@@ -73,7 +72,7 @@ export default function FoodCheckout() {
       address_snapshot: addr,
       payment_method: "cod" as any,
       payment_status: "pending" as const,
-      subtotal: sub, delivery_fee: delivery, service_charge: service, total,
+      subtotal: sub, delivery_fee: delivery, service_charge: 0, total,
       status: "submitted" as const,
       custom_details: { vendor_name: cart.vendorName },
     }).select().single();
@@ -149,7 +148,6 @@ export default function FoodCheckout() {
       <section className="bg-card rounded-xl shadow-card p-4 space-y-1 text-sm">
         <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatPKR(sub)}</span></div>
         <div className="flex justify-between"><span className="text-muted-foreground">Delivery</span><span>{delivery === 0 ? "FREE" : formatPKR(delivery)}</span></div>
-        <div className="flex justify-between"><span className="text-muted-foreground">Service</span><span>{formatPKR(service)}</span></div>
         <div className="flex justify-between font-bold text-base border-t border-border pt-2 mt-1"><span>Total</span><span className="text-primary">{formatPKR(total)}</span></div>
       </section>
 
