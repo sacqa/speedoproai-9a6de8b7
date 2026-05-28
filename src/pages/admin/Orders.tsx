@@ -1,15 +1,31 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR, statusLabel } from "@/lib/format";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
+import { Trash2 } from "lucide-react";
 
 const STATUSES = ["all","submitted","rider_assigned","purchasing_items","out_for_delivery","delivered","cancelled"];
 
 export default function AdminOrders() {
   const [filter, setFilter] = useState<string>("all");
   const [q, setQ] = useState("");
+  const { user } = useAuth();
+  const [isSuper, setIsSuper] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "super_admin")
+      .maybeSingle().then(({ data }) => setIsSuper(!!data));
+  }, [user]);
   const orders = useQuery({
     queryKey: ["admin","orders", filter],
     queryFn: async () => {
@@ -25,9 +41,61 @@ export default function AdminOrders() {
     o.address_snapshot?.recipient_name?.toLowerCase().includes(q.toLowerCase()) ||
     o.address_snapshot?.phone?.includes(q));
 
+  const handleReset = async () => {
+    setResetting(true);
+    try {
+      const { data: ids, error: e1 } = await supabase.from("orders").select("id");
+      if (e1) throw e1;
+      const orderIds = (ids ?? []).map((o: any) => o.id);
+      if (orderIds.length === 0) {
+        toast({ title: "Nothing to reset", description: "No orders found." });
+        return;
+      }
+      await supabase.from("order_instructions").delete().in("order_id", orderIds);
+      await supabase.from("order_status_logs").delete().in("order_id", orderIds);
+      await supabase.from("order_items").delete().in("order_id", orderIds);
+      await supabase.from("notifications").delete().in("order_id", orderIds);
+      await supabase.from("notification_replies").delete().in("order_id", orderIds);
+      const { error: e2 } = await supabase.from("orders").delete().in("id", orderIds);
+      if (e2) throw e2;
+      toast({ title: "Orders reset", description: `Deleted ${orderIds.length} orders.` });
+      orders.refetch();
+    } catch (err: any) {
+      toast({ title: "Reset failed", description: err.message, variant: "destructive" });
+    } finally {
+      setResetting(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-extrabold">Orders</h1>
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-2xl font-extrabold">Orders</h1>
+        {isSuper && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" disabled={resetting}>
+                <Trash2 className="h-4 w-4 mr-1" />
+                {resetting ? "Resetting…" : "Reset all orders"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reset all orders?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This permanently deletes ALL orders and their items, logs, instructions, and related notifications. Use only before launch. This cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleReset} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Yes, delete everything
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </div>
       <div className="flex flex-wrap gap-2">
         {STATUSES.map((s) => (
           <button key={s} onClick={() => setFilter(s)} className={`px-3 py-1.5 rounded-pill text-xs font-semibold ${filter === s ? "bg-primary text-primary-foreground" : "bg-card border border-border"}`}>
