@@ -156,8 +156,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="grid grid-cols-5 h-16 items-center px-1">
           <BottomTab to="/" icon={Home} label="Home" />
           <BottomTab to="/search" icon={Search} label="Explore" />
-          <Link to="/speedmart" className="flex justify-center -mt-8">
-            <div className="h-16 w-16 rounded-2xl btn-glossy rotate-45 flex items-center justify-center">
+          <Link to="/speedmart" aria-label="SpeedMart" className="flex justify-center -mt-8 pointer-events-none">
+            <div className="h-16 w-16 rounded-2xl btn-glossy rotate-45 flex items-center justify-center pointer-events-auto">
               <div className="-rotate-45">
                 <SpeedoLogo size={28} variant="mark" className="[&>path]:fill-accent" />
               </div>
