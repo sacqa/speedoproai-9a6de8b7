@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 
 export default function AdminCustomers() {
   const q = useQuery({
@@ -26,8 +27,12 @@ export default function AdminCustomers() {
           </thead>
           <tbody>
             {(q.data ?? []).map((c: any) => (
-              <tr key={c.id} className="border-b border-border last:border-0">
-                <td className="p-3 font-semibold">{c.full_name ?? "—"}</td>
+              <tr key={c.id} className="border-b border-border last:border-0 hover:bg-muted/40">
+                <td className="p-3 font-semibold">
+                  <Link to={`/admin/customers/${c.id}`} className="text-primary hover:underline">
+                    {c.full_name ?? "—"}
+                  </Link>
+                </td>
                 <td>{c.phone ?? "—"}</td>
                 <td className="text-right">{c.count}</td>
                 <td className="text-right p-3 font-semibold">Rs {Math.round(c.spent).toLocaleString()}</td>
