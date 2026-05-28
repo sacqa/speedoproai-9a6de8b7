@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAdminOrderAlert } from "@/hooks/useAdminOrderAlert";
+import { useAdminNewCustomerAlert } from "@/hooks/useAdminNewCustomerAlert";
 
 const items = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -30,6 +31,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const location = useLocation();
   useAdminOrderAlert(true);
+  useAdminNewCustomerAlert(true);
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-40 h-14 glass border-b border-white/40 flex items-center px-4 gap-3">
