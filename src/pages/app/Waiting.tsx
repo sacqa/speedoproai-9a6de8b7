@@ -23,6 +23,11 @@ export default function Waiting() {
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
+    let autoApprove = false;
+    (async () => {
+      const { data } = await supabase.from("pricing_rules").select("value").eq("key", "auto_approve_users").maybeSingle();
+      autoApprove = Number(data?.value ?? 0) >= 1;
+    })();
     const check = async () => {
       const { data } = await supabase.from("profiles").select("approval_status").eq("id", user.id).maybeSingle();
       if (cancelled) return;
@@ -32,7 +37,20 @@ export default function Waiting() {
     };
     check();
     const interval = setInterval(check, 2000);
-    const tick = setInterval(() => setElapsed((e) => e + 1), 1000);
+    const tick = setInterval(() => {
+      setElapsed((e) => {
+        const next = e + 1;
+        if (next === 15 && autoApprove) {
+          supabase.rpc("try_auto_approve_self").then(({ data: ok }) => {
+            if (ok) {
+              setStatus("approved");
+              setTimeout(() => nav("/", { replace: true }), 800);
+            }
+          });
+        }
+        return next;
+      });
+    }, 1000);
     const ch = supabase
       .channel(`approval-${user.id}`)
       .on("postgres_changes",

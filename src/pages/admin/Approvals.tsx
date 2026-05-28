@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Shield, Check, X, Phone, Mail, Clock } from "lucide-react";
+import { Shield, Check, X, Phone, Mail, Clock, Zap } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 type Status = "pending" | "approved" | "rejected";
@@ -11,6 +12,26 @@ type Row = { id: string; full_name: string | null; phone: string | null; approva
 export default function AdminApprovals() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<Status>("pending");
+  const [autoApprove, setAutoApprove] = useState(false);
+  const [autoBusy, setAutoBusy] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.from("pricing_rules").select("value").eq("key", "auto_approve_users").maybeSingle();
+      if (!cancelled) setAutoApprove(Number(data?.value ?? 0) >= 1);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const toggleAuto = async (next: boolean) => {
+    setAutoBusy(true);
+    const { error } = await supabase.from("pricing_rules").update({ value: next ? 1 : 0 }).eq("key", "auto_approve_users");
+    setAutoBusy(false);
+    if (error) { toast.error(error.message); return; }
+    setAutoApprove(next);
+    toast.success(next ? "Auto-approval enabled" : "Auto-approval disabled");
+  };
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["admin-approvals", tab],
@@ -65,6 +86,17 @@ export default function AdminApprovals() {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="bg-card rounded-2xl shadow-card border border-border p-4 flex items-center gap-3">
+        <div className="h-10 w-10 rounded-xl bg-primary-tint text-primary flex items-center justify-center">
+          <Zap className="h-5 w-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-bold text-sm">Auto-approve new signups</div>
+          <p className="text-xs text-muted-foreground">When on, new customers are approved automatically after 15 seconds. When off, you must approve them manually.</p>
+        </div>
+        <Switch checked={autoApprove} disabled={autoBusy} onCheckedChange={toggleAuto} />
       </div>
 
       {isLoading ? (

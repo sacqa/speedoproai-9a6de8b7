@@ -33,7 +33,7 @@ export default function AdminPricing() {
         <h1 className="text-2xl font-extrabold">Pricing Rules</h1>
         <Button onClick={() => { setEditing({ key: "", value: 0, description: "" }); setOpen(true); }}><Plus className="h-4 w-4 mr-1" />Add Rule</Button>
       </div>
-      <p className="text-sm text-muted-foreground">Common keys: <code>delivery_fee</code>, <code>service_charge</code>, <code>free_delivery_threshold</code></p>
+      <p className="text-sm text-muted-foreground">Common keys: <code>delivery_fee</code>, <code>free_delivery_threshold</code>, <code>auto_approve_users</code></p>
       <div className="bg-card rounded-xl shadow-card overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-xs text-muted-foreground border-b border-border"><tr><th className="text-left p-3">Key</th><th className="text-right">Value</th><th className="text-left pl-4">Description</th><th></th></tr></thead>

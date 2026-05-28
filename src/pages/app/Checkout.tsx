@@ -24,8 +24,7 @@ export default function Checkout() {
 
   const sub = subtotal();
   const delivery = sub > 1500 ? 0 : 99;
-  const service = 25;
-  const total = sub + delivery + service;
+  const total = sub + delivery;
 
   const addrs = useQuery({
     queryKey: ["addresses", user?.id],
@@ -68,7 +67,7 @@ export default function Checkout() {
     const { data: order, error } = await supabase.from("orders").insert({
       user_id: user.id, type: "speedmart" as const, address_id: useAddrId,
       address_snapshot: addr, payment_method: "cod" as any, payment_status: "pending" as const,
-      subtotal: sub, delivery_fee: delivery, service_charge: service, total,
+      subtotal: sub, delivery_fee: delivery, service_charge: 0, total,
       status: "submitted" as const,
     }).select().single();
     if (error || !order) { toast.error(error?.message ?? "Failed"); setBusy(false); return; }
@@ -135,7 +134,6 @@ export default function Checkout() {
         <h2 className="font-bold mb-2">Order Summary ({items.length} items)</h2>
         <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatPKR(sub)}</span></div>
         <div className="flex justify-between"><span className="text-muted-foreground">Delivery</span><span>{delivery === 0 ? "FREE" : formatPKR(delivery)}</span></div>
-        <div className="flex justify-between"><span className="text-muted-foreground">Service</span><span>{formatPKR(service)}</span></div>
         <div className="flex justify-between border-t border-border pt-2 mt-2 font-bold text-base"><span>Total</span><span className="text-primary">{formatPKR(total)}</span></div>
       </section>
 

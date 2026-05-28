@@ -19,7 +19,7 @@ export default function AdminOrderDetail() {
   const [logs, setLogs] = useState<any[]>([]);
   const [busy, setBusy] = useState(false);
   const [editAddr, setEditAddr] = useState<any>(null);
-  const [fees, setFees] = useState({ delivery_fee: 0, service_charge: 0 });
+  const [fees, setFees] = useState({ delivery_fee: 0 });
   const [notes, setNotes] = useState("");
   const [newItem, setNewItem] = useState({ name: "", price: "", quantity: "1", unit: "" });
   const [prescriptionSignedUrl, setPrescriptionSignedUrl] = useState<string | null>(null);
@@ -36,7 +36,7 @@ export default function AdminOrderDetail() {
     setLogs(lg ?? []);
     if (o) {
       setEditAddr(o.address_snapshot ?? { recipient_name: "", phone: "", street: "", area: "", details: "" });
-      setFees({ delivery_fee: Number(o.delivery_fee) || 0, service_charge: Number(o.service_charge) || 0 });
+      setFees({ delivery_fee: Number(o.delivery_fee) || 0 });
       setNotes(o.notes ?? "");
       if (o.prescription_url) {
         const { data: signed } = await supabase.storage
@@ -59,9 +59,9 @@ export default function AdminOrderDetail() {
 
   const recalcAndSave = async (nextItems: any[], nextFees = fees) => {
     const subtotal = nextItems.reduce((s, i) => s + Number(i.price) * Number(i.quantity), 0);
-    const total = subtotal + Number(nextFees.delivery_fee) + Number(nextFees.service_charge);
+    const total = subtotal + Number(nextFees.delivery_fee);
     const { error } = await supabase.from("orders").update({
-      subtotal, delivery_fee: nextFees.delivery_fee, service_charge: nextFees.service_charge, total,
+      subtotal, delivery_fee: nextFees.delivery_fee, service_charge: 0, total,
     }).eq("id", id);
     if (error) { toast.error(error.message); return false; }
     return true;
@@ -192,9 +192,6 @@ export default function AdminOrderDetail() {
           <label className="text-xs text-muted-foreground block">Delivery fee
             <Input type="number" value={fees.delivery_fee} onChange={(e) => setFees({ ...fees, delivery_fee: Number(e.target.value) })} />
           </label>
-          <label className="text-xs text-muted-foreground block">Service charge
-            <Input type="number" value={fees.service_charge} onChange={(e) => setFees({ ...fees, service_charge: Number(e.target.value) })} />
-          </label>
           <Button size="sm" onClick={saveFees} disabled={busy} className="gap-1"><Save className="h-3 w-3" />Save Fees & Recalc Total</Button>
         </div>
       </div>
@@ -230,7 +227,6 @@ export default function AdminOrderDetail() {
         <div className="border-t border-border pt-2 text-sm space-y-1">
           <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatPKR(Number(order.subtotal))}</span></div>
           <div className="flex justify-between"><span className="text-muted-foreground">Delivery</span><span>{formatPKR(Number(order.delivery_fee))}</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Service</span><span>{formatPKR(Number(order.service_charge))}</span></div>
           <div className="flex justify-between font-bold text-base"><span>Total</span><span className="text-primary">{formatPKR(Number(order.total))}</span></div>
         </div>
       </div>

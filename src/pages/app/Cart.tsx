@@ -12,7 +12,6 @@ export default function Cart() {
   const nav = useNavigate();
   const sub = subtotal();
   const delivery = sub > 1500 || sub === 0 ? 0 : 99;
-  const service = sub === 0 ? 0 : 25;
 
   if (items.length === 0) {
     return (
@@ -49,9 +48,8 @@ export default function Cart() {
       <div className="bg-card rounded-xl shadow-card p-4 space-y-2 text-sm">
         <Row label="Subtotal" value={formatPKR(sub)} />
         <Row label="Delivery fee" value={delivery === 0 ? "FREE" : formatPKR(delivery)} />
-        <Row label="Service charge" value={formatPKR(service)} />
         <div className="border-t border-border pt-2 mt-2 flex justify-between font-bold text-base">
-          <span>Total</span><span className="text-primary">{formatPKR(sub + delivery + service)}</span>
+          <span>Total</span><span className="text-primary">{formatPKR(sub + delivery)}</span>
         </div>
       </div>
       <Button className="w-full h-12 rounded-pill text-base" onClick={() => nav("/checkout")}>Proceed to Checkout</Button>
