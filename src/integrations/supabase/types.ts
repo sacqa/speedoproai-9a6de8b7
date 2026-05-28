@@ -813,6 +813,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      try_auto_approve_self: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "customer" | "rider" | "super_admin" | "staff"
