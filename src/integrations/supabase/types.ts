@@ -720,6 +720,7 @@ export type Database = {
           approved_by: string | null
           avatar_url: string | null
           created_at: string
+          dob: string | null
           full_name: string | null
           id: string
           is_banned: boolean
@@ -732,6 +733,7 @@ export type Database = {
           approved_by?: string | null
           avatar_url?: string | null
           created_at?: string
+          dob?: string | null
           full_name?: string | null
           id: string
           is_banned?: boolean
@@ -744,6 +746,7 @@ export type Database = {
           approved_by?: string | null
           avatar_url?: string | null
           created_at?: string
+          dob?: string | null
           full_name?: string | null
           id?: string
           is_banned?: boolean
