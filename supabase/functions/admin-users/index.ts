@@ -1,9 +1,27 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
-const SUPER_ADMIN_EMAIL = "speedoaipro@gmail.com";
-const SUPER_ADMIN_PASSWORD = "Console@6221";
 const SUPER_ADMIN_PHONE = "03110406221";
+const SUPER_ADMIN_PIN = "8080";
+
+// Same synthetic-credential formula used by the customer & admin sign-in pages.
+const phoneEmail = (phone: string) => `${phone}@phone.speedo.local`;
+const phonePass = (phone: string, pin: string) => `spd-${pin}-${phone.slice(-4)}-pin`;
+
+// In-memory PIN-reset tokens (single edge worker scope, 10 min TTL).
+const resetTokens = new Map<string, { user_id: string; phone: string; exp: number }>();
+const issueResetToken = (user_id: string, phone: string) => {
+  const token = crypto.randomUUID() + "-" + crypto.randomUUID();
+  resetTokens.set(token, { user_id, phone, exp: Date.now() + 10 * 60 * 1000 });
+  return token;
+};
+const consumeResetToken = (token: string) => {
+  const rec = resetTokens.get(token);
+  if (!rec) return null;
+  resetTokens.delete(token);
+  if (rec.exp < Date.now()) return null;
+  return rec;
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -23,34 +41,64 @@ Deno.serve(async (req) => {
   try { body = await req.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
   const action = body?.action as string;
 
-  // Public bootstrap: only succeeds when no super_admin exists yet.
+  // Public bootstrap: ensures the phone-based super admin exists with the canonical PIN.
   if (action === "bootstrap_super_admin") {
-    const { data: existing } = await admin
-      .from("user_roles").select("id").eq("role", "super_admin").limit(1);
-    if (existing && existing.length > 0) {
-      return json({ ok: true, already: true });
-    }
-    // Find or create the user
-    const { data: list } = await admin.auth.admin.listUsers();
-    let user = list?.users?.find((u) => u.email === SUPER_ADMIN_EMAIL);
+    const email = phoneEmail(SUPER_ADMIN_PHONE);
+    const password = phonePass(SUPER_ADMIN_PHONE, SUPER_ADMIN_PIN);
+    const { data: list } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    let user = list?.users?.find((u: any) => u.email === email);
     if (!user) {
       const { data: created, error } = await admin.auth.admin.createUser({
-        email: SUPER_ADMIN_EMAIL,
-        password: SUPER_ADMIN_PASSWORD,
-        email_confirm: true,
+        email, password, email_confirm: true,
         user_metadata: { full_name: "Super Admin", phone: SUPER_ADMIN_PHONE },
       });
       if (error) return json({ error: error.message }, 400);
       user = created.user!;
     } else {
-      await admin.auth.admin.updateUserById(user.id, { password: SUPER_ADMIN_PASSWORD });
+      await admin.auth.admin.updateUserById(user.id, { password });
     }
     await admin.from("profiles").upsert({
       id: user.id, full_name: "Super Admin", phone: SUPER_ADMIN_PHONE,
+      approval_status: "approved", approved_at: new Date().toISOString(),
     });
     await admin.from("user_roles").upsert({ user_id: user.id, role: "super_admin" });
     await admin.from("user_roles").upsert({ user_id: user.id, role: "admin" });
-    return json({ ok: true, created: true });
+    return json({ ok: true, phone: SUPER_ADMIN_PHONE });
+  }
+
+  // Public: verify identity via phone + dob, return a short-lived reset token.
+  if (action === "verify_dob_for_pin_reset") {
+    const phone = String(body.phone ?? "").trim();
+    const dob = String(body.dob ?? "").trim();
+    if (!/^03\d{9}$/.test(phone) || !/^\d{4}-\d{2}-\d{2}$/.test(dob)) {
+      return json({ error: "Invalid phone or date of birth" }, 400);
+    }
+    const { data: profile } = await admin
+      .from("profiles").select("id, dob, phone").eq("phone", phone).maybeSingle();
+    if (!profile || !profile.dob) {
+      // Generic message to avoid account enumeration.
+      return json({ error: "Could not verify identity" }, 400);
+    }
+    const profileDob = String(profile.dob).slice(0, 10);
+    if (profileDob !== dob) {
+      return json({ error: "Could not verify identity" }, 400);
+    }
+    const reset_token = issueResetToken(profile.id, phone);
+    return json({ ok: true, reset_token });
+  }
+
+  // Public: consume a reset token and set a new PIN.
+  if (action === "reset_pin_with_token") {
+    const token = String(body.reset_token ?? "");
+    const new_pin = String(body.new_pin ?? "");
+    if (!/^\d{4}$/.test(new_pin)) return json({ error: "PIN must be 4 digits" }, 400);
+    const rec = consumeResetToken(token);
+    if (!rec) return json({ error: "Reset session expired. Please verify again." }, 400);
+    const { error } = await admin.auth.admin.updateUserById(rec.user_id, {
+      password: phonePass(rec.phone, new_pin),
+    });
+    if (error) return json({ error: error.message }, 400);
+    return json({ ok: true });
   }
 
   // All other actions require an authenticated admin caller.
@@ -72,33 +120,46 @@ Deno.serve(async (req) => {
 
   try {
     if (action === "create_user") {
-      const { email, password, full_name, phone, role } = body;
-      if (!email || !password || !role) return json({ error: "email, password, role required" }, 400);
+      const { full_name, phone, pin, role } = body;
+      if (!phone || !pin || !role) return json({ error: "phone, pin, role required" }, 400);
+      if (!/^03\d{9}$/.test(phone)) return json({ error: "Invalid PK phone" }, 400);
+      if (!/^\d{4}$/.test(pin)) return json({ error: "PIN must be 4 digits" }, 400);
       if ((role === "admin" || role === "super_admin") && !isSuper) {
         return json({ error: "Only super_admin can create admins" }, 403);
       }
       const { data: created, error } = await admin.auth.admin.createUser({
-        email, password, email_confirm: true,
+        email: phoneEmail(phone),
+        password: phonePass(phone, pin),
+        email_confirm: true,
         user_metadata: { full_name, phone },
       });
       if (error) return json({ error: error.message }, 400);
-      await admin.from("profiles").upsert({ id: created.user!.id, full_name, phone });
+      await admin.from("profiles").upsert({
+        id: created.user!.id, full_name, phone,
+        approval_status: "approved", approved_at: new Date().toISOString(),
+      });
       await admin.from("user_roles").upsert({ user_id: created.user!.id, role });
       return json({ ok: true, user_id: created.user!.id });
     }
 
-    if (action === "set_password") {
-      const { user_id, password } = body;
-      if (!user_id || !password) return json({ error: "user_id, password required" }, 400);
-      // Only super_admin can change another admin's password
+    if (action === "set_pin") {
+      const { user_id, pin } = body;
+      if (!user_id || !pin) return json({ error: "user_id, pin required" }, 400);
+      if (!/^\d{4}$/.test(pin)) return json({ error: "PIN must be 4 digits" }, 400);
+      // Need the target user's phone to derive the synthetic password.
+      const { data: targetProfile } = await admin
+        .from("profiles").select("phone").eq("id", user_id).maybeSingle();
+      if (!targetProfile?.phone) return json({ error: "Target user has no phone on file" }, 400);
       const { data: targetRoles } = await admin
         .from("user_roles").select("role").eq("user_id", user_id);
       const targetIsAdmin = (targetRoles ?? []).some((r: any) =>
         r.role === "admin" || r.role === "super_admin");
       if (targetIsAdmin && !isSuper && user_id !== callerId) {
-        return json({ error: "Only super_admin can change another admin's password" }, 403);
+        return json({ error: "Only super_admin can change another admin's PIN" }, 403);
       }
-      const { error } = await admin.auth.admin.updateUserById(user_id, { password });
+      const { error } = await admin.auth.admin.updateUserById(user_id, {
+        password: phonePass(targetProfile.phone, pin),
+      });
       if (error) return json({ error: error.message }, 400);
       return json({ ok: true });
     }
