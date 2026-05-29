@@ -7,6 +7,7 @@ import { SpeedoLogo } from "@/components/speedo/SpeedoLogo";
 import { pkPhone } from "@/lib/validators";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 
 type Mode = "signin" | "signup";
 
@@ -120,6 +121,11 @@ export default function Login() {
           <Button type="submit" disabled={busy} className="w-full h-12 rounded-pill text-base">
             {busy ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
           </Button>
+          {mode === "signin" && (
+            <p className="text-xs text-center pt-1">
+              <Link to="/forgot-pin" className="text-primary font-semibold hover:underline">Forgot PIN?</Link>
+            </p>
+          )}
           {mode === "signup" && (
             <p className="text-xs text-center text-muted-foreground pt-1">
               New accounts need admin approval before placing orders.

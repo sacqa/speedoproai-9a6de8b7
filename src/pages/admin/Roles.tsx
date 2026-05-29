@@ -57,30 +57,32 @@ export default function AdminRoles() {
     } catch (e: any) { toast.error(e.message); }
   };
 
-  // Create user dialog
+  // Create user dialog (phone + PIN only)
   const [createOpen, setCreateOpen] = useState(false);
-  const [form, setForm] = useState({ email: "", password: "", full_name: "", phone: "", role: "staff" });
+  const [form, setForm] = useState({ full_name: "", phone: "", pin: "", role: "staff" });
   const submitCreate = async () => {
-    if (!form.email || !form.password) return toast.error("Email and password required");
+    if (!/^03\d{9}$/.test(form.phone)) return toast.error("Enter a valid PK mobile number");
+    if (!/^\d{4}$/.test(form.pin)) return toast.error("PIN must be 4 digits");
+    if (!form.full_name.trim()) return toast.error("Full name required");
     try {
       await callFn("create_user", form);
       toast.success("User created");
       setCreateOpen(false);
-      setForm({ email: "", password: "", full_name: "", phone: "", role: "staff" });
+      setForm({ full_name: "", phone: "", pin: "", role: "staff" });
       qc.invalidateQueries({ queryKey: ["admin", "profiles-all"] });
       qc.invalidateQueries({ queryKey: ["admin", "user-roles-all"] });
     } catch (e: any) { toast.error(e.message); }
   };
 
-  // Password reset dialog
-  const [pwdUser, setPwdUser] = useState<{ id: string; name: string } | null>(null);
-  const [newPwd, setNewPwd] = useState("");
-  const submitPwd = async () => {
-    if (newPwd.length < 6) return toast.error("Min 6 characters");
+  // PIN reset dialog
+  const [pinUser, setPinUser] = useState<{ id: string; name: string } | null>(null);
+  const [newPin, setNewPin] = useState("");
+  const submitPin = async () => {
+    if (!/^\d{4}$/.test(newPin)) return toast.error("PIN must be 4 digits");
     try {
-      await callFn("set_password", { user_id: pwdUser!.id, password: newPwd });
-      toast.success("Password updated");
-      setPwdUser(null); setNewPwd("");
+      await callFn("set_pin", { user_id: pinUser!.id, pin: newPin });
+      toast.success("PIN updated");
+      setPinUser(null); setNewPin("");
     } catch (e: any) { toast.error(e.message); }
   };
 
@@ -182,8 +184,8 @@ export default function AdminRoles() {
                     </Select>
                   </td>
                   <td className="text-right p-3">
-                    <Button size="sm" variant="outline" className="gap-1" onClick={() => setPwdUser({ id: u.id, name: u.full_name || u.id })}>
-                      <KeyRound className="h-3.5 w-3.5" /> Password
+                    <Button size="sm" variant="outline" className="gap-1" onClick={() => setPinUser({ id: u.id, name: u.full_name || u.id })}>
+                      <KeyRound className="h-3.5 w-3.5" /> Set PIN
                     </Button>
                   </td>
                 </tr>
@@ -201,14 +203,23 @@ export default function AdminRoles() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create user</DialogTitle>
-            <DialogDescription>Set a custom password and assign a role.</DialogDescription>
+            <DialogDescription>Set a phone + 4-digit PIN and assign a role.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <div><Label>Email</Label><Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-            <div><Label>Password</Label><Input type="text" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
+            <div><Label>Full name</Label><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Full name</Label><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></div>
-              <div><Label>Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
+              <div>
+                <Label>Phone (PK)</Label>
+                <Input value={form.phone} inputMode="numeric" maxLength={11}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 11) })}
+                  placeholder="03xxxxxxxxx" />
+              </div>
+              <div>
+                <Label>4-digit PIN</Label>
+                <Input value={form.pin} inputMode="numeric" maxLength={4}
+                  onChange={(e) => setForm({ ...form, pin: e.target.value.replace(/\D/g, "").slice(0, 4) })}
+                  placeholder="••••" />
+              </div>
             </div>
             <div>
               <Label>Role</Label>
@@ -224,16 +235,18 @@ export default function AdminRoles() {
         </DialogContent>
       </Dialog>
 
-      {/* Set password dialog */}
-      <Dialog open={!!pwdUser} onOpenChange={(o) => !o && setPwdUser(null)}>
+      {/* Set PIN dialog */}
+      <Dialog open={!!pinUser} onOpenChange={(o) => !o && setPinUser(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Set new password</DialogTitle>
-            <DialogDescription>For: <b>{pwdUser?.name}</b></DialogDescription>
+            <DialogTitle>Set new PIN</DialogTitle>
+            <DialogDescription>For: <b>{pinUser?.name}</b></DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <Input type="text" placeholder="New password (min 6 chars)" value={newPwd} onChange={(e) => setNewPwd(e.target.value)} />
-            <Button onClick={submitPwd} className="w-full">Update password</Button>
+            <Input inputMode="numeric" maxLength={4} placeholder="New 4-digit PIN"
+              className="tracking-[0.5em] text-center"
+              value={newPin} onChange={(e) => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 4))} />
+            <Button onClick={submitPin} className="w-full">Update PIN</Button>
           </div>
         </DialogContent>
       </Dialog>

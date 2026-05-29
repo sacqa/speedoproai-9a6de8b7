@@ -8,9 +8,11 @@ import NotFound from "./pages/NotFound.tsx";
 import { AuthProvider } from "@/hooks/useAuth";
 import { AppShell } from "@/components/layout/AppShell";
 import { RequireAuth } from "@/components/speedo/RequireAuth";
+import { RequireApproved } from "@/components/speedo/RequireApproved";
 import Splash from "./pages/app/Splash";
 import Onboarding from "./pages/app/Onboarding";
 import Login from "./pages/app/Login";
+import ForgotPin from "./pages/app/ForgotPin";
 import Waiting from "./pages/app/Waiting";
 import Home from "./pages/app/Home";
 import Search from "./pages/app/Search";
@@ -48,6 +50,7 @@ const AdminFoodVendors = lazy(() => import("./pages/admin/FoodVendors"));
 const AdminFoodVendorMenu = lazy(() => import("./pages/admin/FoodVendorMenu"));
 const AdminRoles = lazy(() => import("./pages/admin/Roles"));
 const AdminApprovals = lazy(() => import("./pages/admin/Approvals"));
+const AdminBirthdays = lazy(() => import("./pages/admin/Birthdays"));
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 
 const queryClient = new QueryClient({
@@ -81,25 +84,26 @@ const App = () => (
               <Route path="/splash" element={<Splash />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/forgot-pin" element={<ForgotPin />} />
               <Route path="/pending" element={<Waiting />} />
-              <Route path="/" element={<Home />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/speedmart" element={<SpeedMart />} />
-              <Route path="/pharmacy" element={<RequireAuth><RequestForm mode="pharmacy" /></RequireAuth>} />
-              <Route path="/speedsend" element={<RequireAuth><RequestForm mode="speedsend" /></RequireAuth>} />
-              <Route path="/custom" element={<RequireAuth><RequestForm mode="custom" /></RequireAuth>} />
-              <Route path="/food" element={<Food />} />
-              <Route path="/food/checkout" element={<RequireAuth><FoodCheckout /></RequireAuth>} />
-              <Route path="/food/:vendorId" element={<FoodVendor />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/checkout" element={<RequireAuth><Checkout /></RequireAuth>} />
-              <Route path="/orders" element={<RequireAuth><Orders /></RequireAuth>} />
-              <Route path="/orders/:id" element={<RequireAuth><OrderDetails /></RequireAuth>} />
-              <Route path="/orders/:id/confirm" element={<RequireAuth><OrderConfirm /></RequireAuth>} />
-              <Route path="/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
-              <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
-              <Route path="/addresses" element={<RequireAuth><Addresses /></RequireAuth>} />
-              <Route path="/help" element={<Help />} />
+              <Route path="/" element={<RequireApproved><Home /></RequireApproved>} />
+              <Route path="/search" element={<RequireApproved><Search /></RequireApproved>} />
+              <Route path="/speedmart" element={<RequireApproved><SpeedMart /></RequireApproved>} />
+              <Route path="/pharmacy" element={<RequireApproved><RequestForm mode="pharmacy" /></RequireApproved>} />
+              <Route path="/speedsend" element={<RequireApproved><RequestForm mode="speedsend" /></RequireApproved>} />
+              <Route path="/custom" element={<RequireApproved><RequestForm mode="custom" /></RequireApproved>} />
+              <Route path="/food" element={<RequireApproved><Food /></RequireApproved>} />
+              <Route path="/food/checkout" element={<RequireApproved><FoodCheckout /></RequireApproved>} />
+              <Route path="/food/:vendorId" element={<RequireApproved><FoodVendor /></RequireApproved>} />
+              <Route path="/cart" element={<RequireApproved><Cart /></RequireApproved>} />
+              <Route path="/checkout" element={<RequireApproved><Checkout /></RequireApproved>} />
+              <Route path="/orders" element={<RequireApproved><Orders /></RequireApproved>} />
+              <Route path="/orders/:id" element={<RequireApproved><OrderDetails /></RequireApproved>} />
+              <Route path="/orders/:id/confirm" element={<RequireApproved><OrderConfirm /></RequireApproved>} />
+              <Route path="/notifications" element={<RequireApproved><Notifications /></RequireApproved>} />
+              <Route path="/profile" element={<RequireApproved><Profile /></RequireApproved>} />
+              <Route path="/addresses" element={<RequireApproved><Addresses /></RequireApproved>} />
+              <Route path="/help" element={<RequireApproved><Help /></RequireApproved>} />
               <Route path="/admin" element={<AdminPage><AdminDashboard /></AdminPage>} />
               <Route path="/admin/orders" element={<AdminPage><AdminOrders /></AdminPage>} />
               <Route path="/admin/orders/:id" element={<AdminPage><AdminOrderDetail /></AdminPage>} />
@@ -116,6 +120,7 @@ const App = () => (
               <Route path="/admin/food-vendors/:id/menu" element={<AdminPage><AdminFoodVendorMenu /></AdminPage>} />
               <Route path="/admin/roles" element={<AdminPage><AdminRoles /></AdminPage>} />
               <Route path="/admin/approvals" element={<AdminPage><AdminApprovals /></AdminPage>} />
+              <Route path="/admin/birthdays" element={<AdminPage><AdminBirthdays /></AdminPage>} />
               <Route path="/admin/login" element={<Suspense fallback={null}><AdminLogin /></Suspense>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
