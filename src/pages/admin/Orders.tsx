@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR, statusLabel } from "@/lib/format";
 import { Input } from "@/components/ui/input";
@@ -14,10 +14,18 @@ import { toast } from "@/hooks/use-toast";
 import { Trash2 } from "lucide-react";
 
 const STATUSES = ["all","submitted","rider_assigned","purchasing_items","out_for_delivery","delivered","cancelled"];
+const PAGE_SIZE = 25;
 
 export default function AdminOrders() {
-  const [filter, setFilter] = useState<string>("all");
-  const [q, setQ] = useState("");
+  const [params, setParams] = useSearchParams();
+  const filter = params.get("status") ?? "all";
+  const q = params.get("q") ?? "";
+  const page = Math.max(1, parseInt(params.get("page") ?? "1", 10) || 1);
+  const update = (next: Record<string, string | null>) => {
+    const p = new URLSearchParams(params);
+    Object.entries(next).forEach(([k, v]) => { if (v === null || v === "") p.delete(k); else p.set(k, v); });
+    setParams(p, { replace: true });
+  };
   const { user } = useAuth();
   const [isSuper, setIsSuper] = useState(false);
   const [resetting, setResetting] = useState(false);
@@ -27,19 +35,23 @@ export default function AdminOrders() {
       .maybeSingle().then(({ data }) => setIsSuper(!!data));
   }, [user]);
   const orders = useQuery({
-    queryKey: ["admin","orders", filter],
+    queryKey: ["admin","orders", filter, q, page],
     queryFn: async () => {
-      let query = supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(200);
+      let query = supabase.from("orders")
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false });
       if (filter !== "all") query = query.eq("status", filter as any);
-      const { data, error } = await query;
+      if (q.trim()) query = query.ilike("order_number", `%${q.trim()}%`);
+      const from = (page - 1) * PAGE_SIZE;
+      query = query.range(from, from + PAGE_SIZE - 1);
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data ?? [];
+      return { rows: data ?? [], count: count ?? 0 };
     },
   });
-  const filtered = (orders.data ?? []).filter((o: any) =>
-    !q.trim() || o.order_number?.toLowerCase().includes(q.toLowerCase()) ||
-    o.address_snapshot?.recipient_name?.toLowerCase().includes(q.toLowerCase()) ||
-    o.address_snapshot?.phone?.includes(q));
+  const filtered = orders.data?.rows ?? [];
+  const total = orders.data?.count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const handleReset = async () => {
     setResetting(true);
@@ -98,12 +110,12 @@ export default function AdminOrders() {
       </div>
       <div className="flex flex-wrap gap-2">
         {STATUSES.map((s) => (
-          <button key={s} onClick={() => setFilter(s)} className={`px-3 py-1.5 rounded-pill text-xs font-semibold ${filter === s ? "bg-primary text-primary-foreground" : "bg-card border border-border"}`}>
+          <button key={s} onClick={() => update({ status: s === "all" ? null : s, page: null })} className={`px-3 py-1.5 rounded-pill text-xs font-semibold ${filter === s ? "bg-primary text-primary-foreground" : "bg-card border border-border"}`}>
             {statusLabel(s)}
           </button>
         ))}
       </div>
-      <Input placeholder="Search by order #, name, or phone…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm" />
+      <Input placeholder="Search by order #…" value={q} onChange={(e) => update({ q: e.target.value || null, page: null })} className="max-w-sm" />
       <div className="bg-card rounded-xl shadow-card overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-xs text-muted-foreground border-b border-border">
@@ -123,6 +135,14 @@ export default function AdminOrders() {
             {filtered.length === 0 && <tr><td colSpan={6} className="text-center py-10 text-muted-foreground">No orders</td></tr>}
           </tbody>
         </table>
+      </div>
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>Showing {filtered.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–{(page - 1) * PAGE_SIZE + filtered.length} of {total}</span>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => update({ page: String(page - 1) })}>Previous</Button>
+          <span className="px-2 py-1 font-semibold text-foreground">Page {page} / {totalPages}</span>
+          <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => update({ page: String(page + 1) })}>Next</Button>
+        </div>
       </div>
     </div>
   );

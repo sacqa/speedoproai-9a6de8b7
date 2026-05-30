@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard } from "@/components/speedo/ProductCard";
 import { Search as SearchIcon, Sparkles, TrendingUp } from "lucide-react";
@@ -8,15 +9,23 @@ import { useCart } from "@/store/cart";
 import { useRecentlyViewed } from "@/store/recentlyViewed";
 
 export default function Search() {
-  const [q, setQ] = useState("");
+  const [params, setParams] = useSearchParams();
+  const initialQ = params.get("q") ?? "";
+  const [q, setQ] = useState(initialQ);
   const [debounced, setDebounced] = useState("");
   const cartItems = useCart((s) => s.items);
   const recent = useRecentlyViewed((s) => s.ids);
   const cartIds = useMemo(() => cartItems.map((i) => i.product_id), [cartItems]);
   useEffect(() => {
-    const t = setTimeout(() => setDebounced(q.trim()), 250);
+    const t = setTimeout(() => {
+      const trimmed = q.trim();
+      setDebounced(trimmed);
+      const p = new URLSearchParams(params);
+      if (trimmed) p.set("q", trimmed); else p.delete("q");
+      setParams(p, { replace: true });
+    }, 250);
     return () => clearTimeout(t);
-  }, [q]);
+  }, [q]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const results = useQuery({
     queryKey: ["search", debounced],
