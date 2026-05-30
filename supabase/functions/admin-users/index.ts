@@ -101,6 +101,36 @@ Deno.serve(async (req) => {
     return json({ ok: true });
   }
 
+  // Authenticated: user changes their own PIN after verifying current PIN.
+  if (action === "change_my_pin") {
+    const authHeader0 = req.headers.get("Authorization") ?? "";
+    const token0 = authHeader0.replace(/^Bearer\s+/i, "");
+    if (!token0) return json({ error: "Missing auth" }, 401);
+    const caller = createClient(SUPABASE_URL, ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${token0}` } },
+    });
+    const { data: ur, error: ue } = await caller.auth.getUser();
+    if (ue || !ur.user) return json({ error: "Invalid auth" }, 401);
+    const current_pin = String(body.current_pin ?? "");
+    const new_pin = String(body.new_pin ?? "");
+    if (!/^\d{4}$/.test(new_pin)) return json({ error: "New PIN must be 4 digits" }, 400);
+    const { data: prof } = await admin
+      .from("profiles").select("phone").eq("id", ur.user.id).maybeSingle();
+    if (!prof?.phone) return json({ error: "No phone on file" }, 400);
+    // Verify current PIN by attempting a sign-in with a throwaway client.
+    const verifier = createClient(SUPABASE_URL, ANON_KEY);
+    const { error: signErr } = await verifier.auth.signInWithPassword({
+      email: phoneEmail(prof.phone),
+      password: phonePass(prof.phone, current_pin),
+    });
+    if (signErr) return json({ error: "Current PIN is incorrect" }, 400);
+    const { error } = await admin.auth.admin.updateUserById(ur.user.id, {
+      password: phonePass(prof.phone, new_pin),
+    });
+    if (error) return json({ error: error.message }, 400);
+    return json({ ok: true });
+  }
+
   // All other actions require an authenticated admin caller.
   const authHeader = req.headers.get("Authorization") ?? "";
   const token = authHeader.replace(/^Bearer\s+/i, "");
