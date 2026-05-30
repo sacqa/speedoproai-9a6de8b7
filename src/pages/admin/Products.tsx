@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,10 +17,19 @@ type Product = { id: string; name: string; description: string | null; price: nu
 
 const empty = { name: "", description: "", price: 0, stock: 100, unit: "", image_url: "", category_id: "", is_active: true, is_featured: false };
 
+const PAGE_SIZE = 25;
+
 export default function AdminProducts() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Partial<Product> & { id?: string } | null>(null);
-  const [q, setQ] = useState("");
+  const [params, setParams] = useSearchParams();
+  const q = params.get("q") ?? "";
+  const page = Math.max(1, parseInt(params.get("page") ?? "1", 10) || 1);
+  const update = (next: Record<string, string | null>) => {
+    const p = new URLSearchParams(params);
+    Object.entries(next).forEach(([k, v]) => { if (v === null || v === "") p.delete(k); else p.set(k, v); });
+    setParams(p, { replace: true });
+  };
 
   const cats = useQuery({ queryKey: ["admin","cats"], queryFn: async () => (await supabase.from("categories").select("*").order("sort_order")).data ?? [] });
   const prods = useQuery({ queryKey: ["admin","prods"], queryFn: async () => (await supabase.from("products").select("*, categories(name)").order("created_at", { ascending: false })).data ?? [] });
@@ -67,7 +77,11 @@ export default function AdminProducts() {
     setEditing((e) => ({ ...e, image_url: data.publicUrl }));
   };
 
-  const list = (prods.data ?? []).filter((p: any) => !q || p.name.toLowerCase().includes(q.toLowerCase()));
+  const filteredAll = (prods.data ?? []).filter((p: any) => !q || p.name.toLowerCase().includes(q.toLowerCase()));
+  const total = filteredAll.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const list = filteredAll.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   return (
     <div className="space-y-4">
@@ -75,7 +89,7 @@ export default function AdminProducts() {
         <h1 className="text-2xl font-extrabold">Products</h1>
         <Button onClick={openNew}><Plus className="h-4 w-4 mr-1" />Add Product</Button>
       </div>
-      <Input placeholder="Search products…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm" />
+      <Input placeholder="Search products…" value={q} onChange={(e) => update({ q: e.target.value || null, page: null })} className="max-w-sm" />
       <div className="bg-card rounded-xl shadow-card overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-xs text-muted-foreground border-b border-border">
@@ -99,6 +113,14 @@ export default function AdminProducts() {
             {list.length === 0 && <tr><td colSpan={7} className="text-center py-10 text-muted-foreground">No products</td></tr>}
           </tbody>
         </table>
+      </div>
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>Showing {list.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1}–{(safePage - 1) * PAGE_SIZE + list.length} of {total}</span>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" disabled={safePage <= 1} onClick={() => update({ page: String(safePage - 1) })}>Previous</Button>
+          <span className="px-2 py-1 font-semibold text-foreground">Page {safePage} / {totalPages}</span>
+          <Button variant="outline" size="sm" disabled={safePage >= totalPages} onClick={() => update({ page: String(safePage + 1) })}>Next</Button>
+        </div>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>

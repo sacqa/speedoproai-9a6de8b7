@@ -1,35 +1,36 @@
+import logoImg from "@/assets/speedo-logo.jpg";
+
 type Props = { size?: number; className?: string; variant?: "filled" | "mark" };
 
+/**
+ * SpeedoLogo renders the official brand wordmark. The `mark` variant returns
+ * a square icon-only crop (right portion of the asset) for tight spaces.
+ */
 export function SpeedoLogo({ size = 36, className = "", variant = "filled" }: Props) {
   if (variant === "mark") {
+    // Icon-only — render as a square purple "o" mark using the brand color.
     return (
       <svg width={size} height={size} viewBox="0 0 48 48" className={className} aria-label="Speedo">
         <path
-          d="M27 4 12 27h9l-3 17 18-23h-9l3-17z"
+          d="M40 24a16 16 0 1 1-32 0 16 16 0 0 1 32 0Zm-16-8a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm-7 17h14l-7 6-7-6Z"
           fill="hsl(var(--primary))"
         />
       </svg>
     );
   }
+  // Full wordmark: keep aspect ratio (~3.6:1 from asset), use height = size.
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" className={className} aria-label="Speedo">
-      <rect width="48" height="48" rx="12" fill="url(#sg)" />
-      <path d="M27 8 14 28h8l-3 12 17-20h-8l3-12z" fill="white" />
-      <defs>
-        <linearGradient id="sg" x1="0" y1="0" x2="48" y2="48">
-          <stop offset="0" stopColor="hsl(var(--primary))" />
-          <stop offset="1" stopColor="hsl(var(--primary-dark))" />
-        </linearGradient>
-      </defs>
-    </svg>
+    <img
+      src={logoImg}
+      alt="Speedo"
+      height={size}
+      style={{ height: size, width: "auto" }}
+      className={`object-contain select-none ${className}`}
+      draggable={false}
+    />
   );
 }
 
 export function SpeedoWordmark({ className = "" }: { className?: string }) {
-  return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <SpeedoLogo size={32} />
-      <span className="text-xl font-extrabold tracking-tight text-foreground">Speedo</span>
-    </div>
-  );
+  return <SpeedoLogo size={32} className={className} />;
 }

@@ -1,15 +1,25 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 
+const PAGE_SIZE = 25;
+
 export default function AdminCustomers() {
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<string>("all");
+  const [params, setParams] = useSearchParams();
+  const search = params.get("q") ?? "";
+  const status = params.get("status") ?? "all";
+  const page = Math.max(1, parseInt(params.get("page") ?? "1", 10) || 1);
+  const update = (next: Record<string, string | null>) => {
+    const p = new URLSearchParams(params);
+    Object.entries(next).forEach(([k, v]) => { if (v === null || v === "") p.delete(k); else p.set(k, v); });
+    setParams(p, { replace: true });
+  };
   const q = useQuery({
     queryKey: ["admin","customers"],
     queryFn: async () => {
@@ -25,7 +35,7 @@ export default function AdminCustomers() {
     },
   });
 
-  const rows = useMemo(() => {
+  const filtered = useMemo(() => {
     const list = q.data ?? [];
     return list.filter((c: any) => {
       if (status !== "all" && c.approval_status !== status) return false;
@@ -34,6 +44,10 @@ export default function AdminCustomers() {
       return (c.full_name ?? "").toLowerCase().includes(s) || (c.phone ?? "").includes(s);
     });
   }, [q.data, search, status]);
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const rows = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   return (
     <div className="space-y-4">
@@ -42,10 +56,10 @@ export default function AdminCustomers() {
         <Input
           placeholder="Search name or phone…"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => update({ q: e.target.value || null, page: null })}
           className="max-w-xs"
         />
-        <Select value={status} onValueChange={setStatus}>
+        <Select value={status} onValueChange={(v) => update({ status: v === "all" ? null : v, page: null })}>
           <SelectTrigger className="w-44"><SelectValue placeholder="All statuses" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
@@ -54,7 +68,7 @@ export default function AdminCustomers() {
             <SelectItem value="rejected">Rejected</SelectItem>
           </SelectContent>
         </Select>
-        <span className="text-xs text-muted-foreground ml-auto">{rows.length} shown</span>
+        <span className="text-xs text-muted-foreground ml-auto">{total} match</span>
       </div>
       <div className="bg-card rounded-xl shadow-card overflow-x-auto">
         <table className="w-full text-sm">
@@ -92,6 +106,14 @@ export default function AdminCustomers() {
             {rows.length === 0 && <tr><td colSpan={7} className="text-center py-10 text-muted-foreground">No customers</td></tr>}
           </tbody>
         </table>
+      </div>
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>Showing {rows.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1}–{(safePage - 1) * PAGE_SIZE + rows.length} of {total}</span>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" disabled={safePage <= 1} onClick={() => update({ page: String(safePage - 1) })}>Previous</Button>
+          <span className="px-2 py-1 font-semibold text-foreground">Page {safePage} / {totalPages}</span>
+          <Button variant="outline" size="sm" disabled={safePage >= totalPages} onClick={() => update({ page: String(safePage + 1) })}>Next</Button>
+        </div>
       </div>
     </div>
   );

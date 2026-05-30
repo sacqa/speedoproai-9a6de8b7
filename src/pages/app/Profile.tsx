@@ -3,10 +3,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, MapPin, ClipboardList, Bell, HelpCircle, LogOut, BellRing } from "lucide-react";
+import { ChevronRight, MapPin, ClipboardList, Bell, HelpCircle, LogOut, BellRing, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import { usePushSubscription } from "@/hooks/usePushSubscription";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function Profile() {
   const { user, signOut } = useAuth();
@@ -14,6 +19,29 @@ export default function Profile() {
   const nav = useNavigate();
   const [tapCount, setTapCount] = useState(0);
   const push = usePushSubscription();
+  const [pinOpen, setPinOpen] = useState(false);
+  const [curPin, setCurPin] = useState("");
+  const [newPin, setNewPin] = useState("");
+  const [confPin, setConfPin] = useState("");
+  const [pinBusy, setPinBusy] = useState(false);
+
+  const changePin = async () => {
+    if (!/^\d{4}$/.test(curPin)) return toast.error("Enter your current 4-digit PIN");
+    if (!/^\d{4}$/.test(newPin)) return toast.error("New PIN must be 4 digits");
+    if (newPin !== confPin) return toast.error("New PINs do not match");
+    if (newPin === curPin) return toast.error("New PIN must be different");
+    setPinBusy(true);
+    const { data, error } = await supabase.functions.invoke("admin-users", {
+      body: { action: "change_my_pin", current_pin: curPin, new_pin: newPin },
+    });
+    setPinBusy(false);
+    if (error || (data as any)?.error) {
+      toast.error((data as any)?.error || error?.message || "Failed");
+      return;
+    }
+    toast.success("PIN updated");
+    setPinOpen(false); setCurPin(""); setNewPin(""); setConfPin("");
+  };
 
   const handleSecretTap = async () => {
     const next = tapCount + 1;
@@ -59,6 +87,42 @@ export default function Profile() {
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </Link>
         ))}
+        <Dialog open={pinOpen} onOpenChange={setPinOpen}>
+          <DialogTrigger asChild>
+            <button className="flex items-center gap-3 p-4 w-full text-left">
+              <KeyRound className="h-5 w-5 text-primary" />
+              <span className="flex-1 font-semibold text-sm">Change PIN</span>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </DialogTrigger>
+          <DialogContent className="max-w-sm">
+            <DialogHeader><DialogTitle>Change your PIN</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="cur">Current PIN</Label>
+                <Input id="cur" inputMode="numeric" type="password" maxLength={4} value={curPin}
+                  onChange={(e) => setCurPin(e.target.value.replace(/\D/g, "").slice(0,4))}
+                  className="mt-1.5 h-11 rounded-xl tracking-[0.5em] text-center" placeholder="••••" />
+              </div>
+              <div>
+                <Label htmlFor="new">New PIN</Label>
+                <Input id="new" inputMode="numeric" type="password" maxLength={4} value={newPin}
+                  onChange={(e) => setNewPin(e.target.value.replace(/\D/g, "").slice(0,4))}
+                  className="mt-1.5 h-11 rounded-xl tracking-[0.5em] text-center" placeholder="••••" />
+              </div>
+              <div>
+                <Label htmlFor="conf">Confirm new PIN</Label>
+                <Input id="conf" inputMode="numeric" type="password" maxLength={4} value={confPin}
+                  onChange={(e) => setConfPin(e.target.value.replace(/\D/g, "").slice(0,4))}
+                  className="mt-1.5 h-11 rounded-xl tracking-[0.5em] text-center" placeholder="••••" />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setPinOpen(false)} disabled={pinBusy}>Cancel</Button>
+              <Button onClick={changePin} disabled={pinBusy}>{pinBusy ? "Saving…" : "Update PIN"}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
       <div className="bg-card rounded-xl shadow-card p-4 flex items-center gap-3">
         <BellRing className="h-5 w-5 text-primary" />
