@@ -13,14 +13,14 @@ const STATUSES = ["all","submitted","rider_assigned","purchasing_items","out_for
 export default function Orders() {
   const { user } = useAuth();
   const [params, setParams] = useSearchParams();
-  const q = params.get("q") ?? "";
+  const search = params.get("q") ?? "";
   const status = params.get("status") ?? "all";
   const update = (next: Record<string, string | null>) => {
     const p = new URLSearchParams(params);
     Object.entries(next).forEach(([k, v]) => { if (v === null || v === "") p.delete(k); else p.set(k, v); });
     setParams(p, { replace: true });
   };
-  const q = useQuery({
+  const query = useQuery({
     queryKey: ["orders", user?.id],
     enabled: !!user,
     queryFn: async () => {
@@ -29,15 +29,16 @@ export default function Orders() {
       return data ?? [];
     },
   });
-  // Avoid name collision: the destructured query result above shadows the `q` URL param.
-  // Rename:
+  const rows = ((query.data ?? []) as any[])
+    .filter((o: any) => status === "all" || o.status === status)
+    .filter((o: any) => !search || o.order_number?.toLowerCase().includes(search.toLowerCase()));
   return (
     <div className="p-4 lg:p-0 space-y-3">
       <h1 className="text-2xl font-extrabold">My Orders</h1>
       <div className="flex gap-2">
         <Input
           placeholder="Search order #…"
-          defaultValue={q}
+          defaultValue={search}
           onChange={(e) => update({ q: e.target.value || null })}
           className="flex-1"
         />
@@ -48,15 +49,9 @@ export default function Orders() {
           </SelectContent>
         </Select>
       </div>
-      {q.isLoading ? <p className="text-muted-foreground">Loading…</p> :
-        ((q.data ?? []) as any[])
-          .filter((o: any) => status === "all" || o.status === status)
-          .filter((o: any) => !q || o.order_number?.toLowerCase().includes((params.get("q") ?? "").toLowerCase()))
-          .length === 0 ? <p className="text-muted-foreground py-8 text-center">No orders match.</p> :
-        ((q.data ?? []) as any[])
-          .filter((o: any) => status === "all" || o.status === status)
-          .filter((o: any) => !(params.get("q") ?? "") || o.order_number?.toLowerCase().includes((params.get("q") ?? "").toLowerCase()))
-          .map((o: any) => (
+      {query.isLoading ? <p className="text-muted-foreground">Loading…</p> :
+        rows.length === 0 ? <p className="text-muted-foreground py-8 text-center">No orders match.</p> :
+        rows.map((o: any) => (
           <Link to={`/orders/${o.id}`} key={o.id} className="block bg-card rounded-xl shadow-card p-4">
             <div className="flex justify-between">
               <div>
