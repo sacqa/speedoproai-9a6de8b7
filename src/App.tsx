@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -120,7 +120,7 @@ const App = () => (
               <Route path="/admin/food-vendors/:id/menu" element={<AdminPage><AdminFoodVendorMenu /></AdminPage>} />
               <Route path="/admin/roles" element={<AdminPage><AdminRoles /></AdminPage>} />
               <Route path="/admin/approvals" element={<AdminPage><AdminApprovals /></AdminPage>} />
-              <Route path="/admin/birthdays" element={<AdminPage><AdminBirthdays /></AdminPage>} />
+              <Route path="/admin/birthdays" element={<Navigate to="/admin/customers?tab=birthdays" replace />} />
               <Route path="/admin/login" element={<Suspense fallback={null}><AdminLogin /></Suspense>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
