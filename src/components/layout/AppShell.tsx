@@ -11,6 +11,7 @@ import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { Button } from "@/components/ui/button";
 import { formatPKR } from "@/lib/format";
 import { AnnouncementPopup } from "@/components/app/AnnouncementPopup";
+import { InstallPrompt } from "@/components/app/InstallPrompt";
 import {
   Sheet, SheetContent, SheetTrigger,
 } from "@/components/ui/sheet";
@@ -35,13 +36,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   const hideCheckoutBar = ["/cart", "/checkout", "/order"].some((p) => location.pathname.startsWith(p));
 
   if (hideChrome) {
-    return <main className="min-h-screen bg-background">{Banner}<AnnouncementPopup />{children}</main>;
+    return <main className="min-h-screen bg-background">{Banner}<AnnouncementPopup /><InstallPrompt />{children}</main>;
   }
 
   return (
     <div className="min-h-screen bg-page-gradient">
       {Banner}
       <AnnouncementPopup />
+      <InstallPrompt />
       {/* DESKTOP HEADER */}
       <header className="hidden lg:flex sticky top-0 z-40 h-16 items-center glass border-b border-white/40 px-6">
         <Link to="/" className="flex items-center gap-3 mr-6">

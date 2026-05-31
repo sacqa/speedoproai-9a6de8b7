@@ -19,7 +19,7 @@ function daysUntilBirthday(dob: string, today: Date): number {
   return Math.round((next.getTime() - new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime()) / 86400000);
 }
 
-export default function Birthdays() {
+export function BirthdaysPanel({ showHeading = true }: { showHeading?: boolean }) {
   const [search, setSearch] = useState("");
   const q = useQuery({
     queryKey: ["admin", "birthdays"],
@@ -58,12 +58,14 @@ export default function Birthdays() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-extrabold flex items-center gap-2">
-          <Cake className="h-6 w-6 text-primary" /> Birthdays
-        </h1>
-        <p className="text-sm text-muted-foreground">Day-wise customer birthday tracking.</p>
-      </div>
+      {showHeading && (
+        <div>
+          <h2 className="text-xl font-extrabold flex items-center gap-2">
+            <Cake className="h-5 w-5 text-primary" /> Birthdays
+          </h2>
+          <p className="text-sm text-muted-foreground">Day-wise customer birthday tracking.</p>
+        </div>
+      )}
 
       <Input
         placeholder="Search by name or phone…"
@@ -130,4 +132,8 @@ export default function Birthdays() {
       </div>
     </div>
   );
+}
+
+export default function Birthdays() {
+  return <BirthdaysPanel />;
 }

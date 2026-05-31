@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Users, Cake } from "lucide-react";
+import { BirthdaysPanel } from "./Birthdays";
 
 const PAGE_SIZE = 25;
 
@@ -15,6 +18,7 @@ export default function AdminCustomers() {
   const search = params.get("q") ?? "";
   const status = params.get("status") ?? "all";
   const page = Math.max(1, parseInt(params.get("page") ?? "1", 10) || 1);
+  const tab = params.get("tab") === "birthdays" ? "birthdays" : "list";
   const update = (next: Record<string, string | null>) => {
     const p = new URLSearchParams(params);
     Object.entries(next).forEach(([k, v]) => { if (v === null || v === "") p.delete(k); else p.set(k, v); });
@@ -52,6 +56,12 @@ export default function AdminCustomers() {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-extrabold">Customers</h1>
+      <Tabs value={tab} onValueChange={(v) => update({ tab: v === "list" ? null : v, page: null })}>
+        <TabsList>
+          <TabsTrigger value="list" className="gap-1.5"><Users className="h-4 w-4" /> All customers</TabsTrigger>
+          <TabsTrigger value="birthdays" className="gap-1.5"><Cake className="h-4 w-4" /> Birthdays</TabsTrigger>
+        </TabsList>
+        <TabsContent value="list" className="space-y-4 mt-4">
       <div className="flex flex-wrap items-center gap-2">
         <Input
           placeholder="Search name or phone…"
@@ -115,6 +125,11 @@ export default function AdminCustomers() {
           <Button variant="outline" size="sm" disabled={safePage >= totalPages} onClick={() => update({ page: String(safePage + 1) })}>Next</Button>
         </div>
       </div>
+        </TabsContent>
+        <TabsContent value="birthdays" className="mt-4">
+          <BirthdaysPanel showHeading={false} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
