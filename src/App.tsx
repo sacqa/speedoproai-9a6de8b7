@@ -50,7 +50,6 @@ const AdminFoodVendors = lazy(() => import("./pages/admin/FoodVendors"));
 const AdminFoodVendorMenu = lazy(() => import("./pages/admin/FoodVendorMenu"));
 const AdminRoles = lazy(() => import("./pages/admin/Roles"));
 const AdminApprovals = lazy(() => import("./pages/admin/Approvals"));
-const AdminBirthdays = lazy(() => import("./pages/admin/Birthdays"));
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 
 const queryClient = new QueryClient({
