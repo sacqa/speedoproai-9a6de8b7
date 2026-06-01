@@ -192,6 +192,7 @@ export type Database = {
           icon: string | null
           id: string
           is_active: boolean
+          is_popular: boolean
           name: string
           slug: string
           sort_order: number
@@ -200,6 +201,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean
+          is_popular?: boolean
           name: string
           slug: string
           sort_order?: number
@@ -208,6 +210,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean
+          is_popular?: boolean
           name?: string
           slug?: string
           sort_order?: number
@@ -306,6 +309,8 @@ export type Database = {
       food_vendors: {
         Row: {
           address: string | null
+          closes_at: string | null
+          commission_percent: number
           cover_url: string | null
           created_at: string
           cuisine: string | null
@@ -313,10 +318,12 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
+          is_featured: boolean
           is_open: boolean
           logo_url: string | null
           min_order: number
           name: string
+          opens_at: string | null
           phone: string | null
           rating: number
           slug: string
@@ -325,6 +332,8 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          closes_at?: string | null
+          commission_percent?: number
           cover_url?: string | null
           created_at?: string
           cuisine?: string | null
@@ -332,10 +341,12 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_featured?: boolean
           is_open?: boolean
           logo_url?: string | null
           min_order?: number
           name: string
+          opens_at?: string | null
           phone?: string | null
           rating?: number
           slug: string
@@ -344,6 +355,8 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          closes_at?: string | null
+          commission_percent?: number
           cover_url?: string | null
           created_at?: string
           cuisine?: string | null
@@ -351,10 +364,12 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_featured?: boolean
           is_open?: boolean
           logo_url?: string | null
           min_order?: number
           name?: string
+          opens_at?: string | null
           phone?: string | null
           rating?: number
           slug?: string
@@ -666,6 +681,7 @@ export type Database = {
       products: {
         Row: {
           category_id: string | null
+          compare_price: number | null
           created_at: string
           description: string | null
           id: string
@@ -679,6 +695,7 @@ export type Database = {
         }
         Insert: {
           category_id?: string | null
+          compare_price?: number | null
           created_at?: string
           description?: string | null
           id?: string
@@ -692,6 +709,7 @@ export type Database = {
         }
         Update: {
           category_id?: string | null
+          compare_price?: number | null
           created_at?: string
           description?: string | null
           id?: string
