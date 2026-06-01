@@ -14,7 +14,8 @@ import { Plus, Pencil, Trash2, ListOrdered } from "lucide-react";
 const empty = {
   name: "", slug: "", cuisine: "", description: "", logo_url: "", cover_url: "",
   address: "", phone: "", delivery_time_min: 30, min_order: 0, rating: 4.5,
-  is_open: true, is_active: true, sort_order: 0,
+  is_open: true, is_active: true, is_featured: false, sort_order: 0,
+  opens_at: "", closes_at: "", commission_percent: 0,
 };
 
 export default function AdminFoodVendors() {
@@ -36,7 +37,17 @@ export default function AdminFoodVendors() {
   const save = async () => {
     if (!editing.name?.trim()) return toast.error("Name required");
     const slug = (editing.slug || editing.name).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    const payload = { ...editing, slug, delivery_time_min: Number(editing.delivery_time_min) || 30, min_order: Number(editing.min_order) || 0, rating: Number(editing.rating) || 4.5, sort_order: Number(editing.sort_order) || 0 };
+    const payload = {
+      ...editing,
+      slug,
+      delivery_time_min: Number(editing.delivery_time_min) || 30,
+      min_order: Number(editing.min_order) || 0,
+      rating: Number(editing.rating) || 4.5,
+      sort_order: Number(editing.sort_order) || 0,
+      commission_percent: Number(editing.commission_percent) || 0,
+      opens_at: editing.opens_at || null,
+      closes_at: editing.closes_at || null,
+    };
     delete (payload as any).id;
     const op = editing.id
       ? supabase.from("food_vendors").update(payload).eq("id", editing.id)
