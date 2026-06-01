@@ -9,8 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, ShoppingBag, TrendingUp, Clock, DollarSign } from "lucide-react";
 import { formatPKR } from "@/lib/format";
 
 export default function AdminFoodVendorMenu() {
@@ -89,9 +90,26 @@ export default function AdminFoodVendorMenu() {
     <div className="space-y-4">
       <div className="flex items-center gap-3">
         <Link to="/admin/food-vendors"><Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button></Link>
-        <h1 className="text-2xl font-extrabold">{vendor.data?.name ?? "Menu"}</h1>
+        <div className="flex-1">
+          <h1 className="text-2xl font-extrabold leading-tight">{vendor.data?.name ?? "Vendor"}</h1>
+          {vendor.data && (
+            <p className="text-xs text-muted-foreground">
+              {vendor.data.cuisine ?? "—"} · {vendor.data.is_open ? "Open" : "Closed"}
+              {vendor.data.opens_at && vendor.data.closes_at ? ` · ${vendor.data.opens_at}–${vendor.data.closes_at}` : ""}
+              {Number(vendor.data.commission_percent) > 0 ? ` · ${vendor.data.commission_percent}% commission` : ""}
+            </p>
+          )}
+        </div>
       </div>
 
+      <Tabs defaultValue="menu" className="w-full">
+        <TabsList>
+          <TabsTrigger value="menu">Menu</TabsTrigger>
+          <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="stats">Stats</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="menu" className="space-y-4 pt-3">
       <div className="bg-card rounded-xl shadow-card p-4 space-y-3">
         <h2 className="font-bold">Menu categories</h2>
         <div className="flex flex-wrap gap-2">
@@ -137,6 +155,16 @@ export default function AdminFoodVendorMenu() {
           </tbody>
         </table>
       </div>
+        </TabsContent>
+
+        <TabsContent value="orders" className="pt-3">
+          <VendorOrders vendorId={vendorId!} />
+        </TabsContent>
+
+        <TabsContent value="stats" className="pt-3">
+          <VendorStats vendorId={vendorId!} commission={Number(vendor.data?.commission_percent ?? 0)} />
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-w-lg">
