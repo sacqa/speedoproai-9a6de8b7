@@ -13,7 +13,7 @@ import { formatPKR } from "@/lib/format";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 
-type Product = { id: string; name: string; description: string | null; price: number; stock: number; unit: string | null; image_url: string | null; category_id: string | null; is_active: boolean; is_featured: boolean; };
+type Product = { id: string; name: string; description: string | null; price: number; compare_price: number | null; stock: number; unit: string | null; image_url: string | null; category_id: string | null; is_active: boolean; is_featured: boolean; };
 
 const empty = { name: "", description: "", price: 0, compare_price: null as number | null, stock: 100, unit: "", image_url: "", category_id: "", is_active: true, is_featured: false };
 
