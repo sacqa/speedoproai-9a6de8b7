@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 
-const empty = { name: "", slug: "", icon: "", sort_order: 0, is_active: true };
+const empty = { name: "", slug: "", icon: "", sort_order: 0, is_active: true, is_popular: false };
 
 export default function AdminCategories() {
   const cats = useQuery({ queryKey: ["admin","categories"], queryFn: async () => (await supabase.from("categories").select("*").order("sort_order")).data ?? [] });
@@ -41,13 +41,14 @@ export default function AdminCategories() {
       </div>
       <div className="bg-card rounded-xl shadow-card overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="text-xs text-muted-foreground border-b border-border"><tr><th className="text-left p-3">Name</th><th className="text-left">Slug</th><th className="text-center">Order</th><th className="text-center">Active</th><th></th></tr></thead>
+          <thead className="text-xs text-muted-foreground border-b border-border"><tr><th className="text-left p-3">Name</th><th className="text-left">Slug</th><th className="text-center">Order</th><th className="text-center">Popular</th><th className="text-center">Active</th><th></th></tr></thead>
           <tbody>
             {(cats.data ?? []).map((c: any) => (
               <tr key={c.id} className="border-b border-border last:border-0">
                 <td className="p-3 font-semibold">{c.icon} {c.name}</td>
                 <td className="text-muted-foreground text-xs">{c.slug}</td>
                 <td className="text-center">{c.sort_order}</td>
+                <td className="text-center"><span className={`text-xs px-2 py-0.5 rounded-pill ${c.is_popular ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{c.is_popular ? "Yes" : "No"}</span></td>
                 <td className="text-center"><span className={`text-xs px-2 py-0.5 rounded-pill ${c.is_active ? "bg-success/10 text-success" : "bg-muted"}`}>{c.is_active ? "Yes" : "No"}</span></td>
                 <td className="text-right p-3">
                   <Button size="icon" variant="ghost" onClick={() => { setEditing(c); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
@@ -55,7 +56,7 @@ export default function AdminCategories() {
                 </td>
               </tr>
             ))}
-            {(cats.data ?? []).length === 0 && <tr><td colSpan={5} className="text-center py-10 text-muted-foreground">No categories</td></tr>}
+            {(cats.data ?? []).length === 0 && <tr><td colSpan={6} className="text-center py-10 text-muted-foreground">No categories</td></tr>}
           </tbody>
         </table>
       </div>
@@ -69,7 +70,10 @@ export default function AdminCategories() {
               <div><Label>Icon (emoji)</Label><Input value={editing.icon ?? ""} onChange={(e) => setEditing({ ...editing, icon: e.target.value })} placeholder="🥦" /></div>
               <div><Label>Sort order</Label><Input type="number" value={editing.sort_order ?? 0} onChange={(e) => setEditing({ ...editing, sort_order: Number(e.target.value) })} /></div>
             </div>
-            <label className="flex items-center gap-2 text-sm"><Switch checked={!!editing.is_active} onCheckedChange={(v) => setEditing({ ...editing, is_active: v })} />Active</label>
+            <div className="flex gap-6">
+              <label className="flex items-center gap-2 text-sm"><Switch checked={!!editing.is_active} onCheckedChange={(v) => setEditing({ ...editing, is_active: v })} />Active</label>
+              <label className="flex items-center gap-2 text-sm"><Switch checked={!!editing.is_popular} onCheckedChange={(v) => setEditing({ ...editing, is_popular: v })} />Show on Home (Popular)</label>
+            </div>
             <Button onClick={save} className="w-full">Save</Button>
           </div>}
         </DialogContent>

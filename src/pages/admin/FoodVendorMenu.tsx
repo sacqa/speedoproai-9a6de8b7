@@ -9,8 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, ShoppingBag, TrendingUp, Clock, DollarSign } from "lucide-react";
 import { formatPKR } from "@/lib/format";
 
 export default function AdminFoodVendorMenu() {
@@ -89,9 +90,26 @@ export default function AdminFoodVendorMenu() {
     <div className="space-y-4">
       <div className="flex items-center gap-3">
         <Link to="/admin/food-vendors"><Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button></Link>
-        <h1 className="text-2xl font-extrabold">{vendor.data?.name ?? "Menu"}</h1>
+        <div className="flex-1">
+          <h1 className="text-2xl font-extrabold leading-tight">{vendor.data?.name ?? "Vendor"}</h1>
+          {vendor.data && (
+            <p className="text-xs text-muted-foreground">
+              {vendor.data.cuisine ?? "—"} · {vendor.data.is_open ? "Open" : "Closed"}
+              {vendor.data.opens_at && vendor.data.closes_at ? ` · ${vendor.data.opens_at}–${vendor.data.closes_at}` : ""}
+              {Number(vendor.data.commission_percent) > 0 ? ` · ${vendor.data.commission_percent}% commission` : ""}
+            </p>
+          )}
+        </div>
       </div>
 
+      <Tabs defaultValue="menu" className="w-full">
+        <TabsList>
+          <TabsTrigger value="menu">Menu</TabsTrigger>
+          <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="stats">Stats</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="menu" className="space-y-4 pt-3">
       <div className="bg-card rounded-xl shadow-card p-4 space-y-3">
         <h2 className="font-bold">Menu categories</h2>
         <div className="flex flex-wrap gap-2">
@@ -137,6 +155,16 @@ export default function AdminFoodVendorMenu() {
           </tbody>
         </table>
       </div>
+        </TabsContent>
+
+        <TabsContent value="orders" className="pt-3">
+          <VendorOrders vendorId={vendorId!} />
+        </TabsContent>
+
+        <TabsContent value="stats" className="pt-3">
+          <VendorStats vendorId={vendorId!} commission={Number(vendor.data?.commission_percent ?? 0)} />
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-w-lg">
@@ -166,6 +194,77 @@ export default function AdminFoodVendorMenu() {
           )}
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function VendorOrders({ vendorId }: { vendorId: string }) {
+  const orders = useQuery({
+    queryKey: ["admin", "vendor-orders", vendorId],
+    queryFn: async () => (await supabase.from("orders").select("*").eq("vendor_id", vendorId).order("created_at", { ascending: false }).limit(100)).data ?? [],
+  });
+  const setStatus = async (id: string, status: string) => {
+    const { error } = await supabase.from("orders").update({ status: status as any }).eq("id", id);
+    if (error) toast.error(error.message); else { toast.success("Updated"); orders.refetch(); }
+  };
+  const list = orders.data ?? [];
+  return (
+    <div className="bg-card rounded-xl shadow-card overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead className="text-xs text-muted-foreground border-b border-border">
+          <tr><th className="text-left p-3">Order</th><th className="text-left">When</th><th className="text-right">Total</th><th className="text-center">Status</th><th></th></tr>
+        </thead>
+        <tbody>
+          {list.map((o: any) => (
+            <tr key={o.id} className="border-b border-border last:border-0">
+              <td className="p-3"><Link to={`/admin/orders/${o.id}`} className="font-semibold text-primary hover:underline">{o.order_number}</Link></td>
+              <td className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleString()}</td>
+              <td className="text-right font-semibold">{formatPKR(Number(o.total))}</td>
+              <td className="text-center"><span className="text-xs px-2 py-0.5 rounded-pill bg-primary/10 text-primary">{o.status}</span></td>
+              <td className="p-3 text-right">
+                <Select value={o.status} onValueChange={(v) => setStatus(o.id, v)}>
+                  <SelectTrigger className="h-8 w-36 ml-auto text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["submitted","accepted","preparing","out_for_delivery","delivered","cancelled"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </td>
+            </tr>
+          ))}
+          {list.length === 0 && <tr><td colSpan={5} className="text-center py-10 text-muted-foreground">No orders for this vendor yet</td></tr>}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function VendorStats({ vendorId, commission }: { vendorId: string; commission: number }) {
+  const orders = useQuery({
+    queryKey: ["admin", "vendor-stats", vendorId],
+    queryFn: async () => (await supabase.from("orders").select("total,status,created_at").eq("vendor_id", vendorId)).data ?? [],
+  });
+  const data = orders.data ?? [];
+  const delivered = data.filter((o: any) => o.status === "delivered");
+  const revenue = delivered.reduce((s: number, o: any) => s + Number(o.total), 0);
+  const pending = data.filter((o: any) => !["delivered","cancelled"].includes(o.status)).length;
+  const last7 = data.filter((o: any) => new Date(o.created_at) > new Date(Date.now() - 7 * 86400_000)).length;
+  const commissionEarned = (revenue * commission) / 100;
+  const cards = [
+    { label: "Total orders", value: data.length, icon: ShoppingBag },
+    { label: "Delivered", value: delivered.length, icon: TrendingUp },
+    { label: "Pending", value: pending, icon: Clock },
+    { label: "Last 7 days", value: last7, icon: TrendingUp },
+    { label: "Revenue (delivered)", value: formatPKR(revenue), icon: DollarSign },
+    { label: `Commission (${commission}%)`, value: formatPKR(commissionEarned), icon: DollarSign },
+  ];
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+      {cards.map((c) => (
+        <div key={c.label} className="bg-card rounded-xl shadow-card p-4">
+          <div className="flex items-center gap-2 text-muted-foreground text-xs"><c.icon className="h-3.5 w-3.5" />{c.label}</div>
+          <div className="text-2xl font-extrabold mt-1">{c.value}</div>
+        </div>
+      ))}
     </div>
   );
 }

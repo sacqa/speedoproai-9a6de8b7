@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, ChevronRight, ShoppingBasket, Pill, Package, UtensilsCrossed, ArrowRight, Search as SearchIcon, Mic } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShoppingBasket, Pill, Package, UtensilsCrossed, ArrowRight, Search as SearchIcon, Mic, Flame } from "lucide-react";
 import { ProductCard } from "@/components/speedo/ProductCard";
 import { SectionHeader } from "@/components/speedo/SectionHeader";
 import { Seo } from "@/components/seo/Seo";
+import { formatPKR } from "@/lib/format";
 
 export default function Home() {
   const banners = useQuery({
@@ -17,22 +18,28 @@ export default function Home() {
       return data;
     },
   });
-  const cats = useQuery({
-    queryKey: ["categories"],
+  const popularCats = useQuery({
+    queryKey: ["categories", "popular"],
     staleTime: 5 * 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase.from("categories").select("*").eq("is_active", true).order("sort_order");
+      const { data, error } = await supabase.from("categories").select("*").eq("is_active", true).eq("is_popular", true).order("sort_order");
       if (error) throw error;
       return data;
     },
   });
-  const featured = useQuery({
-    queryKey: ["featured"],
+  const sale = useQuery({
+    queryKey: ["products", "sale"],
     staleTime: 2 * 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase.from("products").select("*").eq("is_active", true).eq("is_featured", true).limit(8);
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("is_active", true)
+        .not("compare_price", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(12);
       if (error) throw error;
-      return data;
+      return (data ?? []).filter((p: any) => Number(p.compare_price) > Number(p.price));
     },
   });
 
@@ -50,8 +57,8 @@ export default function Home() {
           areaServed: "Dipalpur, Pakistan",
         }}
       />
-      {/* Mobile search */}
-      <div className="lg:hidden px-4 pt-4">
+      {/* Search bar */}
+      <div className="px-4 lg:px-0 pt-4 lg:pt-0">
         <Link
           to="/search"
           className="flex items-center gap-3 bg-white/90 backdrop-blur-md rounded-2xl px-4 py-4 shadow-card border border-accent/40 hover:border-primary/40 transition-colors"
@@ -64,31 +71,66 @@ export default function Home() {
         </Link>
       </div>
 
-      <BannerSlider banners={banners.data ?? []} />
+      {/* 4 service shortcuts in single row */}
       <ServiceShortcuts />
 
-      <section>
-        <SectionHeader title="Categories" viewAllTo="/speedmart" />
-        <div className="overflow-x-auto no-scrollbar">
-          <div className="flex gap-4 px-4 lg:px-0 pb-2">
-            {(cats.data ?? []).map((c) => (
-              <Link to={`/speedmart?cat=${c.slug}`} key={c.id} className="flex-shrink-0 w-20 text-center group">
-                <div className="h-20 w-20 rounded-3xl bg-white border border-accent/40 shadow-card flex items-center justify-center text-3xl group-hover:scale-105 group-hover:border-primary/40 transition-all">
-                  {c.icon}
-                </div>
-                <p className="mt-2 text-[11px] font-semibold leading-tight line-clamp-2 text-primary">{c.name}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Hero banner */}
+      <BannerSlider banners={banners.data ?? []} />
 
-      <section>
-        <SectionHeader title="Featured Products" viewAllTo="/speedmart" />
-        <div className="px-4 lg:px-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {featured.data?.map((p) => <ProductCard key={p.id} p={p as any} />)}
-        </div>
-      </section>
+      {/* Popular Categories (admin-curated) */}
+      {(popularCats.data ?? []).length > 0 && (
+        <section>
+          <SectionHeader title="Popular Categories" viewAllTo="/speedmart" />
+          <div className="overflow-x-auto no-scrollbar">
+            <div className="flex gap-4 px-4 lg:px-0 pb-2">
+              {(popularCats.data ?? []).map((c) => (
+                <Link to={`/speedmart?cat=${c.slug}`} key={c.id} className="flex-shrink-0 w-20 text-center group">
+                  <div className="h-20 w-20 rounded-3xl bg-white border border-accent/40 shadow-card flex items-center justify-center text-3xl group-hover:scale-105 group-hover:border-primary/40 transition-all">
+                    {c.icon}
+                  </div>
+                  <p className="mt-2 text-[11px] font-semibold leading-tight line-clamp-2 text-primary">{c.name}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Offers / Sale (auto from compare_price) */}
+      {(sale.data ?? []).length > 0 && (
+        <section>
+          <div className="flex items-center justify-between px-4 lg:px-0 mb-3">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-xl gradient-primary flex items-center justify-center">
+                <Flame className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <h2 className="font-extrabold text-lg leading-none">Offers & Sale</h2>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Limited-time discounts</p>
+              </div>
+            </div>
+            <Link to="/speedmart" className="text-xs font-bold text-primary">View all →</Link>
+          </div>
+          <div className="px-4 lg:px-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {(sale.data ?? []).map((p: any) => {
+              const off = Math.max(0, Math.round((1 - Number(p.price) / Number(p.compare_price)) * 100));
+              return (
+                <div key={p.id} className="relative">
+                  {off > 0 && (
+                    <span className="absolute top-2 left-2 z-10 text-[10px] font-bold bg-primary text-white rounded-full px-2 py-0.5 shadow">
+                      -{off}%
+                    </span>
+                  )}
+                  <ProductCard p={p as any} />
+                  <div className="px-2 pt-1 text-[11px] text-muted-foreground line-through">
+                    {formatPKR(Number(p.compare_price))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Footer (desktop) */}
       <footer className="hidden lg:block border-t border-border mt-10 pt-8 pb-4 text-sm text-muted-foreground">

@@ -13,9 +13,9 @@ import { formatPKR } from "@/lib/format";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 
-type Product = { id: string; name: string; description: string | null; price: number; stock: number; unit: string | null; image_url: string | null; category_id: string | null; is_active: boolean; is_featured: boolean; };
+type Product = { id: string; name: string; description: string | null; price: number; compare_price: number | null; stock: number; unit: string | null; image_url: string | null; category_id: string | null; is_active: boolean; is_featured: boolean; };
 
-const empty = { name: "", description: "", price: 0, stock: 100, unit: "", image_url: "", category_id: "", is_active: true, is_featured: false };
+const empty = { name: "", description: "", price: 0, compare_price: null as number | null, stock: 100, unit: "", image_url: "", category_id: "", is_active: true, is_featured: false };
 
 const PAGE_SIZE = 25;
 
@@ -51,6 +51,7 @@ export default function AdminProducts() {
       name: editing.name.trim(),
       description: editing.description ?? null,
       price: Number(editing.price),
+      compare_price: editing.compare_price ? Number(editing.compare_price) : null,
       stock: Number(editing.stock ?? 0),
       unit: editing.unit || null,
       image_url: editing.image_url || null,
@@ -130,8 +131,11 @@ export default function AdminProducts() {
             <div className="space-y-3">
               <div><Label>Name</Label><Input value={editing.name ?? ""} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></div>
               <div><Label>Description</Label><Textarea value={editing.description ?? ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} /></div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <div><Label>Price (PKR)</Label><Input type="number" value={editing.price ?? 0} onChange={(e) => setEditing({ ...editing, price: Number(e.target.value) })} /></div>
+                <div><Label>Compare price <span className="text-muted-foreground font-normal">(for sale)</span></Label><Input type="number" placeholder="Leave empty if not on sale" value={(editing as any).compare_price ?? ""} onChange={(e) => setEditing({ ...editing, compare_price: e.target.value ? Number(e.target.value) : null } as any)} /></div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
                 <div><Label>Stock</Label><Input type="number" value={editing.stock ?? 0} onChange={(e) => setEditing({ ...editing, stock: Number(e.target.value) })} /></div>
                 <div><Label>Unit</Label><Input value={editing.unit ?? ""} onChange={(e) => setEditing({ ...editing, unit: e.target.value })} placeholder="kg, pcs..." /></div>
               </div>

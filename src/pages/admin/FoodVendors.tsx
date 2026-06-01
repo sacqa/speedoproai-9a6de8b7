@@ -14,7 +14,8 @@ import { Plus, Pencil, Trash2, ListOrdered } from "lucide-react";
 const empty = {
   name: "", slug: "", cuisine: "", description: "", logo_url: "", cover_url: "",
   address: "", phone: "", delivery_time_min: 30, min_order: 0, rating: 4.5,
-  is_open: true, is_active: true, sort_order: 0,
+  is_open: true, is_active: true, is_featured: false, sort_order: 0,
+  opens_at: "", closes_at: "", commission_percent: 0,
 };
 
 export default function AdminFoodVendors() {
@@ -36,7 +37,17 @@ export default function AdminFoodVendors() {
   const save = async () => {
     if (!editing.name?.trim()) return toast.error("Name required");
     const slug = (editing.slug || editing.name).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    const payload = { ...editing, slug, delivery_time_min: Number(editing.delivery_time_min) || 30, min_order: Number(editing.min_order) || 0, rating: Number(editing.rating) || 4.5, sort_order: Number(editing.sort_order) || 0 };
+    const payload = {
+      ...editing,
+      slug,
+      delivery_time_min: Number(editing.delivery_time_min) || 30,
+      min_order: Number(editing.min_order) || 0,
+      rating: Number(editing.rating) || 4.5,
+      sort_order: Number(editing.sort_order) || 0,
+      commission_percent: Number(editing.commission_percent) || 0,
+      opens_at: editing.opens_at || null,
+      closes_at: editing.closes_at || null,
+    };
     delete (payload as any).id;
     const op = editing.id
       ? supabase.from("food_vendors").update(payload).eq("id", editing.id)
@@ -104,6 +115,11 @@ export default function AdminFoodVendors() {
                 <div><Label>Min Order</Label><Input type="number" value={editing.min_order ?? 0} onChange={(e) => setEditing({ ...editing, min_order: Number(e.target.value) })} /></div>
                 <div><Label>Rating</Label><Input type="number" step="0.1" value={editing.rating ?? 4.5} onChange={(e) => setEditing({ ...editing, rating: Number(e.target.value) })} /></div>
               </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div><Label>Opens at</Label><Input type="time" value={editing.opens_at ?? ""} onChange={(e) => setEditing({ ...editing, opens_at: e.target.value })} /></div>
+                <div><Label>Closes at</Label><Input type="time" value={editing.closes_at ?? ""} onChange={(e) => setEditing({ ...editing, closes_at: e.target.value })} /></div>
+                <div><Label>Commission %</Label><Input type="number" step="0.1" value={editing.commission_percent ?? 0} onChange={(e) => setEditing({ ...editing, commission_percent: Number(e.target.value) })} /></div>
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label>Logo</Label>
@@ -120,9 +136,10 @@ export default function AdminFoodVendors() {
                   </div>
                 </div>
               </div>
-              <div className="flex gap-6">
+              <div className="flex gap-6 flex-wrap">
                 <label className="flex items-center gap-2 text-sm"><Switch checked={!!editing.is_open} onCheckedChange={(v) => setEditing({ ...editing, is_open: v })} />Open</label>
                 <label className="flex items-center gap-2 text-sm"><Switch checked={!!editing.is_active} onCheckedChange={(v) => setEditing({ ...editing, is_active: v })} />Active</label>
+                <label className="flex items-center gap-2 text-sm"><Switch checked={!!editing.is_featured} onCheckedChange={(v) => setEditing({ ...editing, is_featured: v })} />Featured</label>
               </div>
               <Button onClick={save} className="w-full">Save</Button>
             </div>
