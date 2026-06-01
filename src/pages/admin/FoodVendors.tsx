@@ -115,6 +115,11 @@ export default function AdminFoodVendors() {
                 <div><Label>Min Order</Label><Input type="number" value={editing.min_order ?? 0} onChange={(e) => setEditing({ ...editing, min_order: Number(e.target.value) })} /></div>
                 <div><Label>Rating</Label><Input type="number" step="0.1" value={editing.rating ?? 4.5} onChange={(e) => setEditing({ ...editing, rating: Number(e.target.value) })} /></div>
               </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div><Label>Opens at</Label><Input type="time" value={editing.opens_at ?? ""} onChange={(e) => setEditing({ ...editing, opens_at: e.target.value })} /></div>
+                <div><Label>Closes at</Label><Input type="time" value={editing.closes_at ?? ""} onChange={(e) => setEditing({ ...editing, closes_at: e.target.value })} /></div>
+                <div><Label>Commission %</Label><Input type="number" step="0.1" value={editing.commission_percent ?? 0} onChange={(e) => setEditing({ ...editing, commission_percent: Number(e.target.value) })} /></div>
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Label>Logo</Label>
@@ -131,9 +136,10 @@ export default function AdminFoodVendors() {
                   </div>
                 </div>
               </div>
-              <div className="flex gap-6">
+              <div className="flex gap-6 flex-wrap">
                 <label className="flex items-center gap-2 text-sm"><Switch checked={!!editing.is_open} onCheckedChange={(v) => setEditing({ ...editing, is_open: v })} />Open</label>
                 <label className="flex items-center gap-2 text-sm"><Switch checked={!!editing.is_active} onCheckedChange={(v) => setEditing({ ...editing, is_active: v })} />Active</label>
+                <label className="flex items-center gap-2 text-sm"><Switch checked={!!editing.is_featured} onCheckedChange={(v) => setEditing({ ...editing, is_featured: v })} />Featured</label>
               </div>
               <Button onClick={save} className="w-full">Save</Button>
             </div>
