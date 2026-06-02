@@ -42,6 +42,38 @@ export default function Home() {
       return (data ?? []).filter((p: any) => Number(p.compare_price) > Number(p.price));
     },
   });
+  const hotCategory = useQuery({
+    queryKey: ["categories", "hot"],
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("is_active", true)
+        .eq("is_hot_selling", true)
+        .order("sort_order")
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const hotProducts = useQuery({
+    queryKey: ["products", "hot", hotCategory.data?.id],
+    enabled: !!hotCategory.data?.id,
+    staleTime: 2 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("is_active", true)
+        .eq("category_id", hotCategory.data!.id)
+        .order("created_at", { ascending: false })
+        .limit(12);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 
   return (
     <div className="space-y-7 lg:space-y-10 pb-4 bg-page-gradient">
@@ -92,6 +124,29 @@ export default function Home() {
                 </Link>
               ))}
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* Hot Selling — admin curates a category */}
+      {hotCategory.data && (hotProducts.data ?? []).length > 0 && (
+        <section>
+          <div className="flex items-center justify-between px-4 lg:px-0 mb-3">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-xl gradient-primary flex items-center justify-center text-white text-base">
+                {hotCategory.data.icon || "🔥"}
+              </div>
+              <div>
+                <h2 className="font-extrabold text-lg leading-none">Hot Selling</h2>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Trending in {hotCategory.data.name}</p>
+              </div>
+            </div>
+            <Link to={`/speedmart?cat=${hotCategory.data.slug}`} className="text-xs font-bold text-primary">View all →</Link>
+          </div>
+          <div className="px-4 lg:px-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {(hotProducts.data ?? []).map((p: any) => (
+              <ProductCard key={p.id} p={p as any} />
+            ))}
           </div>
         </section>
       )}
@@ -170,14 +225,14 @@ function BannerSlider({ banners }: { banners: any[] }) {
   const b = banners[i];
   return (
     <div className="px-4 lg:px-0">
-      <div className="relative rounded-2xl overflow-hidden h-44 lg:h-80 shadow-card" ref={ref}>
+      <div className="relative rounded-2xl overflow-hidden h-32 lg:h-56 shadow-card mx-auto max-w-md lg:max-w-3xl" ref={ref}>
         <img src={b.image_url} alt={b.title} className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute inset-0 p-5 lg:p-10 flex flex-col justify-center text-white max-w-md">
-          <h3 className="text-xl lg:text-3xl font-extrabold leading-tight">{b.title}</h3>
-          {b.subtitle && <p className="mt-1 lg:mt-2 text-sm lg:text-base opacity-95">{b.subtitle}</p>}
+        <div className="absolute inset-0 p-4 lg:p-8 flex flex-col justify-center text-white max-w-md">
+          <h3 className="text-base lg:text-2xl font-extrabold leading-tight">{b.title}</h3>
+          {b.subtitle && <p className="mt-0.5 lg:mt-2 text-xs lg:text-sm opacity-95 line-clamp-2">{b.subtitle}</p>}
           {b.cta_label && (
-            <Link to={b.cta_link || "/"} className="mt-3 lg:mt-5 inline-flex items-center gap-1 self-start bg-white text-primary font-bold text-sm px-4 py-2 rounded-pill">
+            <Link to={b.cta_link || "/"} className="mt-2 lg:mt-4 inline-flex items-center gap-1 self-start bg-white text-primary font-bold text-xs lg:text-sm px-3 py-1.5 lg:px-4 lg:py-2 rounded-pill">
               {b.cta_label} <ArrowRight className="h-4 w-4" />
             </Link>
           )}
@@ -201,22 +256,19 @@ function BannerSlider({ banners }: { banners: any[] }) {
 function ServiceShortcuts() {
   const services = [
     { to: "/speedmart", icon: ShoppingBasket, name: "SpeedMart", desc: "Groceries & Essentials" },
+    { to: "/food", icon: UtensilsCrossed, name: "Food", desc: "Restaurants & Cafés" },
     { to: "/pharmacy", icon: Pill, name: "Pharmacy", desc: "Medicines & Health" },
     { to: "/speedsend", icon: Package, name: "SpeedSend", desc: "Send a Parcel" },
-    { to: "/food", icon: UtensilsCrossed, name: "Food", desc: "Restaurants & Cafés" },
   ];
   return (
     <div className="px-4 lg:px-0">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-4 gap-2 lg:gap-3">
         {services.map((s) => (
-          <Link key={s.to} to={s.to} className="glass-card p-4 flex flex-col gap-3 hover:scale-[1.02] hover:shadow-elevated transition-all">
-            <div className="h-11 w-11 rounded-2xl bg-accent/50 flex items-center justify-center flex-shrink-0">
-              <s.icon className="h-5 w-5 text-primary" strokeWidth={2.2} />
+          <Link key={s.to} to={s.to} className="flex flex-col items-center gap-2 group">
+            <div className="h-16 w-16 lg:h-20 lg:w-20 rounded-2xl bg-accent flex items-center justify-center group-hover:bg-primary/15 group-active:scale-95 transition-all shadow-card">
+              <s.icon className="h-7 w-7 lg:h-8 lg:w-8 text-primary" strokeWidth={2.2} />
             </div>
-            <div className="min-w-0">
-              <div className="font-bold text-sm truncate text-foreground">{s.name}</div>
-              <div className="text-[11px] text-muted-foreground truncate">{s.desc}</div>
-            </div>
+            <div className="text-[11px] lg:text-xs font-bold text-foreground text-center leading-tight">{s.name}</div>
           </Link>
         ))}
       </div>

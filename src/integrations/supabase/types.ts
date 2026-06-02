@@ -192,6 +192,7 @@ export type Database = {
           icon: string | null
           id: string
           is_active: boolean
+          is_hot_selling: boolean
           is_popular: boolean
           name: string
           slug: string
@@ -201,6 +202,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean
+          is_hot_selling?: boolean
           is_popular?: boolean
           name: string
           slug: string
@@ -210,6 +212,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean
+          is_hot_selling?: boolean
           is_popular?: boolean
           name?: string
           slug?: string

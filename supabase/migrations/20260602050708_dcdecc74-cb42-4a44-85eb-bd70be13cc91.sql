@@ -1,0 +1,2 @@
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS is_hot_selling boolean NOT NULL DEFAULT false;
+CREATE INDEX IF NOT EXISTS idx_categories_hot_selling ON public.categories(is_hot_selling) WHERE is_hot_selling = true;
