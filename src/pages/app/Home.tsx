@@ -6,7 +6,6 @@ import { ChevronLeft, ChevronRight, ShoppingBasket, Pill, Package, UtensilsCross
 import { ProductCard } from "@/components/speedo/ProductCard";
 import { SectionHeader } from "@/components/speedo/SectionHeader";
 import { Seo } from "@/components/seo/Seo";
-import { formatPKR } from "@/lib/format";
 
 export default function Home() {
   const banners = useQuery({
