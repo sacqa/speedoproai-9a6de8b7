@@ -19,6 +19,8 @@ const empty = { name: "", description: "", price: 0, compare_price: null as numb
 
 const PAGE_SIZE = 25;
 
+const UNIT_PRESETS = ["kg", "g", "litre", "ml", "pcs", "pack", "dozen", "bottle", "box"];
+
 export default function AdminProducts() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Partial<Product> & { id?: string } | null>(null);
@@ -137,7 +139,27 @@ export default function AdminProducts() {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div><Label>Stock</Label><Input type="number" value={editing.stock ?? 0} onChange={(e) => setEditing({ ...editing, stock: Number(e.target.value) })} /></div>
-                <div><Label>Unit</Label><Input value={editing.unit ?? ""} onChange={(e) => setEditing({ ...editing, unit: e.target.value })} placeholder="kg, pcs..." /></div>
+                <div>
+                  <Label>Unit</Label>
+                  <Select
+                    value={UNIT_PRESETS.includes((editing.unit ?? "").trim()) ? (editing.unit as string).trim() : (editing.unit ? "__custom" : "")}
+                    onValueChange={(v) => setEditing({ ...editing, unit: v === "__custom" ? "" : v })}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Select unit" /></SelectTrigger>
+                    <SelectContent>
+                      {UNIT_PRESETS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+                      <SelectItem value="__custom">Custom (type below)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {!UNIT_PRESETS.includes((editing.unit ?? "").trim()) && (
+                    <Input
+                      className="mt-2"
+                      value={editing.unit ?? ""}
+                      onChange={(e) => setEditing({ ...editing, unit: e.target.value })}
+                      placeholder="e.g. 250g, 1.5L, family pack"
+                    />
+                  )}
+                </div>
               </div>
               <div><Label>Category</Label>
                 <Select value={editing.category_id ?? ""} onValueChange={(v) => setEditing({ ...editing, category_id: v })}>

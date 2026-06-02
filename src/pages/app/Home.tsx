@@ -6,7 +6,6 @@ import { ChevronLeft, ChevronRight, ShoppingBasket, Pill, Package, UtensilsCross
 import { ProductCard } from "@/components/speedo/ProductCard";
 import { SectionHeader } from "@/components/speedo/SectionHeader";
 import { Seo } from "@/components/seo/Seo";
-import { formatPKR } from "@/lib/format";
 
 export default function Home() {
   const banners = useQuery({
@@ -177,9 +176,6 @@ export default function Home() {
                     </span>
                   )}
                   <ProductCard p={p as any} />
-                  <div className="px-2 pt-1 text-[11px] text-muted-foreground line-through">
-                    {formatPKR(Number(p.compare_price))}
-                  </div>
                 </div>
               );
             })}

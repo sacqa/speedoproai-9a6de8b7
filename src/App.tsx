@@ -30,6 +30,7 @@ import RequestForm from "./pages/app/RequestForm";
 import Food from "./pages/app/Food";
 import FoodVendor from "./pages/app/FoodVendor";
 import FoodCheckout from "./pages/app/FoodCheckout";
+import ProductDetail from "./pages/app/ProductDetail";
 import { RequireAdmin } from "@/components/admin/RequireAdmin";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 
@@ -88,6 +89,7 @@ const App = () => (
               <Route path="/" element={<RequireApproved><Home /></RequireApproved>} />
               <Route path="/search" element={<RequireApproved><Search /></RequireApproved>} />
               <Route path="/speedmart" element={<RequireApproved><SpeedMart /></RequireApproved>} />
+              <Route path="/product/:id" element={<RequireApproved><ProductDetail /></RequireApproved>} />
               <Route path="/pharmacy" element={<RequireApproved><RequestForm mode="pharmacy" /></RequireApproved>} />
               <Route path="/speedsend" element={<RequireApproved><RequestForm mode="speedsend" /></RequireApproved>} />
               <Route path="/custom" element={<RequireApproved><RequestForm mode="custom" /></RequireApproved>} />
