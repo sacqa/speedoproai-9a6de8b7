@@ -225,14 +225,14 @@ function BannerSlider({ banners }: { banners: any[] }) {
   const b = banners[i];
   return (
     <div className="px-4 lg:px-0">
-      <div className="relative rounded-2xl overflow-hidden h-44 lg:h-80 shadow-card" ref={ref}>
+      <div className="relative rounded-2xl overflow-hidden h-32 lg:h-56 shadow-card mx-auto max-w-md lg:max-w-3xl" ref={ref}>
         <img src={b.image_url} alt={b.title} className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute inset-0 p-5 lg:p-10 flex flex-col justify-center text-white max-w-md">
-          <h3 className="text-xl lg:text-3xl font-extrabold leading-tight">{b.title}</h3>
-          {b.subtitle && <p className="mt-1 lg:mt-2 text-sm lg:text-base opacity-95">{b.subtitle}</p>}
+        <div className="absolute inset-0 p-4 lg:p-8 flex flex-col justify-center text-white max-w-md">
+          <h3 className="text-base lg:text-2xl font-extrabold leading-tight">{b.title}</h3>
+          {b.subtitle && <p className="mt-0.5 lg:mt-2 text-xs lg:text-sm opacity-95 line-clamp-2">{b.subtitle}</p>}
           {b.cta_label && (
-            <Link to={b.cta_link || "/"} className="mt-3 lg:mt-5 inline-flex items-center gap-1 self-start bg-white text-primary font-bold text-sm px-4 py-2 rounded-pill">
+            <Link to={b.cta_link || "/"} className="mt-2 lg:mt-4 inline-flex items-center gap-1 self-start bg-white text-primary font-bold text-xs lg:text-sm px-3 py-1.5 lg:px-4 lg:py-2 rounded-pill">
               {b.cta_label} <ArrowRight className="h-4 w-4" />
             </Link>
           )}
@@ -256,22 +256,19 @@ function BannerSlider({ banners }: { banners: any[] }) {
 function ServiceShortcuts() {
   const services = [
     { to: "/speedmart", icon: ShoppingBasket, name: "SpeedMart", desc: "Groceries & Essentials" },
+    { to: "/food", icon: UtensilsCrossed, name: "Food", desc: "Restaurants & Cafés" },
     { to: "/pharmacy", icon: Pill, name: "Pharmacy", desc: "Medicines & Health" },
     { to: "/speedsend", icon: Package, name: "SpeedSend", desc: "Send a Parcel" },
-    { to: "/food", icon: UtensilsCrossed, name: "Food", desc: "Restaurants & Cafés" },
   ];
   return (
     <div className="px-4 lg:px-0">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-4 gap-2 lg:gap-3">
         {services.map((s) => (
-          <Link key={s.to} to={s.to} className="glass-card p-4 flex flex-col gap-3 hover:scale-[1.02] hover:shadow-elevated transition-all">
-            <div className="h-11 w-11 rounded-2xl bg-accent/50 flex items-center justify-center flex-shrink-0">
-              <s.icon className="h-5 w-5 text-primary" strokeWidth={2.2} />
+          <Link key={s.to} to={s.to} className="flex flex-col items-center gap-2 group">
+            <div className="h-16 w-16 lg:h-20 lg:w-20 rounded-2xl bg-accent flex items-center justify-center group-hover:bg-primary/15 group-active:scale-95 transition-all shadow-card">
+              <s.icon className="h-7 w-7 lg:h-8 lg:w-8 text-primary" strokeWidth={2.2} />
             </div>
-            <div className="min-w-0">
-              <div className="font-bold text-sm truncate text-foreground">{s.name}</div>
-              <div className="text-[11px] text-muted-foreground truncate">{s.desc}</div>
-            </div>
+            <div className="text-[11px] lg:text-xs font-bold text-foreground text-center leading-tight">{s.name}</div>
           </Link>
         ))}
       </div>
