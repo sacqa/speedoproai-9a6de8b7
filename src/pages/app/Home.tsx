@@ -42,6 +42,38 @@ export default function Home() {
       return (data ?? []).filter((p: any) => Number(p.compare_price) > Number(p.price));
     },
   });
+  const hotCategory = useQuery({
+    queryKey: ["categories", "hot"],
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("is_active", true)
+        .eq("is_hot_selling", true)
+        .order("sort_order")
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const hotProducts = useQuery({
+    queryKey: ["products", "hot", hotCategory.data?.id],
+    enabled: !!hotCategory.data?.id,
+    staleTime: 2 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("is_active", true)
+        .eq("category_id", hotCategory.data!.id)
+        .order("created_at", { ascending: false })
+        .limit(12);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 
   return (
     <div className="space-y-7 lg:space-y-10 pb-4 bg-page-gradient">
