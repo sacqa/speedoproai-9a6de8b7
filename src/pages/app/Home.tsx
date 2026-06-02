@@ -128,6 +128,29 @@ export default function Home() {
         </section>
       )}
 
+      {/* Hot Selling — admin curates a category */}
+      {hotCategory.data && (hotProducts.data ?? []).length > 0 && (
+        <section>
+          <div className="flex items-center justify-between px-4 lg:px-0 mb-3">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-xl gradient-primary flex items-center justify-center text-white text-base">
+                {hotCategory.data.icon || "🔥"}
+              </div>
+              <div>
+                <h2 className="font-extrabold text-lg leading-none">Hot Selling</h2>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Trending in {hotCategory.data.name}</p>
+              </div>
+            </div>
+            <Link to={`/speedmart?cat=${hotCategory.data.slug}`} className="text-xs font-bold text-primary">View all →</Link>
+          </div>
+          <div className="px-4 lg:px-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {(hotProducts.data ?? []).map((p: any) => (
+              <ProductCard key={p.id} p={p as any} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Offers / Sale (auto from compare_price) */}
       {(sale.data ?? []).length > 0 && (
         <section>
