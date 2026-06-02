@@ -19,6 +19,8 @@ const empty = { name: "", description: "", price: 0, compare_price: null as numb
 
 const PAGE_SIZE = 25;
 
+const UNIT_PRESETS = ["kg", "g", "litre", "ml", "pcs", "pack", "dozen", "bottle", "box"];
+
 export default function AdminProducts() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Partial<Product> & { id?: string } | null>(null);
