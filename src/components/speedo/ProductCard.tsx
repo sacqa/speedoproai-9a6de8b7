@@ -1,4 +1,5 @@
 import { Plus, Minus, Heart, ImageOff } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useCart } from "@/store/cart";
 import { useRecentlyViewed } from "@/store/recentlyViewed";
 import { formatPKR } from "@/lib/format";
