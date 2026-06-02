@@ -201,22 +201,22 @@ function BottomTab({ to, icon: Icon, label, badge }: { to: string; icon: React.E
       to={to}
       end={to === "/"}
       className={({ isActive }) =>
-        `flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold ${
-          isActive ? "text-accent" : "text-muted-foreground"
+        `flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold transition-colors ${
+          isActive ? "text-primary" : "text-muted-foreground"
         }`
       }
     >
       {({ isActive }) => (
         <>
-          <div className={`relative px-4 py-1 rounded-full transition-colors ${isActive ? "bg-accent-soft" : ""}`}>
-            <Icon className="h-5 w-5" />
+          <div className={`relative px-4 py-1 rounded-full transition-all ${isActive ? "bg-primary/15 scale-105" : ""}`}>
+            <Icon className={`h-5 w-5 ${isActive ? "stroke-[2.5]" : ""}`} />
             {badge !== undefined && badge > 0 && (
-              <span className="absolute -top-0.5 -right-1 bg-orange text-orange-foreground text-[9px] font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-1">
+              <span className="absolute -top-0.5 -right-1 bg-primary text-primary-foreground text-[9px] font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-1">
                 {badge}
               </span>
             )}
           </div>
-          {label}
+          <span className={isActive ? "font-bold" : ""}>{label}</span>
         </>
       )}
     </NavLink>
