@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 
-const empty = { name: "", slug: "", icon: "", sort_order: 0, is_active: true, is_popular: false };
+const empty = { name: "", slug: "", icon: "", sort_order: 0, is_active: true, is_popular: false, is_hot_selling: false };
 
 export default function AdminCategories() {
   const cats = useQuery({ queryKey: ["admin","categories"], queryFn: async () => (await supabase.from("categories").select("*").order("sort_order")).data ?? [] });
@@ -70,9 +70,10 @@ export default function AdminCategories() {
               <div><Label>Icon (emoji)</Label><Input value={editing.icon ?? ""} onChange={(e) => setEditing({ ...editing, icon: e.target.value })} placeholder="🥦" /></div>
               <div><Label>Sort order</Label><Input type="number" value={editing.sort_order ?? 0} onChange={(e) => setEditing({ ...editing, sort_order: Number(e.target.value) })} /></div>
             </div>
-            <div className="flex gap-6">
+            <div className="flex flex-wrap gap-x-6 gap-y-3">
               <label className="flex items-center gap-2 text-sm"><Switch checked={!!editing.is_active} onCheckedChange={(v) => setEditing({ ...editing, is_active: v })} />Active</label>
               <label className="flex items-center gap-2 text-sm"><Switch checked={!!editing.is_popular} onCheckedChange={(v) => setEditing({ ...editing, is_popular: v })} />Show on Home (Popular)</label>
+              <label className="flex items-center gap-2 text-sm"><Switch checked={!!editing.is_hot_selling} onCheckedChange={(v) => setEditing({ ...editing, is_hot_selling: v })} />Hot Selling (Home)</label>
             </div>
             <Button onClick={save} className="w-full">Save</Button>
           </div>}
