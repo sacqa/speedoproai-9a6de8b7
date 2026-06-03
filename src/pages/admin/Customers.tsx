@@ -34,7 +34,7 @@ export default function AdminCustomers() {
     setWiping(false);
     if (error || (data as any)?.error) return toast.error((data as any)?.error || error?.message || "Failed");
     toast.success(`Wiped ${data?.deleted_users ?? 0} customers + all orders`);
-    q.refetch();
+    setTimeout(() => window.location.reload(), 600);
   };
   const [params, setParams] = useSearchParams();
   const search = params.get("q") ?? "";
