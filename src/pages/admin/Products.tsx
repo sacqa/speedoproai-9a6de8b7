@@ -138,7 +138,7 @@ export default function AdminProducts() {
     if (error) return toast.error(error.message);
     toast.success(`Deleted ${selected.size}`); setSelected(new Set()); prods.refetch();
   };
-  const bulkUpdate = async (patch: Record<string, any>) => {
+  const bulkUpdate = async (patch: { is_active?: boolean; is_featured?: boolean }) => {
     if (selected.size === 0) return;
     setBulkBusy(true);
     const { error } = await supabase.from("products").update(patch).in("id", Array.from(selected));
