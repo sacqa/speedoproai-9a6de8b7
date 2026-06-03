@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Star } from "lucide-react";
 
 const empty = { name: "", slug: "", icon: "", sort_order: 0, is_active: true, is_popular: false, is_hot_selling: false };
 
@@ -33,6 +33,16 @@ export default function AdminCategories() {
     if (error) toast.error(error.message); else { toast.success("Deleted"); cats.refetch(); }
   };
 
+  const markAllProductsFeatured = async (c: any, makeFeatured: boolean) => {
+    if (!confirm(`${makeFeatured ? "Mark" : "Unmark"} ALL products in "${c.name}" as Popular?`)) return;
+    const { error, count } = await supabase
+      .from("products")
+      .update({ is_featured: makeFeatured }, { count: "exact" })
+      .eq("category_id", c.id);
+    if (error) return toast.error(error.message);
+    toast.success(`${count ?? 0} product(s) updated`);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -51,6 +61,8 @@ export default function AdminCategories() {
                 <td className="text-center"><span className={`text-xs px-2 py-0.5 rounded-pill ${c.is_popular ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{c.is_popular ? "Yes" : "No"}</span></td>
                 <td className="text-center"><span className={`text-xs px-2 py-0.5 rounded-pill ${c.is_active ? "bg-success/10 text-success" : "bg-muted"}`}>{c.is_active ? "Yes" : "No"}</span></td>
                 <td className="text-right p-3">
+                  <Button size="sm" variant="ghost" className="mr-1" onClick={() => markAllProductsFeatured(c, true)} title="Mark all products as Popular"><Star className="h-4 w-4 mr-1" />Popular all</Button>
+                  <Button size="sm" variant="ghost" className="mr-1" onClick={() => markAllProductsFeatured(c, false)} title="Unmark all">Unpopular all</Button>
                   <Button size="icon" variant="ghost" onClick={() => { setEditing(c); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
                   <Button size="icon" variant="ghost" onClick={() => remove(c)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                 </td>
