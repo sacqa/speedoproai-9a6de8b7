@@ -220,6 +220,33 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_read: boolean
+          recipient_id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          recipient_id: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          recipient_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
       food_menu_categories: {
         Row: {
           created_at: string
@@ -378,6 +405,33 @@ export type Database = {
           slug?: string
           sort_order?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      friendships: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          responded_at: string | null
+          status: Database["public"]["Enums"]["friendship_status"]
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          responded_at?: string | null
+          status?: Database["public"]["Enums"]["friendship_status"]
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          responded_at?: string | null
+          status?: Database["public"]["Enums"]["friendship_status"]
         }
         Relationships: []
       }
@@ -806,6 +860,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_locations: {
+        Row: {
+          lat: number
+          lng: number
+          share_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          lat: number
+          lng: number
+          share_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          lat?: number
+          lng?: number
+          share_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -829,6 +907,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      are_friends: { Args: { _a: string; _b: string }; Returns: boolean }
       claim_admin_if_none: { Args: never; Returns: boolean }
       has_role: {
         Args: {
@@ -841,6 +920,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "customer" | "rider" | "super_admin" | "staff"
+      friendship_status: "pending" | "accepted" | "declined" | "blocked"
       order_status:
         | "submitted"
         | "waiting_for_estimate"
@@ -983,6 +1063,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "customer", "rider", "super_admin", "staff"],
+      friendship_status: ["pending", "accepted", "declined", "blocked"],
       order_status: [
         "submitted",
         "waiting_for_estimate",

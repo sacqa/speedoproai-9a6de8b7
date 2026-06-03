@@ -31,6 +31,9 @@ import Food from "./pages/app/Food";
 import FoodVendor from "./pages/app/FoodVendor";
 import FoodCheckout from "./pages/app/FoodCheckout";
 import ProductDetail from "./pages/app/ProductDetail";
+import Nearby from "./pages/app/Nearby";
+import Friends from "./pages/app/Friends";
+import Chat from "./pages/app/Chat";
 import { RequireAdmin } from "@/components/admin/RequireAdmin";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 
@@ -51,6 +54,7 @@ const AdminFoodVendors = lazy(() => import("./pages/admin/FoodVendors"));
 const AdminFoodVendorMenu = lazy(() => import("./pages/admin/FoodVendorMenu"));
 const AdminRoles = lazy(() => import("./pages/admin/Roles"));
 const AdminApprovals = lazy(() => import("./pages/admin/Approvals"));
+const AdminChats = lazy(() => import("./pages/admin/Chats"));
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 
 const queryClient = new QueryClient({
@@ -105,6 +109,9 @@ const App = () => (
               <Route path="/profile" element={<RequireApproved><Profile /></RequireApproved>} />
               <Route path="/addresses" element={<RequireApproved><Addresses /></RequireApproved>} />
               <Route path="/help" element={<RequireApproved><Help /></RequireApproved>} />
+              <Route path="/nearby" element={<RequireApproved><Nearby /></RequireApproved>} />
+              <Route path="/friends" element={<RequireApproved><Friends /></RequireApproved>} />
+              <Route path="/chat/:friendId" element={<RequireApproved><Chat /></RequireApproved>} />
               <Route path="/admin" element={<AdminPage><AdminDashboard /></AdminPage>} />
               <Route path="/admin/orders" element={<AdminPage><AdminOrders /></AdminPage>} />
               <Route path="/admin/orders/:id" element={<AdminPage><AdminOrderDetail /></AdminPage>} />
@@ -121,6 +128,7 @@ const App = () => (
               <Route path="/admin/food-vendors/:id/menu" element={<AdminPage><AdminFoodVendorMenu /></AdminPage>} />
               <Route path="/admin/roles" element={<AdminPage><AdminRoles /></AdminPage>} />
               <Route path="/admin/approvals" element={<AdminPage><AdminApprovals /></AdminPage>} />
+              <Route path="/admin/chats" element={<AdminPage><AdminChats /></AdminPage>} />
               <Route path="/admin/birthdays" element={<Navigate to="/admin/customers?tab=birthdays" replace />} />
               <Route path="/admin/login" element={<Suspense fallback={null}><AdminLogin /></Suspense>} />
               <Route path="*" element={<NotFound />} />

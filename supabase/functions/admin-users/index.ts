@@ -218,6 +218,35 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    if (action === "wipe_app_data") {
+      if (!isSuper) return json({ error: "Only super_admin can wipe data" }, 403);
+      // Wipe order-related rows
+      await admin.from("order_instructions").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await admin.from("order_status_logs").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await admin.from("order_items").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await admin.from("notification_replies").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await admin.from("notifications").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await admin.from("orders").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      // Wipe social
+      await admin.from("chat_messages").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await admin.from("friendships").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      await admin.from("user_locations").delete().neq("user_id", "00000000-0000-0000-0000-000000000000");
+      await admin.from("addresses").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      // Delete all non-admin auth users + their profile rows
+      const { data: list } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      const { data: adminRoles } = await admin.from("user_roles").select("user_id").in("role", ["admin","super_admin"]);
+      const adminIds = new Set((adminRoles ?? []).map((r: any) => r.user_id));
+      let deleted = 0;
+      for (const u of list?.users ?? []) {
+        if (adminIds.has(u.id)) continue;
+        await admin.from("profiles").delete().eq("id", u.id);
+        await admin.from("user_roles").delete().eq("user_id", u.id);
+        const { error: delErr } = await admin.auth.admin.deleteUser(u.id);
+        if (!delErr) deleted++;
+      }
+      return json({ ok: true, deleted_users: deleted });
+    }
+
     return json({ error: "Unknown action" }, 400);
   } catch (e: any) {
     return json({ error: e?.message ?? "Unknown error" }, 500);
