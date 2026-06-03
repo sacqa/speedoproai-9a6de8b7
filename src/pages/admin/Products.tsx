@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { formatPKR } from "@/lib/format";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Download, Upload, FileText } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type Product = { id: string; name: string; description: string | null; price: number; compare_price: number | null; stock: number; unit: string | null; image_url: string | null; category_id: string | null; is_active: boolean; is_featured: boolean; };
 
@@ -21,9 +22,37 @@ const PAGE_SIZE = 25;
 
 const UNIT_PRESETS = ["kg", "g", "litre", "ml", "pcs", "pack", "dozen", "bottle", "box"];
 
+const CSV_HEADERS = ["name","description","price","compare_price","stock","unit","image_url","category_slug","is_active","is_featured"];
+
+function csvEscape(v: any) {
+  if (v === null || v === undefined) return "";
+  const s = String(v);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+function parseCsv(text: string): string[][] {
+  const rows: string[][] = []; let cur: string[] = []; let val = ""; let inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"' && text[i+1] === '"') { val += '"'; i++; }
+      else if (c === '"') inQ = false;
+      else val += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ",") { cur.push(val); val = ""; }
+      else if (c === "\n") { cur.push(val); rows.push(cur); cur = []; val = ""; }
+      else if (c !== "\r") val += c;
+    }
+  }
+  if (val.length || cur.length) { cur.push(val); rows.push(cur); }
+  return rows.filter(r => r.some(x => x.trim() !== ""));
+}
+
 export default function AdminProducts() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Partial<Product> & { id?: string } | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [params, setParams] = useSearchParams();
   const q = params.get("q") ?? "";
   const page = Math.max(1, parseInt(params.get("page") ?? "1", 10) || 1);
@@ -35,6 +64,88 @@ export default function AdminProducts() {
 
   const cats = useQuery({ queryKey: ["admin","cats"], queryFn: async () => (await supabase.from("categories").select("*").order("sort_order")).data ?? [] });
   const prods = useQuery({ queryKey: ["admin","prods"], queryFn: async () => (await supabase.from("products").select("*, categories(name)").order("created_at", { ascending: false })).data ?? [] });
+
+  const downloadCsv = (filename: string, content: string) => {
+    const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  };
+  const exportCsv = () => {
+    const slugMap = new Map((cats.data ?? []).map((c: any) => [c.id, c.slug]));
+    const rows = [CSV_HEADERS.join(",")];
+    (prods.data ?? []).forEach((p: any) => {
+      rows.push([
+        p.name, p.description ?? "", p.price, p.compare_price ?? "", p.stock,
+        p.unit ?? "", p.image_url ?? "", slugMap.get(p.category_id) ?? "",
+        p.is_active, p.is_featured,
+      ].map(csvEscape).join(","));
+    });
+    downloadCsv(`products-${new Date().toISOString().slice(0,10)}.csv`, rows.join("\n"));
+  };
+  const downloadSample = () => {
+    const sample = [
+      CSV_HEADERS.join(","),
+      `Sample Tea,"Premium black tea, 250g pack",450,500,100,250g,,grocery,true,false`,
+      `Sample Milk,Fresh full-cream milk,180,,50,litre,,grocery,true,true`,
+    ].join("\n");
+    downloadCsv("products-sample.csv", sample);
+  };
+  const importCsv = async (file: File) => {
+    setBulkBusy(true);
+    try {
+      const text = await file.text();
+      const rows = parseCsv(text);
+      if (rows.length < 2) { toast.error("CSV is empty"); return; }
+      const headers = rows[0].map(h => h.trim().toLowerCase());
+      const idx = (k: string) => headers.indexOf(k);
+      const need = ["name","price"]; for (const k of need) if (idx(k) < 0) { toast.error(`Missing column: ${k}`); return; }
+      const slugToId = new Map((cats.data ?? []).map((c: any) => [String(c.slug).toLowerCase(), c.id]));
+      const payload: any[] = [];
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        const name = (r[idx("name")] ?? "").trim();
+        const price = Number(r[idx("price")]);
+        if (!name || !price) continue;
+        const slug = (r[idx("category_slug")] ?? "").trim().toLowerCase();
+        payload.push({
+          name,
+          description: idx("description") >= 0 ? (r[idx("description")] || null) : null,
+          price,
+          compare_price: idx("compare_price") >= 0 && r[idx("compare_price")] ? Number(r[idx("compare_price")]) : null,
+          stock: idx("stock") >= 0 && r[idx("stock")] ? Number(r[idx("stock")]) : 100,
+          unit: idx("unit") >= 0 ? (r[idx("unit")] || null) : null,
+          image_url: idx("image_url") >= 0 ? (r[idx("image_url")] || null) : null,
+          category_id: slug ? (slugToId.get(slug) ?? null) : null,
+          is_active: idx("is_active") >= 0 ? !/^(false|0|no)$/i.test(r[idx("is_active")] ?? "true") : true,
+          is_featured: idx("is_featured") >= 0 ? /^(true|1|yes)$/i.test(r[idx("is_featured")] ?? "") : false,
+        });
+      }
+      if (!payload.length) { toast.error("No valid rows"); return; }
+      const { error } = await supabase.from("products").insert(payload);
+      if (error) { toast.error(error.message); return; }
+      toast.success(`Imported ${payload.length} product(s)`);
+      prods.refetch();
+    } finally { setBulkBusy(false); }
+  };
+
+  const bulkDelete = async () => {
+    if (selected.size === 0) return;
+    if (!confirm(`Delete ${selected.size} selected product(s)?`)) return;
+    setBulkBusy(true);
+    const { error } = await supabase.from("products").delete().in("id", Array.from(selected));
+    setBulkBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Deleted ${selected.size}`); setSelected(new Set()); prods.refetch();
+  };
+  const bulkUpdate = async (patch: Record<string, any>) => {
+    if (selected.size === 0) return;
+    setBulkBusy(true);
+    const { error } = await supabase.from("products").update(patch).in("id", Array.from(selected));
+    setBulkBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Updated ${selected.size}`); prods.refetch();
+  };
 
   const openNew = () => { setEditing(empty); setOpen(true); };
   const openEdit = (p: any) => { setEditing(p); setOpen(true); };
@@ -90,18 +201,44 @@ export default function AdminProducts() {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-extrabold">Products</h1>
-        <Button onClick={openNew}><Plus className="h-4 w-4 mr-1" />Add Product</Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={exportCsv}><Download className="h-4 w-4 mr-1" />Export CSV</Button>
+          <Button variant="outline" size="sm" onClick={downloadSample}><FileText className="h-4 w-4 mr-1" />Sample CSV</Button>
+          <label className="inline-flex">
+            <input type="file" accept=".csv,text/csv" className="hidden" disabled={bulkBusy}
+              onChange={(e) => e.target.files?.[0] && importCsv(e.target.files[0])} />
+            <Button asChild variant="outline" size="sm" disabled={bulkBusy}>
+              <span><Upload className="h-4 w-4 mr-1" />Import CSV</span>
+            </Button>
+          </label>
+          <Button onClick={openNew} size="sm"><Plus className="h-4 w-4 mr-1" />Add Product</Button>
+        </div>
       </div>
       <Input placeholder="Search products…" value={q} onChange={(e) => update({ q: e.target.value || null, page: null })} className="max-w-sm" />
+      {selected.size > 0 && (
+        <div className="flex flex-wrap gap-2 items-center bg-primary/5 border border-primary/20 rounded-lg p-2">
+          <span className="text-sm font-semibold mr-2">{selected.size} selected</span>
+          <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkUpdate({ is_active: true })}>Activate</Button>
+          <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkUpdate({ is_active: false })}>Deactivate</Button>
+          <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkUpdate({ is_featured: true })}>Mark Popular</Button>
+          <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkUpdate({ is_featured: false })}>Unpopular</Button>
+          <Button size="sm" variant="destructive" disabled={bulkBusy} onClick={bulkDelete}><Trash2 className="h-4 w-4 mr-1" />Delete</Button>
+          <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>Clear</Button>
+        </div>
+      )}
       <div className="bg-card rounded-xl shadow-card overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-xs text-muted-foreground border-b border-border">
-            <tr><th className="text-left p-3">Image</th><th className="text-left">Name</th><th className="text-left">Category</th><th className="text-right">Price</th><th className="text-right">Stock</th><th className="text-center">Active</th><th className="p-3"></th></tr>
+            <tr>
+              <th className="p-3"><Checkbox checked={list.length > 0 && list.every((p: any) => selected.has(p.id))} onCheckedChange={(v) => { const next = new Set(selected); list.forEach((p: any) => { if (v) next.add(p.id); else next.delete(p.id); }); setSelected(next); }} /></th>
+              <th className="text-left">Image</th><th className="text-left">Name</th><th className="text-left">Category</th><th className="text-right">Price</th><th className="text-right">Stock</th><th className="text-center">Active</th><th className="p-3"></th>
+            </tr>
           </thead>
           <tbody>
             {list.map((p: any) => (
               <tr key={p.id} className="border-b border-border last:border-0">
-                <td className="p-3"><div className="h-10 w-10 rounded bg-muted overflow-hidden">{p.image_url && <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />}</div></td>
+                <td className="p-3"><Checkbox checked={selected.has(p.id)} onCheckedChange={(v) => { const next = new Set(selected); if (v) next.add(p.id); else next.delete(p.id); setSelected(next); }} /></td>
+                <td><div className="h-10 w-10 rounded bg-muted overflow-hidden">{p.image_url && <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />}</div></td>
                 <td><div className="font-semibold">{p.name}</div><div className="text-xs text-muted-foreground">{p.unit ?? ""}</div></td>
                 <td className="text-xs text-muted-foreground">{p.categories?.name ?? "—"}</td>
                 <td className="text-right font-semibold">{formatPKR(Number(p.price))}</td>
@@ -113,7 +250,7 @@ export default function AdminProducts() {
                 </td>
               </tr>
             ))}
-            {list.length === 0 && <tr><td colSpan={7} className="text-center py-10 text-muted-foreground">No products</td></tr>}
+            {list.length === 0 && <tr><td colSpan={8} className="text-center py-10 text-muted-foreground">No products</td></tr>}
           </tbody>
         </table>
       </div>
