@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link, useSearchParams } from "react-router-dom";
@@ -8,12 +8,34 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Users, Cake } from "lucide-react";
+import { Users, Cake, Trash2 } from "lucide-react";
 import { BirthdaysPanel } from "./Birthdays";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const PAGE_SIZE = 25;
 
 export default function AdminCustomers() {
+  const { user } = useAuth();
+  const [isSuper, setIsSuper] = useState(false);
+  const [wiping, setWiping] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "super_admin")
+      .maybeSingle().then(({ data }) => setIsSuper(!!data));
+  }, [user]);
+  const wipeAll = async () => {
+    setWiping(true);
+    const { data, error } = await supabase.functions.invoke("admin-users", { body: { action: "wipe_app_data" } });
+    setWiping(false);
+    if (error || (data as any)?.error) return toast.error((data as any)?.error || error?.message || "Failed");
+    toast.success(`Wiped ${data?.deleted_users ?? 0} customers + all orders`);
+    q.refetch();
+  };
   const [params, setParams] = useSearchParams();
   const search = params.get("q") ?? "";
   const status = params.get("status") ?? "all";
@@ -55,7 +77,30 @@ export default function AdminCustomers() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-extrabold">Customers</h1>
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <h1 className="text-2xl font-extrabold">Customers</h1>
+        {isSuper && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" disabled={wiping}>
+                <Trash2 className="h-4 w-4 mr-1" />{wiping ? "Wiping…" : "Reset all customer & order data"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Wipe ALL customer & order data?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Permanently deletes every non-admin customer account, their orders, addresses, chats, friendships, and locations. Admins are kept. This cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={wipeAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Yes, wipe everything</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+      </div>
       <Tabs value={tab} onValueChange={(v) => update({ tab: v === "list" ? null : v, page: null })}>
         <TabsList>
           <TabsTrigger value="list" className="gap-1.5"><Users className="h-4 w-4" /> All customers</TabsTrigger>
