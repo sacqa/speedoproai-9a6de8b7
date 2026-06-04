@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatPKR, statusLabel } from "@/lib/format";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Save, Pill, ExternalLink } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, Pill, ExternalLink, Printer } from "lucide-react";
 import InstructionsThread from "@/components/order/InstructionsThread";
 
 const STATUSES = ["submitted","rider_assigned","purchasing_items","out_for_delivery","delivered","cancelled"];
@@ -146,6 +146,12 @@ export default function AdminOrderDetail() {
           </SelectContent>
         </Select>
       </div>
+
+      {order.type === "speedmart" && (
+        <Link to={`/admin/orders/${order.id}/receipt`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline">
+          <Printer className="h-4 w-4" /> Print POS receipt
+        </Link>
+      )}
 
       <InstructionsThread orderId={order.id} asAdmin />
 
