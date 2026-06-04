@@ -247,6 +247,64 @@ Deno.serve(async (req) => {
       return json({ ok: true, deleted_users: deleted });
     }
 
+    if (action === "delete_user") {
+      const { user_id } = body;
+      if (!user_id) return json({ error: "user_id required" }, 400);
+      if (user_id === callerId) return json({ error: "Cannot delete yourself" }, 400);
+      const { data: targetRoles } = await admin.from("user_roles").select("role").eq("user_id", user_id);
+      const targetIsAdmin = (targetRoles ?? []).some((r: any) => r.role === "admin" || r.role === "super_admin");
+      if (targetIsAdmin && !isSuper) return json({ error: "Only super_admin can delete admins" }, 403);
+      await admin.from("chat_messages").delete().or(`sender_id.eq.${user_id},recipient_id.eq.${user_id}`);
+      await admin.from("friendships").delete().or(`requester_id.eq.${user_id},addressee_id.eq.${user_id}`);
+      await admin.from("user_locations").delete().eq("user_id", user_id);
+      await admin.from("addresses").delete().eq("user_id", user_id);
+      await admin.from("notifications").delete().eq("user_id", user_id);
+      await admin.from("notification_replies").delete().eq("user_id", user_id);
+      const { data: ords } = await admin.from("orders").select("id").eq("user_id", user_id);
+      const oids = (ords ?? []).map((o: any) => o.id);
+      if (oids.length) {
+        await admin.from("order_instructions").delete().in("order_id", oids);
+        await admin.from("order_status_logs").delete().in("order_id", oids);
+        await admin.from("order_items").delete().in("order_id", oids);
+        await admin.from("orders").delete().in("id", oids);
+      }
+      await admin.from("user_roles").delete().eq("user_id", user_id);
+      await admin.from("profiles").delete().eq("id", user_id);
+      const { error } = await admin.auth.admin.deleteUser(user_id);
+      if (error) return json({ error: error.message }, 400);
+      return json({ ok: true });
+    }
+
+    if (action === "delete_all_users") {
+      if (!isSuper) return json({ error: "Only super_admin can delete all users" }, 403);
+      const { data: list } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      const { data: adminRoles } = await admin.from("user_roles").select("user_id").in("role", ["admin","super_admin"]);
+      const adminIds = new Set((adminRoles ?? []).map((r: any) => r.user_id));
+      let deleted = 0;
+      for (const u of list?.users ?? []) {
+        if (adminIds.has(u.id)) continue;
+        await admin.from("chat_messages").delete().or(`sender_id.eq.${u.id},recipient_id.eq.${u.id}`);
+        await admin.from("friendships").delete().or(`requester_id.eq.${u.id},addressee_id.eq.${u.id}`);
+        await admin.from("user_locations").delete().eq("user_id", u.id);
+        await admin.from("addresses").delete().eq("user_id", u.id);
+        await admin.from("notifications").delete().eq("user_id", u.id);
+        await admin.from("notification_replies").delete().eq("user_id", u.id);
+        const { data: ords } = await admin.from("orders").select("id").eq("user_id", u.id);
+        const oids = (ords ?? []).map((o: any) => o.id);
+        if (oids.length) {
+          await admin.from("order_instructions").delete().in("order_id", oids);
+          await admin.from("order_status_logs").delete().in("order_id", oids);
+          await admin.from("order_items").delete().in("order_id", oids);
+          await admin.from("orders").delete().in("id", oids);
+        }
+        await admin.from("user_roles").delete().eq("user_id", u.id);
+        await admin.from("profiles").delete().eq("id", u.id);
+        const { error: delErr } = await admin.auth.admin.deleteUser(u.id);
+        if (!delErr) deleted++;
+      }
+      return json({ ok: true, deleted });
+    }
+
     return json({ error: "Unknown action" }, 400);
   } catch (e: any) {
     return json({ error: e?.message ?? "Unknown error" }, 500);
