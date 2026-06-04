@@ -8,7 +8,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Users, Cake, Trash2 } from "lucide-react";
+import { Users, Cake, Trash2, UserX } from "lucide-react";
 import { BirthdaysPanel } from "./Birthdays";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -35,6 +35,20 @@ export default function AdminCustomers() {
     if (error || (data as any)?.error) return toast.error((data as any)?.error || error?.message || "Failed");
     toast.success(`Wiped ${data?.deleted_users ?? 0} customers + all orders`);
     setTimeout(() => window.location.reload(), 600);
+  };
+  const deleteAllUsers = async () => {
+    setWiping(true);
+    const { data, error } = await supabase.functions.invoke("admin-users", { body: { action: "delete_all_users" } });
+    setWiping(false);
+    if (error || (data as any)?.error) return toast.error((data as any)?.error || error?.message || "Failed");
+    toast.success(`Deleted ${data?.deleted ?? 0} users`);
+    setTimeout(() => window.location.reload(), 600);
+  };
+  const deleteOne = async (uid: string, name: string) => {
+    const { data, error } = await supabase.functions.invoke("admin-users", { body: { action: "delete_user", user_id: uid } });
+    if (error || (data as any)?.error) return toast.error((data as any)?.error || error?.message || "Failed");
+    toast.success(`Deleted ${name}`);
+    q.refetch();
   };
   const [params, setParams] = useSearchParams();
   const search = params.get("q") ?? "";
@@ -80,6 +94,7 @@ export default function AdminCustomers() {
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <h1 className="text-2xl font-extrabold">Customers</h1>
         {isSuper && (
+          <div className="flex gap-2 flex-wrap">
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" size="sm" disabled={wiping}>
@@ -99,6 +114,26 @@ export default function AdminCustomers() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" disabled={wiping}>
+                <UserX className="h-4 w-4 mr-1" />Delete all users
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete ALL non-admin users?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Permanently deletes every customer account and all of their related data. Admins are kept. This cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={deleteAllUsers} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Yes, delete all users</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          </div>
         )}
       </div>
       <Tabs value={tab} onValueChange={(v) => update({ tab: v === "list" ? null : v, page: null })}>
@@ -136,6 +171,7 @@ export default function AdminCustomers() {
               <th className="text-right">Orders</th>
               <th className="text-right p-3">Spent</th>
               <th className="text-right p-3">Joined</th>
+              <th className="text-right p-3"></th>
             </tr>
           </thead>
           <tbody>
@@ -156,9 +192,28 @@ export default function AdminCustomers() {
                 <td className="text-right">{c.count}</td>
                 <td className="text-right p-3 font-semibold">Rs {Math.round(c.spent).toLocaleString()}</td>
                 <td className="text-right p-3 text-xs text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</td>
+                <td className="text-right p-3">
+                  {isSuper && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="icon" variant="ghost" className="text-destructive h-8 w-8"><Trash2 className="h-4 w-4" /></Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete {c.full_name ?? c.phone}?</AlertDialogTitle>
+                          <AlertDialogDescription>Permanently deletes this customer and all their orders, chats, addresses, and friendships. Cannot be undone.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => deleteOne(c.id, c.full_name ?? c.phone)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete user</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </td>
               </tr>
             ))}
-            {rows.length === 0 && <tr><td colSpan={7} className="text-center py-10 text-muted-foreground">No customers</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={8} className="text-center py-10 text-muted-foreground">No customers</td></tr>}
           </tbody>
         </table>
       </div>
