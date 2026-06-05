@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { formatPKR } from "@/lib/format";
 import { AnnouncementPopup } from "@/components/app/AnnouncementPopup";
 import { InstallPrompt } from "@/components/app/InstallPrompt";
+import { Footer } from "@/components/layout/Footer";
 import {
   Sheet, SheetContent, SheetTrigger,
 } from "@/components/ui/sheet";
@@ -150,6 +151,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main className="lg:ml-60 lg:pt-0 pb-24 lg:pb-12">
         <div className="lg:max-w-7xl lg:mx-auto lg:px-6 lg:py-6">
           {children}
+        </div>
+        <div className="lg:ml-0">
+          <Footer />
         </div>
       </main>
 
