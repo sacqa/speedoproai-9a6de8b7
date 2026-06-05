@@ -1,15 +1,23 @@
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
-import { MessageCircle, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MessageCircle, ArrowLeft, Send } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 type Msg = { id: string; sender_id: string; recipient_id: string; body: string; created_at: string };
 type Profile = { id: string; full_name: string | null; phone: string | null; avatar_url?: string | null };
 
 export default function AdminChats() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const data = useQuery({
     queryKey: ["admin", "chats"],
@@ -23,6 +31,15 @@ export default function AdminChats() {
       return { msgs: (msgs ?? []) as Msg[], profiles: new Map((profs ?? []).map((p: any) => [p.id, p as Profile])) };
     },
   });
+
+  // Realtime updates for all chat messages
+  useEffect(() => {
+    const ch = supabase.channel("admin-chats-rt")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, () => {
+        qc.invalidateQueries({ queryKey: ["admin", "chats"] });
+      }).subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [qc]);
 
   const { profiles, conversations } = useMemo(() => {
     const profiles = data.data?.profiles ?? new Map<string, Profile>();
@@ -54,6 +71,24 @@ export default function AdminChats() {
     return (data.data?.msgs ?? []).filter((m) => m.sender_id === selected || m.recipient_id === selected);
   }, [selected, data.data]);
   const activeUser = selected ? profiles.get(selected) : null;
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [activeMsgs.length, selected]);
+
+  const send = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!selected || !user || !draft.trim()) return;
+    setSending(true);
+    const body = draft.trim();
+    setDraft("");
+    const { error } = await supabase.from("chat_messages").insert({
+      sender_id: user.id, recipient_id: selected, body,
+    } as any);
+    setSending(false);
+    if (error) { toast.error(error.message); setDraft(body); return; }
+    qc.invalidateQueries({ queryKey: ["admin", "chats"] });
+  };
 
   return (
     <div className="space-y-4">
@@ -103,7 +138,7 @@ export default function AdminChats() {
                 </div>
                 <div className="ml-auto text-xs text-muted-foreground">{activeMsgs.length} messages</div>
               </div>
-              <div className="flex-1 overflow-y-auto p-4 space-y-2" style={{ background: "linear-gradient(180deg, hsl(var(--muted)/.25), transparent)" }}>
+              <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-2" style={{ background: "linear-gradient(180deg, hsl(var(--muted)/.25), transparent)" }}>
                 {activeMsgs.map((m) => {
                   const fromCustomer = m.sender_id === selected;
                   const other = profiles.get(fromCustomer ? m.recipient_id : m.sender_id);
@@ -119,9 +154,12 @@ export default function AdminChats() {
                 })}
                 {activeMsgs.length === 0 && <div className="text-center text-muted-foreground text-sm p-8">No messages</div>}
               </div>
-              <div className="px-4 py-3 border-t border-border text-xs text-muted-foreground text-center bg-muted/30">
-                Admin view — read only
-              </div>
+              <form onSubmit={send} className="px-3 py-3 border-t border-border flex items-center gap-2 bg-card">
+                <Input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Reply as admin…" className="flex-1" disabled={sending} />
+                <Button type="submit" size="icon" disabled={sending || !draft.trim()} aria-label="Send">
+                  <Send className="h-4 w-4" />
+                </Button>
+              </form>
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
