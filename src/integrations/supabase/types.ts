@@ -53,6 +53,39 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_label: string | null
+          created_at: string
+          details: Json | null
+          id: string
+          target_id: string | null
+          target_label: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_label?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_id?: string | null
+          target_label?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_label?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_id?: string | null
+          target_label?: string | null
+        }
+        Relationships: []
+      }
       announcement_dismissals: {
         Row: {
           announcement_id: string
