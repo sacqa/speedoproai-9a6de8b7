@@ -148,6 +148,20 @@ Deno.serve(async (req) => {
   const isSuper = roles.includes("super_admin");
   if (!isAdmin) return json({ error: "Admin only" }, 403);
 
+  const audit = async (entry: { action: string; target_id?: string | null; target_label?: string | null; details?: unknown }) => {
+    try {
+      const { data: prof } = await admin.from("profiles").select("full_name, phone").eq("id", callerId).maybeSingle();
+      await admin.from("admin_audit_log").insert({
+        actor_id: callerId,
+        actor_label: prof?.full_name ?? prof?.phone ?? null,
+        action: entry.action,
+        target_id: entry.target_id ?? null,
+        target_label: entry.target_label ?? null,
+        details: entry.details ?? null,
+      });
+    } catch (_) { /* audit best-effort */ }
+  };
+
   try {
     if (action === "create_user") {
       const { full_name, phone, pin, role } = body;
@@ -254,6 +268,7 @@ Deno.serve(async (req) => {
       const { data: targetRoles } = await admin.from("user_roles").select("role").eq("user_id", user_id);
       const targetIsAdmin = (targetRoles ?? []).some((r: any) => r.role === "admin" || r.role === "super_admin");
       if (targetIsAdmin && !isSuper) return json({ error: "Only super_admin can delete admins" }, 403);
+      const { data: targetProf } = await admin.from("profiles").select("full_name, phone").eq("id", user_id).maybeSingle();
       await admin.from("chat_messages").delete().or(`sender_id.eq.${user_id},recipient_id.eq.${user_id}`);
       await admin.from("friendships").delete().or(`requester_id.eq.${user_id},addressee_id.eq.${user_id}`);
       await admin.from("user_locations").delete().eq("user_id", user_id);
@@ -272,6 +287,12 @@ Deno.serve(async (req) => {
       await admin.from("profiles").delete().eq("id", user_id);
       const { error } = await admin.auth.admin.deleteUser(user_id);
       if (error) return json({ error: error.message }, 400);
+      await audit({
+        action: "delete_user",
+        target_id: user_id,
+        target_label: targetProf?.full_name ?? targetProf?.phone ?? null,
+        details: { orders_deleted: oids.length },
+      });
       return json({ ok: true });
     }
 
@@ -302,6 +323,7 @@ Deno.serve(async (req) => {
         const { error: delErr } = await admin.auth.admin.deleteUser(u.id);
         if (!delErr) deleted++;
       }
+      await audit({ action: "delete_all_users", details: { deleted } });
       return json({ ok: true, deleted });
     }
 

@@ -30,14 +30,24 @@ export default function AdminReceipt() {
       <style>{`
         @media print {
           @page { size: 80mm auto; margin: 0; }
-          body { margin: 0; }
+          html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+          body * { visibility: hidden !important; }
+          .receipt, .receipt * { visibility: visible !important; }
+          .receipt {
+            position: absolute !important;
+            left: 0 !important; top: 0 !important;
+            width: 80mm !important;
+            box-shadow: none !important;
+            padding: 4mm !important;
+            margin: 0 !important;
+            border: 0 !important;
+          }
           .no-print { display: none !important; }
-          .receipt { width: 80mm !important; box-shadow: none !important; padding: 4mm !important; }
         }
       `}</style>
       <div className="no-print flex items-center justify-between gap-2">
         <Link to={`/admin/orders/${id}`} className="inline-flex items-center gap-1 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />Back</Link>
-        <Button onClick={() => window.print()} className="gap-1"><Printer className="h-4 w-4" />Print receipt</Button>
+        <Button onClick={() => window.print()} className="gap-1 bg-primary hover:bg-primary/90"><Printer className="h-4 w-4" />Print POS Receipt</Button>
       </div>
       <div className="receipt mx-auto bg-white text-black shadow-card p-4" style={{ width: "80mm", fontFamily: "ui-monospace, 'Courier New', monospace", fontSize: "12px", lineHeight: 1.35 }}>
         {s.logo_url && <img src={s.logo_url} alt="logo" style={{ maxHeight: 64, margin: "0 auto 6px", display: "block" }} />}
