@@ -113,13 +113,21 @@ export default function Home() {
         <section>
           <SectionHeader title="Popular Categories" viewAllTo="/speedmart" />
           <div className="overflow-x-auto no-scrollbar">
-            <div className="flex gap-4 px-4 lg:px-0 pb-2">
-              {(popularCats.data ?? []).map((c) => (
-                <Link to={`/speedmart?cat=${c.slug}`} key={c.id} className="flex-shrink-0 w-20 text-center group">
-                  <div className="h-20 w-20 rounded-3xl bg-white border border-accent/40 shadow-card flex items-center justify-center text-3xl group-hover:scale-105 group-hover:border-primary/40 transition-all">
-                    {c.icon}
+            <div className="flex gap-3 sm:gap-4 lg:gap-5 px-4 lg:px-0 pb-2">
+              {(popularCats.data ?? []).map((c: any) => (
+                <Link
+                  to={`/speedmart?cat=${c.slug}`}
+                  key={c.id}
+                  className="flex-shrink-0 w-[68px] sm:w-20 lg:w-24 text-center group"
+                >
+                  <div className="aspect-square w-full rounded-3xl bg-white border border-accent/40 shadow-card flex items-center justify-center overflow-hidden group-hover:scale-105 group-hover:border-primary/40 transition-all">
+                    {c.image_url ? (
+                      <img src={c.image_url} alt={c.name} className="w-full h-full object-cover" loading="lazy" />
+                    ) : (
+                      <span className="text-2xl sm:text-3xl lg:text-4xl leading-none">{c.icon}</span>
+                    )}
                   </div>
-                  <p className="mt-2 text-[11px] font-semibold leading-tight line-clamp-2 text-primary">{c.name}</p>
+                  <p className="mt-2 text-[11px] sm:text-xs font-semibold leading-tight line-clamp-2 text-primary">{c.name}</p>
                 </Link>
               ))}
             </div>

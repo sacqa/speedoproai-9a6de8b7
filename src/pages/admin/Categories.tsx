@@ -8,8 +8,10 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Star } from "lucide-react";
+import { AIImageButton } from "@/components/admin/AIImageButton";
+import { supabase as sb } from "@/integrations/supabase/client";
 
-const empty = { name: "", slug: "", icon: "", sort_order: 0, is_active: true, is_popular: false, is_hot_selling: false };
+const empty = { name: "", slug: "", icon: "", image_url: "", sort_order: 0, is_active: true, is_popular: false, is_hot_selling: false };
 
 export default function AdminCategories() {
   const cats = useQuery({ queryKey: ["admin","categories"], queryFn: async () => (await supabase.from("categories").select("*").order("sort_order")).data ?? [] });
@@ -81,6 +83,34 @@ export default function AdminCategories() {
             <div className="grid grid-cols-2 gap-2">
               <div><Label>Icon (emoji)</Label><Input value={editing.icon ?? ""} onChange={(e) => setEditing({ ...editing, icon: e.target.value })} placeholder="🥦" /></div>
               <div><Label>Sort order</Label><Input type="number" value={editing.sort_order ?? 0} onChange={(e) => setEditing({ ...editing, sort_order: Number(e.target.value) })} /></div>
+            </div>
+            <div>
+              <Label>Image (optional — used as icon if set)</Label>
+              <div className="flex items-center gap-3 mt-1">
+                {editing.image_url && <img src={editing.image_url} alt="" className="h-14 w-14 rounded-2xl object-cover border" />}
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0]; if (!f) return;
+                    const path = `cat-${Date.now()}-${f.name.replace(/\s/g,"_")}`;
+                    const { error } = await sb.storage.from("products").upload(path, f, { upsert: true });
+                    if (error) return toast.error(error.message);
+                    const { data } = sb.storage.from("products").getPublicUrl(path);
+                    setEditing({ ...editing, image_url: data.publicUrl });
+                  }}
+                />
+                <AIImageButton
+                  context="category"
+                  preset="square"
+                  bucket="products"
+                  defaultPrompt={editing.name ?? ""}
+                  onGenerated={(url) => setEditing({ ...editing, image_url: url })}
+                />
+                {editing.image_url && (
+                  <Button type="button" size="sm" variant="ghost" onClick={() => setEditing({ ...editing, image_url: "" })}>Remove</Button>
+                )}
+              </div>
             </div>
             <div className="flex flex-wrap gap-x-6 gap-y-3">
               <label className="flex items-center gap-2 text-sm"><Switch checked={!!editing.is_active} onCheckedChange={(v) => setEditing({ ...editing, is_active: v })} />Active</label>
