@@ -242,6 +242,7 @@ export type Database = {
         Row: {
           icon: string | null
           id: string
+          image_url: string | null
           is_active: boolean
           is_hot_selling: boolean
           is_popular: boolean
@@ -252,6 +253,7 @@ export type Database = {
         Insert: {
           icon?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
           is_hot_selling?: boolean
           is_popular?: boolean
@@ -262,6 +264,7 @@ export type Database = {
         Update: {
           icon?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
           is_hot_selling?: boolean
           is_popular?: boolean
