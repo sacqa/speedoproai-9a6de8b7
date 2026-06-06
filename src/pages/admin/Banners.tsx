@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
+import { AIImageButton } from "@/components/admin/AIImageButton";
 
 const empty = { title: "", subtitle: "", image_url: "", cta_label: "", cta_link: "", sort_order: 0, is_active: true };
 
@@ -73,6 +74,13 @@ export default function AdminBanners() {
               <div className="flex items-center gap-2">
                 {editing.image_url && <img src={editing.image_url} alt="" className="h-12 w-20 rounded object-cover" />}
                 <Input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
+                <AIImageButton
+                  context="banner"
+                  preset="banner"
+                  bucket="banners"
+                  defaultPrompt={[editing.title, editing.subtitle].filter(Boolean).join(" — ")}
+                  onGenerated={(url) => setEditing((s: any) => ({ ...s, image_url: url }))}
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">

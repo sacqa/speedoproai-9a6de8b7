@@ -13,6 +13,7 @@ import { formatPKR } from "@/lib/format";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Download, Upload, FileText } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { AIImageButton } from "@/components/admin/AIImageButton";
 
 type Product = { id: string; name: string; description: string | null; price: number; compare_price: number | null; stock: number; unit: string | null; image_url: string | null; category_id: string | null; is_active: boolean; is_featured: boolean; };
 
@@ -308,6 +309,13 @@ export default function AdminProducts() {
                 <div className="flex items-center gap-3">
                   {editing.image_url && <img src={editing.image_url} alt="" className="h-14 w-14 rounded object-cover" />}
                   <Input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0])} />
+                  <AIImageButton
+                    context="product"
+                    preset="square"
+                    bucket="products"
+                    defaultPrompt={editing.name ?? ""}
+                    onGenerated={(url) => setEditing((s: any) => ({ ...s, image_url: url }))}
+                  />
                 </div>
               </div>
               <div className="flex gap-6">
