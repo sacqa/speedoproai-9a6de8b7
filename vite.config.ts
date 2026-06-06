@@ -52,9 +52,35 @@ export default defineConfig(({ mode }) => ({
             options: { cacheName: "html", networkTimeoutSeconds: 3 },
           },
           {
+            // Supabase Storage public objects: product images, banners, category icons,
+            // AI-generated assets. Cross-origin so responses are opaque (status 0).
+            urlPattern: ({ url }) =>
+              url.hostname.endsWith(".supabase.co") && url.pathname.startsWith("/storage/v1/object/public/"),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "supabase-images",
+              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxEntries: 400, maxAgeSeconds: 60 * 60 * 24 * 60 },
+            },
+          },
+          {
+            // Lovable CDN assets (uploaded via lovable-assets).
+            urlPattern: ({ url }) => url.pathname.startsWith("/__l5e/assets-v1/"),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "lovable-assets",
+              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 365 },
+            },
+          },
+          {
             urlPattern: ({ request }) => request.destination === "image",
             handler: "CacheFirst",
-            options: { cacheName: "images", expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 } },
+            options: {
+              cacheName: "images",
+              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
           },
           {
             urlPattern: ({ request }) => request.destination === "font",
