@@ -5,8 +5,8 @@ import { SpeedoLogo } from "@/components/speedo/SpeedoLogo";
 export default function Splash() {
   const nav = useNavigate();
   useEffect(() => {
-    const seen = localStorage.getItem("speedo-onboarded");
-    const t = setTimeout(() => nav(seen ? "/" : "/onboarding", { replace: true }), 1600);
+    sessionStorage.setItem("speedo-splash-shown", "1");
+    const t = setTimeout(() => nav("/", { replace: true }), 1400);
     return () => clearTimeout(t);
   }, [nav]);
   return (
