@@ -120,8 +120,8 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      {/* Mobile sticky CTA */}
-      <div className="fixed bottom-16 lg:hidden left-0 right-0 px-4 py-3 bg-background/95 backdrop-blur border-t border-border z-30">
+      {/* Mobile sticky CTA — sits above the floating bottom-nav (which is bottom-3 + h-16) */}
+      <div className="fixed bottom-24 lg:hidden left-3 right-3 px-3 py-2.5 bg-background/95 backdrop-blur border border-border rounded-2xl shadow-elevated z-30 safe-bottom">
         <CartCta p={p} price={price} inCart={inCart} add={add} setQty={setQty} />
       </div>
     </div>
