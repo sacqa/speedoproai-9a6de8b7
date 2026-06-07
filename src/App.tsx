@@ -100,9 +100,9 @@ const App = () => (
               <Route path="/pharmacy" element={<RequireApproved><RequestForm mode="pharmacy" /></RequireApproved>} />
               <Route path="/speedsend" element={<RequireApproved><RequestForm mode="speedsend" /></RequireApproved>} />
               <Route path="/custom" element={<RequireApproved><RequestForm mode="custom" /></RequireApproved>} />
-              <Route path="/food" element={<Food />} />
+              <Route path="/food" element={<RequireApproved><Food /></RequireApproved>} />
               <Route path="/food/checkout" element={<RequireApproved><FoodCheckout /></RequireApproved>} />
-              <Route path="/food/:vendorId" element={<FoodVendor />} />
+              <Route path="/food/:vendorId" element={<RequireApproved><FoodVendor /></RequireApproved>} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<RequireApproved><Checkout /></RequireApproved>} />
               <Route path="/orders" element={<RequireApproved><Orders /></RequireApproved>} />
