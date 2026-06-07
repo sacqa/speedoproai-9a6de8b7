@@ -238,8 +238,14 @@ function BannerSlider({ banners }: { banners: any[] }) {
   const b = banners[i];
   return (
     <div className="px-4 lg:px-0">
-      <div className="relative rounded-2xl overflow-hidden h-32 lg:h-56 shadow-card mx-auto max-w-md lg:max-w-3xl" ref={ref}>
-        <img src={b.image_url} alt={b.title} className="absolute inset-0 w-full h-full object-cover" />
+      <div className="relative rounded-2xl overflow-hidden aspect-[3/2] sm:aspect-[16/9] lg:aspect-[3/1] bg-muted shadow-card mx-auto max-w-md lg:max-w-3xl" ref={ref}>
+        <img
+          src={b.image_url}
+          alt={b.title}
+          loading="lazy"
+          onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-0 p-4 lg:p-8 flex flex-col justify-center text-white max-w-md">
           <h3 className="text-base lg:text-2xl font-extrabold leading-tight">{b.title}</h3>
