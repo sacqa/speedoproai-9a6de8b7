@@ -45,7 +45,9 @@ export function useRealtimeNotifications() {
   }, []);
 
   const playTone = () => {
-    try { (navigator as any).vibrate?.([120, 60, 120]); } catch {}
+    // Customer-side: keep silent on mobile (no ringtone, no vibration).
+    // Audio is reserved for admin order alerts.
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 768px)").matches) return;
     const el = audioRef.current ?? new Audio("/sounds/shopify.mp3");
     el.currentTime = 0; el.volume = 0.85;
     el.play().catch(() => {});
