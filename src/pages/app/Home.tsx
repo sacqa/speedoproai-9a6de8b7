@@ -131,7 +131,13 @@ export default function Home() {
                 >
                   <div className="aspect-square w-full rounded-3xl bg-white border border-accent/40 shadow-card flex items-center justify-center overflow-hidden group-hover:scale-105 group-hover:border-primary/40 transition-all">
                     {c.image_url ? (
-                      <img src={c.image_url} alt={c.name} className="w-full h-full object-cover" loading="lazy" />
+                      <img
+                        src={c.image_url}
+                        alt={c.name}
+                        loading="lazy"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       <span className="text-2xl sm:text-3xl lg:text-4xl leading-none">{c.icon}</span>
                     )}
