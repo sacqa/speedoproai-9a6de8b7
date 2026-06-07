@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronLeft, ChevronRight, ShoppingBasket, Pill, Package, UtensilsCrossed, ArrowRight, Search as SearchIcon, Mic, Flame } from "lucide-react";
@@ -8,6 +8,15 @@ import { SectionHeader } from "@/components/speedo/SectionHeader";
 import { Seo } from "@/components/seo/Seo";
 
 export default function Home() {
+  const nav = useNavigate();
+  useEffect(() => {
+    // Show mobile splash on first session entry (skip when already navigated through splash).
+    if (typeof window === "undefined") return;
+    if (sessionStorage.getItem("speedo-splash-shown")) return;
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    if (isMobile) nav("/splash", { replace: true });
+    else sessionStorage.setItem("speedo-splash-shown", "1");
+  }, [nav]);
   const banners = useQuery({
     queryKey: ["banners"],
     staleTime: 5 * 60_000,
