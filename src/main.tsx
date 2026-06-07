@@ -18,7 +18,25 @@ if (isInIframe || isPreviewHost) {
     navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => r.unregister()));
   }
 } else {
-  registerSW({ immediate: true });
+  // Auto-update: when a new SW takes over, reload so users always get the latest admin changes
+  // without needing to manually refresh or re-bookmark.
+  const updateSW = registerSW({
+    immediate: true,
+    onNeedRefresh() { updateSW?.(true); },
+    onRegisteredSW(_swUrl, reg) {
+      // Poll for updates every 30 minutes while app is open.
+      if (reg) setInterval(() => { reg.update().catch(() => {}); }, 30 * 60 * 1000);
+    },
+  });
+  // Reload once the new SW activates and claims the page.
+  if ("serviceWorker" in navigator) {
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+  }
 }
 
 createRoot(document.getElementById("root")!).render(

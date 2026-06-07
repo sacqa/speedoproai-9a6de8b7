@@ -34,7 +34,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const location = useLocation();
   const { Banner } = useRealtimeNotifications();
   const hideChrome = ["/login", "/otp", "/onboarding", "/splash", "/admin"].some((p) => location.pathname.startsWith(p));
-  const hideCheckoutBar = ["/cart", "/checkout", "/order"].some((p) => location.pathname.startsWith(p));
+  const hideCheckoutBar = ["/cart", "/checkout", "/order", "/product", "/login", "/splash", "/onboarding"].some((p) => location.pathname.startsWith(p));
 
   if (hideChrome) {
     return <main className="min-h-screen bg-background">{Banner}<AnnouncementPopup /><InstallPrompt />{children}</main>;

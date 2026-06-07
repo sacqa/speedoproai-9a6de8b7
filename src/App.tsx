@@ -93,17 +93,17 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/forgot-pin" element={<ForgotPin />} />
               <Route path="/pending" element={<Waiting />} />
-              <Route path="/" element={<RequireApproved><Home /></RequireApproved>} />
-              <Route path="/search" element={<RequireApproved><Search /></RequireApproved>} />
-              <Route path="/speedmart" element={<RequireApproved><SpeedMart /></RequireApproved>} />
-              <Route path="/product/:id" element={<RequireApproved><ProductDetail /></RequireApproved>} />
+              <Route path="/" element={<Home />} />
+              <Route path="/search" element={<Search />} />
+              <Route path="/speedmart" element={<SpeedMart />} />
+              <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/pharmacy" element={<RequireApproved><RequestForm mode="pharmacy" /></RequireApproved>} />
               <Route path="/speedsend" element={<RequireApproved><RequestForm mode="speedsend" /></RequireApproved>} />
               <Route path="/custom" element={<RequireApproved><RequestForm mode="custom" /></RequireApproved>} />
               <Route path="/food" element={<RequireApproved><Food /></RequireApproved>} />
               <Route path="/food/checkout" element={<RequireApproved><FoodCheckout /></RequireApproved>} />
               <Route path="/food/:vendorId" element={<RequireApproved><FoodVendor /></RequireApproved>} />
-              <Route path="/cart" element={<RequireApproved><Cart /></RequireApproved>} />
+              <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<RequireApproved><Checkout /></RequireApproved>} />
               <Route path="/orders" element={<RequireApproved><Orders /></RequireApproved>} />
               <Route path="/orders/:id" element={<RequireApproved><OrderDetails /></RequireApproved>} />

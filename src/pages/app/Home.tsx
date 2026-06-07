@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronLeft, ChevronRight, ShoppingBasket, Pill, Package, UtensilsCrossed, ArrowRight, Search as SearchIcon, Mic, Flame } from "lucide-react";
@@ -8,6 +8,15 @@ import { SectionHeader } from "@/components/speedo/SectionHeader";
 import { Seo } from "@/components/seo/Seo";
 
 export default function Home() {
+  const nav = useNavigate();
+  useEffect(() => {
+    // Show mobile splash on first session entry (skip when already navigated through splash).
+    if (typeof window === "undefined") return;
+    if (sessionStorage.getItem("speedo-splash-shown")) return;
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    if (isMobile) nav("/splash", { replace: true });
+    else sessionStorage.setItem("speedo-splash-shown", "1");
+  }, [nav]);
   const banners = useQuery({
     queryKey: ["banners"],
     staleTime: 5 * 60_000,
@@ -122,7 +131,13 @@ export default function Home() {
                 >
                   <div className="aspect-square w-full rounded-3xl bg-white border border-accent/40 shadow-card flex items-center justify-center overflow-hidden group-hover:scale-105 group-hover:border-primary/40 transition-all">
                     {c.image_url ? (
-                      <img src={c.image_url} alt={c.name} className="w-full h-full object-cover" loading="lazy" />
+                      <img
+                        src={c.image_url}
+                        alt={c.name}
+                        loading="lazy"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       <span className="text-2xl sm:text-3xl lg:text-4xl leading-none">{c.icon}</span>
                     )}
@@ -229,8 +244,14 @@ function BannerSlider({ banners }: { banners: any[] }) {
   const b = banners[i];
   return (
     <div className="px-4 lg:px-0">
-      <div className="relative rounded-2xl overflow-hidden h-32 lg:h-56 shadow-card mx-auto max-w-md lg:max-w-3xl" ref={ref}>
-        <img src={b.image_url} alt={b.title} className="absolute inset-0 w-full h-full object-cover" />
+      <div className="relative rounded-2xl overflow-hidden aspect-[3/2] sm:aspect-[16/9] lg:aspect-[3/1] bg-muted shadow-card mx-auto max-w-md lg:max-w-3xl" ref={ref}>
+        <img
+          src={b.image_url}
+          alt={b.title}
+          loading="lazy"
+          onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-0 p-4 lg:p-8 flex flex-col justify-center text-white max-w-md">
           <h3 className="text-base lg:text-2xl font-extrabold leading-tight">{b.title}</h3>
