@@ -45,6 +45,9 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         navigateFallbackDenylist: [/^\/~oauth/, /^\/admin/],
         globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],
+        clientsClaim: true,
+        skipWaiting: true,
+        cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.mode === "navigate",
