@@ -58,7 +58,12 @@ export default function ProductDetail() {
             </span>
           )}
           {p.image_url ? (
-            <img src={p.image_url} alt={p.name} className="max-h-full max-w-full object-contain" />
+            <img
+              src={p.image_url}
+              alt={p.name}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
+              className="max-h-full max-w-full object-contain"
+            />
           ) : (
             <div className="text-muted-foreground/50 flex flex-col items-center gap-2">
               <ImageOff className="h-10 w-10" />
