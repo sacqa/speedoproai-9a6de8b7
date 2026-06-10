@@ -189,3 +189,15 @@
   }
   .bg-page-gradient { background: var(--gradient-page); }
 }
+
+/* Native-app feel: lock zoom and unwanted touch behaviors */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  touch-action: manipulation;
+}
+body {
+  overscroll-behavior-y: contain;
+  -webkit-tap-highlight-color: transparent;
+}
+input, textarea, select { font-size: 16px; } /* prevents iOS focus zoom */
