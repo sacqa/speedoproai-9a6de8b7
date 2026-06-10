@@ -963,6 +963,7 @@ export type Database = {
     Functions: {
       are_friends: { Args: { _a: string; _b: string }; Returns: boolean }
       claim_admin_if_none: { Args: never; Returns: boolean }
+      get_vendor_commission: { Args: { _vendor_id: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
