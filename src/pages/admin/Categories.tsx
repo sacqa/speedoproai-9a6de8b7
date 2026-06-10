@@ -17,6 +17,33 @@ export default function AdminCategories() {
   const cats = useQuery({ queryKey: ["admin","categories"], queryFn: async () => (await supabase.from("categories").select("*").order("sort_order")).data ?? [] });
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  const bulkGenerateIcons = async () => {
+    const missing = (cats.data ?? []).filter((c: any) => !c.image_url);
+    if (missing.length === 0) return toast.info("All categories already have images.");
+    if (!confirm(`Generate AI images for ${missing.length} categor${missing.length === 1 ? "y" : "ies"} without an image?`)) return;
+    setBulkBusy(true);
+    let ok = 0, fail = 0;
+    for (const c of missing) {
+      try {
+        const { data, error } = await sb.functions.invoke("generate-image", {
+          body: { prompt: c.name, preset: "square", bucket: "products", context: "category" },
+        });
+        if (error || !data?.url) throw new Error(error?.message || data?.error || "failed");
+        const { error: upErr } = await supabase.from("categories").update({ image_url: data.url }).eq("id", c.id);
+        if (upErr) throw upErr;
+        ok++;
+        toast.success(`Generated: ${c.name}`);
+        cats.refetch();
+      } catch (e: any) {
+        fail++;
+        toast.error(`${c.name}: ${e.message}`);
+      }
+    }
+    setBulkBusy(false);
+    toast.success(`Done. ${ok} generated, ${fail} failed.`);
+  };
 
   const save = async () => {
     if (!editing.name?.trim()) return toast.error("Name required");
@@ -49,7 +76,12 @@ export default function AdminCategories() {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-extrabold">Categories</h1>
-        <Button onClick={() => { setEditing(empty); setOpen(true); }}><Plus className="h-4 w-4 mr-1" />Add Category</Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" disabled={bulkBusy} onClick={bulkGenerateIcons}>
+            {bulkBusy ? "Generating…" : "AI: Generate Missing Icons"}
+          </Button>
+          <Button onClick={() => { setEditing(empty); setOpen(true); }}><Plus className="h-4 w-4 mr-1" />Add Category</Button>
+        </div>
       </div>
       <div className="bg-card rounded-xl shadow-card overflow-x-auto">
         <table className="w-full text-sm">
