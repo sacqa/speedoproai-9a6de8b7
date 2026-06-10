@@ -51,9 +51,14 @@ export default function SpeedMart() {
 
       <div className="overflow-x-auto no-scrollbar -mx-4 px-4 lg:mx-0 lg:px-0">
         <div className="flex gap-3 py-1">
-          <Chip active={cat === "all"} onClick={() => { setParams({}); setShown(PAGE); }} icon="🛒">All</Chip>
+          <Chip active={cat === "all"} onClick={() => { setParams({}); setShown(PAGE); }}>All</Chip>
           {(cats.data ?? []).map((c: any) => (
-            <Chip key={c.id} active={cat === c.slug} onClick={() => { setParams({ cat: c.slug }); setShown(PAGE); }} icon={c.icon}>
+            <Chip
+              key={c.id}
+              active={cat === c.slug}
+              onClick={() => { setParams({ cat: c.slug }); setShown(PAGE); }}
+              image={c.image_url}
+            >
               {c.name}
             </Chip>
           ))}
@@ -81,7 +86,7 @@ export default function SpeedMart() {
   );
 }
 
-function Chip({ active, children, onClick, icon }: { active: boolean; children: React.ReactNode; onClick: () => void; icon?: string }) {
+function Chip({ active, children, onClick, image }: { active: boolean; children: React.ReactNode; onClick: () => void; image?: string | null }) {
   return (
     <button
       onClick={onClick}
@@ -91,7 +96,15 @@ function Chip({ active, children, onClick, icon }: { active: boolean; children: 
           : "bg-card text-foreground border-border hover:border-primary/40"
       }`}
     >
-      {icon && <span className="text-base leading-none">{icon}</span>}
+      {image && (
+        <img
+          src={image}
+          alt=""
+          loading="lazy"
+          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+          className="h-6 w-6 rounded-full object-cover bg-white"
+        />
+      )}
       <span>{children}</span>
     </button>
   );
