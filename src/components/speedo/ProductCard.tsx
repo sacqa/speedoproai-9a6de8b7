@@ -23,46 +23,46 @@ export function ProductCard({ p }: { p: Product }) {
   const [imgError, setImgError] = useState(false);
 
   return (
-    <div className="relative flex flex-col group">
-      {/* Image card: white, large rounded corners, soft border */}
-      <div className="relative aspect-square bg-white rounded-3xl border border-border/60 overflow-hidden flex items-center justify-center p-4 sm:p-5">
+    <div className="group relative flex flex-col bg-white rounded-3xl p-2.5 sm:p-3 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] transition-all duration-500 ease-out">
+      {/* Image stage */}
+      <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
         <Link to={`/product/${p.id}`} aria-label={p.name} className="absolute inset-0 z-0" onClick={() => trackView(p.id)} />
+
+        {p.unit && (
+          <span className="absolute z-10 top-2 left-2 text-[9px] font-bold uppercase tracking-wider bg-white/80 backdrop-blur-md text-muted-foreground rounded-full px-2 py-0.5 border border-border/40 shadow-sm">
+            {p.unit}
+          </span>
+        )}
+
+        <button
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); setLiked((v) => !v); }}
+          aria-label="Save to favorites"
+          className="absolute z-10 top-2 right-2 h-8 w-8 sm:h-9 sm:w-9 flex items-center justify-center bg-white/80 backdrop-blur-md rounded-full border border-border/40 text-muted-foreground/70 hover:text-primary shadow-sm transition-colors"
+        >
+          <Heart className={`h-4 w-4 sm:h-[18px] sm:w-[18px] ${liked ? "fill-primary text-primary" : ""}`} />
+        </button>
+
         {p.image_url && !imgError ? (
           <img
             src={p.image_url}
             alt={p.name}
             loading="lazy"
             decoding="async"
-            className="relative pointer-events-none w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+            className="relative pointer-events-none w-4/5 h-4/5 object-contain group-hover:scale-110 transition-transform duration-500"
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="relative pointer-events-none w-full h-full bg-muted rounded-xl flex flex-col items-center justify-center text-muted-foreground/50 gap-1">
-            <ImageOff className="h-8 w-8" />
+          <div className="relative pointer-events-none flex flex-col items-center justify-center text-muted-foreground/50 gap-1">
+            <ImageOff className="h-7 w-7" />
             <span className="text-[10px] font-semibold uppercase tracking-wide">No image</span>
           </div>
         )}
 
-        {/* Heart (wishlist) - top right */}
-        <button
-          onClick={(e) => { e.stopPropagation(); setLiked((v) => !v); }}
-          aria-label="Save to favorites"
-          className="absolute z-10 top-2.5 right-2.5 h-9 w-9 flex items-center justify-center text-muted-foreground/60 hover:text-primary transition-colors"
-        >
-          <Heart className={`h-6 w-6 ${liked ? "fill-primary text-primary" : "fill-muted-foreground/25"}`} />
-        </button>
-
-        {p.unit && (
-          <span className="absolute z-10 top-2.5 left-2.5 text-[9px] font-bold uppercase tracking-wide bg-card/90 backdrop-blur text-muted-foreground rounded-full px-2 py-0.5 shadow-sm">
-            {p.unit}
-          </span>
-        )}
-
-        {/* Floating ADD button (dark green squircle) bottom-right of image */}
+        {/* Floating ADD / qty stepper */}
         {inCart ? (
-          <div className="absolute z-10 bottom-2 right-2 flex items-center gap-0.5 bg-accent text-accent-foreground rounded-2xl p-1 shadow-elevated max-w-[calc(100%-1rem)]">
+          <div className="absolute z-10 bottom-2 right-2 flex items-center gap-0.5 bg-accent text-accent-foreground rounded-2xl p-1 shadow-lg shadow-emerald-900/30 max-w-[calc(100%-1rem)]">
             <button
-              onClick={() => setQty(p.id, inCart.quantity - 1)}
+              onClick={(e) => { e.preventDefault(); setQty(p.id, inCart.quantity - 1); }}
               className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 active:scale-95 transition-transform"
               aria-label="Decrease"
             >
@@ -70,7 +70,7 @@ export function ProductCard({ p }: { p: Product }) {
             </button>
             <span className="text-sm font-extrabold tabular-nums min-w-[1.5ch] text-center px-1">{inCart.quantity}</span>
             <button
-              onClick={() => setQty(p.id, inCart.quantity + 1)}
+              onClick={(e) => { e.preventDefault(); setQty(p.id, inCart.quantity + 1); }}
               className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 active:scale-95 transition-transform"
               aria-label="Increase"
             >
@@ -79,7 +79,8 @@ export function ProductCard({ p }: { p: Product }) {
           </div>
         ) : (
           <button
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
               trackView(p.id);
               add({
                 product_id: p.id,
@@ -90,19 +91,19 @@ export function ProductCard({ p }: { p: Product }) {
               });
             }}
             aria-label="Add to cart"
-            className="absolute z-10 bottom-2 right-2 h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-accent text-accent-foreground flex items-center justify-center shadow-elevated hover:bg-accent/90 active:scale-95 transition-all"
+            className="absolute z-10 bottom-2 right-2 h-10 w-10 sm:h-12 sm:w-12 rounded-2xl bg-accent text-accent-foreground flex items-center justify-center shadow-lg shadow-emerald-900/30 hover:scale-110 active:scale-95 transition-all"
           >
             <Plus className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.5} />
           </button>
         )}
       </div>
 
-      {/* Info area below image */}
-      <Link to={`/product/${p.id}`} onClick={() => trackView(p.id)} className="pt-3 px-1 flex flex-col gap-1">
-        <span className="text-lg sm:text-xl font-extrabold text-foreground tracking-tight leading-none">
+      {/* Info area */}
+      <Link to={`/product/${p.id}`} onClick={() => trackView(p.id)} className="pt-3 px-1 pb-1 flex flex-col gap-0.5">
+        <span className="text-lg sm:text-xl font-bold text-foreground tracking-tight leading-none tabular-nums">
           {formatPKR(Number(p.price))}
         </span>
-        <h3 className="text-sm sm:text-[15px] font-normal text-muted-foreground line-clamp-2 leading-snug min-h-[2.5rem]">
+        <h3 className="text-sm sm:text-[15px] font-medium text-muted-foreground line-clamp-2 leading-snug min-h-[2.5rem]">
           {p.name}
         </h3>
       </Link>
