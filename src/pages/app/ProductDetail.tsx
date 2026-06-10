@@ -153,12 +153,12 @@ function CartCta({ p, price, inCart, add, setQty }: any) {
   if (inCart) {
     return (
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1 bg-primary text-primary-foreground rounded-2xl p-1">
-          <button onClick={() => setQty(p.id, inCart.quantity - 1)} className="h-10 w-10 rounded-xl bg-white/15 flex items-center justify-center" aria-label="Decrease"><Minus className="h-4 w-4" /></button>
-          <span className="px-3 font-extrabold tabular-nums">{inCart.quantity}</span>
-          <button onClick={() => setQty(p.id, inCart.quantity + 1)} className="h-10 w-10 rounded-xl bg-white/15 flex items-center justify-center" aria-label="Increase"><Plus className="h-4 w-4" /></button>
+        <div className="flex items-center bg-muted rounded-2xl p-1.5 shrink-0 border border-border">
+          <button onClick={() => setQty(p.id, inCart.quantity - 1)} className="h-9 w-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background active:scale-90 transition-all" aria-label="Decrease"><Minus className="h-4 w-4" /></button>
+          <span className="w-8 text-center font-bold text-foreground tabular-nums">{inCart.quantity}</span>
+          <button onClick={() => setQty(p.id, inCart.quantity + 1)} className="h-9 w-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background active:scale-90 transition-all" aria-label="Increase"><Plus className="h-4 w-4" /></button>
         </div>
-        <Button asChild className="flex-1 h-12 text-base"><Link to="/cart">Go to cart</Link></Button>
+        <Button asChild className="flex-1 h-12 text-base rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg shadow-emerald-900/20"><Link to="/cart">Go to cart</Link></Button>
       </div>
     );
   }
@@ -166,7 +166,7 @@ function CartCta({ p, price, inCart, add, setQty }: any) {
     <Button
       onClick={() => add({ product_id: p.id, name: p.name, price, unit: p.unit, image_url: p.image_url })}
       disabled={p.stock <= 0}
-      className="w-full h-12 text-base"
+      className="w-full h-12 text-base rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg shadow-emerald-900/20"
     >
       <ShoppingBag className="h-5 w-5 mr-2" /> Add to cart
     </Button>
