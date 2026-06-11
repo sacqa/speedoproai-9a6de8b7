@@ -8,6 +8,8 @@ export type CartItem = {
   unit?: string | null;
   image_url?: string | null;
   quantity: number;
+  variant_id?: string | null;
+  variant_label?: string | null;
 };
 
 type CartState = {
@@ -26,12 +28,12 @@ export const useCart = create<CartState>()(
       items: [],
       add: (item, qty = 1) =>
         set((s) => {
-          const existing = s.items.find((i) => i.product_id === item.product_id);
+          const sameLine = (i: CartItem) =>
+            i.product_id === item.product_id && (i.variant_id ?? null) === (item.variant_id ?? null);
+          const existing = s.items.find(sameLine);
           if (existing) {
             return {
-              items: s.items.map((i) =>
-                i.product_id === item.product_id ? { ...i, quantity: i.quantity + qty } : i
-              ),
+              items: s.items.map((i) => (sameLine(i) ? { ...i, quantity: i.quantity + qty } : i)),
             };
           }
           return { items: [...s.items, { ...item, quantity: qty }] };
