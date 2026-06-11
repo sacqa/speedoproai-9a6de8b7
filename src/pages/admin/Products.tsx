@@ -14,6 +14,9 @@ import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Download, Upload, FileText, Sparkles, Loader2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AIImageButton } from "@/components/admin/AIImageButton";
+import { ProductVariantsEditor } from "@/components/admin/ProductVariantsEditor";
+import { ProductGalleryEditor } from "@/components/admin/ProductGalleryEditor";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Product = { id: string; name: string; description: string | null; price: number; compare_price: number | null; stock: number; unit: string | null; image_url: string | null; category_id: string | null; is_active: boolean; is_featured: boolean; };
 
@@ -303,17 +306,23 @@ export default function AdminProducts() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{editing?.id ? "Edit Product" : "New Product"}</DialogTitle></DialogHeader>
           {editing && (
-            <div className="space-y-3">
+            <Tabs defaultValue="details" className="space-y-3">
+              <TabsList className="w-full justify-start overflow-x-auto">
+                <TabsTrigger value="details">Details</TabsTrigger>
+                <TabsTrigger value="gallery" disabled={!editing.id}>Gallery</TabsTrigger>
+                <TabsTrigger value="variants" disabled={!editing.id}>Variants</TabsTrigger>
+              </TabsList>
+              <TabsContent value="details" className="space-y-3">
               <div><Label>Name</Label><Input value={editing.name ?? ""} onChange={(e) => setEditing({ ...editing, name: e.target.value })} /></div>
               <div><Label>Description</Label><Textarea value={editing.description ?? ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} /></div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div><Label>Price (PKR)</Label><Input type="number" value={editing.price ?? 0} onChange={(e) => setEditing({ ...editing, price: Number(e.target.value) })} /></div>
                 <div><Label>Compare price <span className="text-muted-foreground font-normal">(for sale)</span></Label><Input type="number" placeholder="Leave empty if not on sale" value={(editing as any).compare_price ?? ""} onChange={(e) => setEditing({ ...editing, compare_price: e.target.value ? Number(e.target.value) : null } as any)} /></div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div><Label>Stock</Label><Input type="number" value={editing.stock ?? 0} onChange={(e) => setEditing({ ...editing, stock: Number(e.target.value) })} /></div>
                 <div>
                   <Label>Unit</Label>
@@ -343,10 +352,10 @@ export default function AdminProducts() {
                   <SelectContent>{(cats.data ?? []).map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div><Label>Image</Label>
-                <div className="flex items-center gap-3">
+              <div><Label>Main image</Label>
+                <div className="flex items-center gap-3 flex-wrap">
                   {editing.image_url && <img src={editing.image_url} alt="" className="h-14 w-14 rounded object-cover" />}
-                  <Input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0])} />
+                  <Input type="file" accept="image/*" className="flex-1 min-w-[180px]" onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0])} />
                   <AIImageButton
                     context="product"
                     preset="square"
@@ -356,12 +365,19 @@ export default function AdminProducts() {
                   />
                 </div>
               </div>
-              <div className="flex gap-6">
+              <div className="flex gap-6 flex-wrap">
                 <label className="flex items-center gap-2 text-sm"><Switch checked={!!editing.is_active} onCheckedChange={(v) => setEditing({ ...editing, is_active: v })} />Active</label>
                 <label className="flex items-center gap-2 text-sm"><Switch checked={!!editing.is_featured} onCheckedChange={(v) => setEditing({ ...editing, is_featured: v })} />Featured</label>
               </div>
               <Button onClick={save} className="w-full">Save</Button>
-            </div>
+              </TabsContent>
+              <TabsContent value="gallery">
+                {editing.id ? <ProductGalleryEditor productId={editing.id} /> : <p className="text-sm text-muted-foreground">Save the product first to add gallery images.</p>}
+              </TabsContent>
+              <TabsContent value="variants">
+                {editing.id ? <ProductVariantsEditor productId={editing.id} /> : <p className="text-sm text-muted-foreground">Save the product first to add variants.</p>}
+              </TabsContent>
+            </Tabs>
           )}
         </DialogContent>
       </Dialog>
