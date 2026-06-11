@@ -1,95 +1,71 @@
+A large, multi-area change. Below is the scoped plan.
 
-This is a big, multi-track request. Here is what I'd build and the trade-offs so you can confirm before I touch the database.
+## 1. Database schema (new)
 
-## 1. New "Food" section (replaces "Custom")
+Two new tables in `public`, both with GRANTs, RLS, and update triggers.
 
-A Zomato/foodpanda-style mini-section inside Speedo.
+**`product_variants`**
+- `product_id` (fk → products, on delete cascade)
+- `name` (e.g. "Size", "Flavor")
+- `value` (e.g. "500ml", "Mango")
+- `price_delta` (numeric, default 0 — added to base price)
+- `stock` (int, default 0)
+- `sort_order` (int, default 0)
+- `is_active` (bool, default true)
 
-**Customer side**
-- Home "Service shortcuts": replace the **Custom** tile with **Food** (utensils icon) linking to `/food`.
-- `/food` — list of restaurants/cafes/vendors with cover image, name, cuisine tags, rating, delivery time, min order, open/closed badge.
-- `/food/:vendorId` — vendor page with banner, info, menu grouped by category, "Add to cart" per item with variations/notes.
-- Food cart is **scoped per vendor** (you can't mix items from two restaurants in one order — standard food-delivery rule). Checkout reuses existing address + payment flow; creates an `order` with `type = 'food'` and a `vendor_id` snapshot.
-- Order confirmation reuses the existing `/orders/:id/confirm` screen so the experience matches Speed Mart / Pharmacy.
+**`product_images`**
+- `product_id` (fk → products, on delete cascade)
+- `image_url` (text)
+- `sort_order` (int, default 0)
+- `is_primary` (bool, default false)
 
-**Admin side** (new pages under `/admin`)
-- **Food Vendors** — CRUD: name, slug, logo, cover, cuisine tags, address, phone, delivery_time_min, min_order, is_open, is_active, sort_order.
-- **Food Menu** — per vendor: menu categories + menu items (name, description, price, image, is_available, sort_order).
-- **Orders** — existing orders page picks up food orders automatically (filter chip for "Food"). Order detail shows vendor name + items just like Speed Mart orders.
+RLS: public read for active rows; admin-only write (mirrors existing `products` policies).
 
-**Database** (new tables, all with RLS)
-- `food_vendors` — public read, admin write
-- `food_menu_categories` — public read, admin write
-- `food_menu_items` — public read, admin write
-- `orders.type` enum gets `'food'` added; `orders.vendor_id uuid` nullable column
-- `order_items` keeps working as-is (name/price/image snapshot)
+## 2. Admin UI
 
-The old "Custom request" flow (`/custom`, `RequestForm.tsx` custom path) — **keep code but unlink from home**, or delete entirely? I'd default to **unlink from home** and keep the page reachable only by URL so existing custom orders aren't orphaned. Tell me if you'd rather fully delete.
+Extend `src/pages/admin/Products.tsx` product edit dialog with two new tabs/sections:
+- **Variants editor**: add/remove rows (name, value, price delta, stock, active toggle).
+- **Gallery editor**: drag-and-drop reorder, mark primary, upload to existing `products` storage bucket.
 
-## 2. SpeedMart image fixes
+Keep existing single `image_url` working as fallback / primary.
 
-- Add a shared `<ProductImage>` component with proper aspect-ratio box, `loading="lazy"`, `decoding="async"`, `srcset` for 1x/2x, fallback to `/placeholder.svg` on error.
-- Apply Supabase storage image transforms (`?width=400&quality=70&format=webp`) when the image lives in our buckets, so the same source serves a small, fast WebP.
-- Fix any rows with broken/empty `image_url` by falling back to the category icon + placeholder instead of a grey square.
-- Audit `ProductCard`: ensure `object-contain` + min height so 3-up grid never collapses or overflows on small phones.
+## 3. Storefront — Product Detail (`src/pages/app/ProductDetail.tsx`)
 
-## 3. Performance pass
+- **Swipeable gallery**: Embla carousel hero + thumbnail strip below. Smooth fade between hero changes. Pinch/swipe on mobile. Falls back to single `image_url` when no `product_images` rows exist.
+- **Variant selector**: grouped by `name` → chip pills per `value`. Out-of-stock chips disabled with strikethrough. Selected chip uses accent. Shows live price (`base + delta`) and stock count.
+- **Sticky bottom stepper** (mobile): already present — upgrade with quantity stepper visible at all times, animated +1 fly-to-cart confirmation toast.
+- **Animated cart confirmation**: framer-motion-less CSS keyframes — a small badge "Added ✓" slides up + cart icon bounces in bottom nav.
 
-- Route-level **code splitting**: convert admin pages and the new Food pages to `React.lazy` so the customer bundle stays small.
-- Wrap heavy lists (`SpeedMart`, `/food`) with `useMemo` + virtualize only if needed (likely not at current product counts).
-- `react-query`: add sensible `staleTime` (60s) to banners/categories/featured so Home stops refetching on every nav.
-- Preload the LCP hero banner image; add `fetchpriority="high"` on the first banner slide.
-- Remove unused imports / dead components flagged earlier.
-- Add `vite-imagetools`-style query params only where bundled (keep simple — main win is route splitting + query caching).
+## 4. Storefront — Product Card (`src/components/speedo/ProductCard.tsx`)
 
-## 4. SEO
+- **Category-colored badge**: derive from `category_id` via a stable hash → palette of 6 tailwind-safe tints. Shown as small pill above price.
+- **Hover/press micro-interactions**: card lifts (translate-y), image scales (already partial), add button pulses on press, wishlist heart pop animation.
 
-- Tighten `index.html`: title `Speedo — Groceries, Pharmacy, Food & Parcels in Dipalpur` (<60 chars), description <160 chars, canonical, og:url, JSON-LD `Organization` + `WebSite`.
-- Add `react-helmet-async` and per-page `<Helmet>` for: Home, SpeedMart, Pharmacy, Food, each vendor page, Search. Each gets unique title + description + canonical.
-- Single H1 per page, semantic landmarks (`<main>`, `<nav>`, `<footer>`).
-- `public/sitemap.xml` generator script (`scripts/generate-sitemap.ts`) wired into `predev`/`prebuild`, includes static routes + every active vendor.
-- `robots.txt` keeps `Allow: /`, adds `Sitemap: https://speedoproai.lovable.app/sitemap.xml`, disallows `/admin` and `/~oauth`.
+## 5. Responsive sweep — customer app
 
-## 5. Full PWA
+Audit and fix on `375 / 414 / 768 / 1024 / 1280` widths:
+- `Home`, `ProductDetail`, `Cart`, `Checkout`, `Orders`, `OrderDetails`, `Search`, `Profile`, `Notifications`.
+- Common fixes: container max-widths, overflow-x on horizontal lists with `no-scrollbar`, sticky footers above bottom-nav (`bottom-24 lg:bottom-0`), text wrapping (`break-words`), safe-area padding (`safe-bottom`), grid breakpoints (`grid-cols-2 sm:grid-cols-3 lg:grid-cols-4`).
 
-Heads up: PWA inside the Lovable preview iframe **will not** show install prompts or run the service worker — you'll only see the real install experience on the **published** URL (`speedoproai.lovable.app`) or your own domain. The current setup already has `vite-plugin-pwa` configured; I'll harden it:
+## 6. Responsive sweep — admin
 
-- Manifest: name, short_name, description, `theme_color #e84c0a`, `background_color`, `display: standalone`, proper `start_url`, `scope`, `orientation`, screenshots, shortcuts (Speed Mart / Pharmacy / Food / Orders), maskable + any icons (192, 512).
-- Splash: iOS splash via `apple-touch-startup-image` set; Android handled by manifest `background_color` + icon.
-- Offline: NetworkFirst for HTML, CacheFirst for fonts/images, runtime cache for Supabase product/category GETs with short TTL so the app opens offline showing last-seen catalog.
-- Custom **InstallPrompt** component: listens for `beforeinstallprompt`, shows a branded bottom sheet ("Install Speedo") with Install / Not now; on iOS Safari shows instructional sheet ("Share → Add to Home Screen"). Suppress on `/admin` and on preview hosts.
-- Keep the existing iframe/preview guard in `main.tsx` so the SW never registers inside the editor.
+Audit and fix `Dashboard`, `Products`, `Orders`, `Categories`, `Banners`, `Customers`, `Chats`:
+- Tables → switch to card lists below `md:`.
+- Dialogs → `max-h-[90vh] overflow-y-auto`, `w-[95vw] sm:max-w-lg`.
+- Sidebar collapses cleanly on mobile (use existing `Sheet`).
 
 ## Technical notes
 
-```text
-DB migration (new):
-  + table food_vendors
-  + table food_menu_categories (vendor_id fk, name, sort_order)
-  + table food_menu_items     (vendor_id, category_id, name, desc, price, image_url, is_available)
-  + ALTER TYPE order_type ADD VALUE 'food'
-  + ALTER TABLE orders ADD COLUMN vendor_id uuid
-  + storage bucket: food (public) for vendor logos/covers/menu images
-  + RLS: public read on vendors/categories/items where is_active;
-         admin write everywhere
+- New files: `src/components/speedo/ProductGallery.tsx`, `src/components/speedo/VariantSelector.tsx`, `src/components/speedo/AddedToCartToast.tsx`, `src/components/admin/ProductVariantsEditor.tsx`, `src/components/admin/ProductGalleryEditor.tsx`.
+- Cart store gets optional `variant_id`, `variant_label` fields (additive; existing items keep working).
+- Category colors derived via small util `src/lib/categoryColor.ts` (no DB change).
+- Embla already in `package.json` (used by `ui/carousel.tsx`).
+- No design exploration needed — we already locked the Modern Grocery Chic direction.
 
-Routes added:
-  /food                       -> FoodVendors.tsx
-  /food/:vendorId             -> FoodVendor.tsx
-  /admin/food-vendors         -> admin/FoodVendors.tsx
-  /admin/food-vendors/:id     -> admin/FoodVendorEdit.tsx (menu + items)
+## Out of scope
 
-Removed from home tiles:
-  /custom (page stays, just unlinked)
+- Variant images (one image set per product, not per variant).
+- Admin responsive pass beyond layout fixes (no full redesign).
+- Push/notification UX.
 
-New deps:
-  react-helmet-async
-```
-
-## What I'd like you to confirm
-
-1. **Custom page** — unlink from home (default) or fully delete?
-2. **Food cart scope** — one vendor at a time (recommended). OK?
-3. **Seed data** — should I seed 2-3 demo vendors with sample menu so you can see it working, or leave the admin to add the first one?
-
-Once you confirm, I'll execute in this order: DB migration → admin CRUD → customer Food pages → SpeedMart image polish → SEO/Helmet → PWA hardening → perf pass. Reply with answers (or just "go ahead with defaults") and I'll start.
+Approve and I'll proceed in this order: migration → admin editors → storefront gallery/variants → cart UX → responsive sweep.
