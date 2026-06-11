@@ -6,7 +6,7 @@ import { useRecentlyViewed } from "@/store/recentlyViewed";
 import { formatPKR } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Heart, Minus, Plus, ShoppingBag, Truck, ShieldCheck, RotateCcw, Check } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ProductGallery } from "@/components/speedo/ProductGallery";
 import { VariantSelector, type Variant } from "@/components/speedo/VariantSelector";
 import { categoryColor } from "@/lib/categoryColor";
