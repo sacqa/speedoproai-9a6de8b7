@@ -301,3 +301,23 @@ function ServiceShortcuts() {
     </div>
   );
 }
+
+function CategoryIcon({ src, alt }: { src?: string | null; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+  const [errored, setErrored] = useState(false);
+  const actual = errored || !src ? "/placeholder.svg" : src;
+  return (
+    <div className="relative w-full h-full">
+      {!loaded && <div className="absolute inset-0 animate-pulse bg-muted" />}
+      <img
+        src={actual}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        onLoad={() => setLoaded(true)}
+        onError={() => { setErrored(true); setLoaded(true); }}
+        className={`w-full h-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+      />
+    </div>
+  );
+}
