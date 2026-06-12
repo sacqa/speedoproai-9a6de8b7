@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { ImageOff } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export type GalleryImage = { id?: string; image_url: string };
 
@@ -40,13 +41,7 @@ export function ProductGallery({ images, alt, badge }: { images: GalleryImage[];
           <div className="flex h-full">
             {images.map((img, idx) => (
               <div key={img.id ?? idx} className="relative flex-[0_0_100%] h-full flex items-center justify-center p-8 lg:p-12">
-                <img
-                  src={img.image_url}
-                  alt={`${alt} ${idx + 1}`}
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
-                  className="max-h-full max-w-full object-contain drop-shadow-xl transition-opacity duration-500"
-                  draggable={false}
-                />
+                <GalleryImg src={img.image_url} alt={`${alt} ${idx + 1}`} />
               </div>
             ))}
           </div>
@@ -80,5 +75,23 @@ export function ProductGallery({ images, alt, badge }: { images: GalleryImage[];
         </div>
       )}
     </div>
+  );
+}
+
+function GalleryImg({ src, alt }: { src: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+  const [errored, setErrored] = useState(false);
+  return (
+    <>
+      {!loaded && !errored && <Skeleton className="absolute inset-6 lg:inset-10 rounded-2xl" />}
+      <img
+        src={errored ? "/placeholder.svg" : src}
+        alt={alt}
+        onLoad={() => setLoaded(true)}
+        onError={() => { setErrored(true); setLoaded(true); }}
+        draggable={false}
+        className={`max-h-full max-w-full object-contain drop-shadow-xl transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`}
+      />
+    </>
   );
 }
