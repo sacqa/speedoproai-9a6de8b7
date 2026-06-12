@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ProductCard } from "@/components/speedo/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Search as SearchIcon } from "lucide-react";
+import { ProductGridSkeleton } from "@/components/speedo/Skeletons";
 
 const PAGE = 12;
 
@@ -66,10 +67,10 @@ export default function SpeedMart() {
       </div>
 
       {products.isLoading ? (
-        <p className="text-center text-muted-foreground py-12">Loading…</p>
+        <ProductGridSkeleton count={9} />
       ) : (
         <>
-          <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
             {filtered.slice(0, shown).map((p: any) => <ProductCard key={p.id} p={p} />)}
           </div>
           {shown < filtered.length && (

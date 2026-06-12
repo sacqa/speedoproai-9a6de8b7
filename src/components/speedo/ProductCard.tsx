@@ -1,10 +1,11 @@
-import { Plus, Minus, Heart, ImageOff } from "lucide-react";
+import { Plus, Minus, Heart, ImageOff, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useCart } from "@/store/cart";
 import { useRecentlyViewed } from "@/store/recentlyViewed";
 import { formatPKR } from "@/lib/format";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { categoryColor } from "@/lib/categoryColor";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Product = {
   id: string;
@@ -24,11 +25,71 @@ export function ProductCard({ p }: { p: Product }) {
   const inCart = items.find((i) => i.product_id === p.id);
   const [liked, setLiked] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
   const [bump, setBump] = useState(false);
+  const [confirm, setConfirm] = useState(false);
+  const [swipeX, setSwipeX] = useState(0);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
   const cat = categoryColor(p.category_id ?? p.categories?.name ?? null);
 
+  const doAdd = () => {
+    trackView(p.id);
+    setBump(true);
+    setConfirm(true);
+    setTimeout(() => setBump(false), 500);
+    setTimeout(() => setConfirm(false), 1200);
+    add({
+      product_id: p.id,
+      name: p.name,
+      price: Number(p.price),
+      unit: p.unit,
+      image_url: p.image_url,
+    });
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current == null || touchStartY.current == null) return;
+    const dx = e.touches[0].clientX - touchStartX.current;
+    const dy = Math.abs(e.touches[0].clientY - touchStartY.current);
+    if (dy > 14) { touchStartX.current = null; setSwipeX(0); return; }
+    if (dx < 0) setSwipeX(Math.max(dx, -90));
+  };
+  const onTouchEnd = () => {
+    if (swipeX <= -60 && !inCart) doAdd();
+    setSwipeX(0);
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
+
   return (
-    <div className="group relative flex flex-col bg-white rounded-3xl p-2.5 sm:p-3 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] transition-all duration-300 ease-out">
+    <div
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      style={{ transform: swipeX ? `translateX(${swipeX}px)` : undefined }}
+      className="group relative flex flex-col bg-white rounded-3xl p-2.5 sm:p-3 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] transition-all duration-300 ease-out"
+    >
+      {/* Swipe-reveal hint */}
+      {swipeX < -10 && !inCart && (
+        <div className="absolute inset-y-0 right-0 w-20 -z-10 flex items-center justify-center bg-accent text-accent-foreground rounded-r-3xl">
+          <Plus className="h-6 w-6" strokeWidth={3} />
+        </div>
+      )}
+
+      {/* Added confirmation */}
+      {confirm && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 pointer-events-none animate-added-pop">
+          <div className="bg-foreground text-background rounded-full px-2.5 py-1 flex items-center gap-1 shadow-lg text-[10px] font-bold">
+            <Check className="h-3 w-3" strokeWidth={3} /> Added
+          </div>
+        </div>
+      )}
+
       {/* Image stage */}
       <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
         <Link to={`/product/${p.id}`} aria-label={p.name} className="absolute inset-0 z-0" onClick={() => trackView(p.id)} />
@@ -53,14 +114,18 @@ export function ProductCard({ p }: { p: Product }) {
         </button>
 
         {p.image_url && !imgError ? (
-          <img
-            src={p.image_url}
-            alt={p.name}
-            loading="lazy"
-            decoding="async"
-            className="relative pointer-events-none w-4/5 h-4/5 object-contain group-hover:scale-110 group-active:scale-95 transition-transform duration-500"
-            onError={() => setImgError(true)}
-          />
+          <>
+            {!imgLoaded && <Skeleton className="absolute inset-3 rounded-xl" />}
+            <img
+              src={p.image_url}
+              alt={p.name}
+              loading="lazy"
+              decoding="async"
+              onLoad={() => setImgLoaded(true)}
+              onError={() => { setImgError(true); setImgLoaded(true); }}
+              className={`relative pointer-events-none w-4/5 h-4/5 object-contain group-hover:scale-110 group-active:scale-95 transition-all duration-500 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+            />
+          </>
         ) : (
           <div className="relative pointer-events-none flex flex-col items-center justify-center text-muted-foreground/50 gap-1">
             <ImageOff className="h-7 w-7" />
@@ -91,16 +156,7 @@ export function ProductCard({ p }: { p: Product }) {
           <button
             onClick={(e) => {
               e.preventDefault();
-              trackView(p.id);
-              setBump(true);
-              setTimeout(() => setBump(false), 500);
-              add({
-                product_id: p.id,
-                name: p.name,
-                price: Number(p.price),
-                unit: p.unit,
-                image_url: p.image_url,
-              });
+              doAdd();
             }}
             aria-label="Add to cart"
             className={`absolute z-10 bottom-2 right-2 h-10 w-10 sm:h-12 sm:w-12 rounded-2xl bg-accent text-accent-foreground flex items-center justify-center shadow-lg shadow-emerald-900/30 hover:scale-110 active:scale-95 transition-all ${bump ? "animate-cart-bump" : ""}`}
