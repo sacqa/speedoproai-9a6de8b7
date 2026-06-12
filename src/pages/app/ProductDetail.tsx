@@ -19,10 +19,22 @@ export default function ProductDetail() {
   const add = useCart((s) => s.add);
   const setQty = useCart((s) => s.setQty);
   const [liked, setLiked] = useState(false);
-  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(() => {
+    if (typeof window === "undefined" || !id) return null;
+    try { return localStorage.getItem(`speedo-variant:${id}`); } catch { return null; }
+  });
   const [confirm, setConfirm] = useState(false);
 
   useEffect(() => { if (id) trackView(id); }, [id, trackView]);
+
+  // Persist selected variant per product
+  useEffect(() => {
+    if (!id) return;
+    try {
+      if (selectedVariantId) localStorage.setItem(`speedo-variant:${id}`, selectedVariantId);
+      else localStorage.removeItem(`speedo-variant:${id}`);
+    } catch {}
+  }, [id, selectedVariantId]);
 
   const { data: p, isLoading } = useQuery({
     queryKey: ["product", id],
@@ -44,7 +56,19 @@ export default function ProductDetail() {
   const variants: Variant[] = (p.product_variants ?? [])
     .slice()
     .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
-  const selectedVariant = variants.find((v) => v.id === selectedVariantId) ?? null;
+  // Auto-select first in-stock variant if none persisted/valid
+  const activeVariants = variants.filter((v) => v.is_active);
+  let effectiveVariantId = selectedVariantId;
+  const persistedValid = activeVariants.find((v) => v.id === selectedVariantId && v.stock > 0);
+  if (!persistedValid && activeVariants.length) {
+    const firstInStock = activeVariants.find((v) => v.stock > 0) ?? activeVariants[0];
+    effectiveVariantId = firstInStock.id;
+    if (effectiveVariantId !== selectedVariantId) {
+      // defer setState to next tick to avoid render loops
+      queueMicrotask(() => setSelectedVariantId(effectiveVariantId));
+    }
+  }
+  const selectedVariant = variants.find((v) => v.id === effectiveVariantId) ?? null;
   const galleryImages = (() => {
     const arr = (p.product_images ?? []).slice().sort((a: any, b: any) => {
       if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
