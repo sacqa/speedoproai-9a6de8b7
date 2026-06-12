@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, ShoppingBasket, Pill, Package, UtensilsCross
 import { ProductCard } from "@/components/speedo/ProductCard";
 import { SectionHeader } from "@/components/speedo/SectionHeader";
 import { Seo } from "@/components/seo/Seo";
+import { CategoryRowSkeleton, ProductGridSkeleton } from "@/components/speedo/Skeletons";
 
 export default function Home() {
   const nav = useNavigate();
@@ -118,7 +119,12 @@ export default function Home() {
       <BannerSlider banners={banners.data ?? []} />
 
       {/* Popular Categories (admin-curated) */}
-      {(popularCats.data ?? []).length > 0 && (
+      {popularCats.isLoading ? (
+        <section>
+          <SectionHeader title="Popular Categories" viewAllTo="/speedmart" />
+          <CategoryRowSkeleton />
+        </section>
+      ) : (popularCats.data ?? []).length > 0 && (
         <section>
           <SectionHeader title="Popular Categories" viewAllTo="/speedmart" />
           <div className="overflow-x-auto no-scrollbar">
@@ -130,13 +136,7 @@ export default function Home() {
                   className="flex-shrink-0 w-[68px] sm:w-20 lg:w-24 text-center group"
                 >
                   <div className="aspect-square w-full rounded-3xl bg-white border border-accent/40 shadow-card flex items-center justify-center overflow-hidden group-hover:scale-105 group-hover:border-primary/40 transition-all">
-                    <img
-                      src={c.image_url || "/placeholder.svg"}
-                      alt={c.name}
-                      loading="lazy"
-                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
-                      className="w-full h-full object-cover"
-                    />
+                    <CategoryIcon src={c.image_url} alt={c.name} />
                   </div>
                   <p className="mt-2 text-[11px] sm:text-xs font-semibold leading-tight line-clamp-2 text-primary">{c.name}</p>
                 </Link>
@@ -166,6 +166,11 @@ export default function Home() {
               <ProductCard key={p.id} p={p as any} />
             ))}
           </div>
+        </section>
+      )}
+      {hotProducts.isLoading && hotCategory.data && (
+        <section className="px-4 lg:px-0">
+          <ProductGridSkeleton count={4} />
         </section>
       )}
 
@@ -293,6 +298,26 @@ function ServiceShortcuts() {
           </Link>
         ))}
       </div>
+    </div>
+  );
+}
+
+function CategoryIcon({ src, alt }: { src?: string | null; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+  const [errored, setErrored] = useState(false);
+  const actual = errored || !src ? "/placeholder.svg" : src;
+  return (
+    <div className="relative w-full h-full">
+      {!loaded && <div className="absolute inset-0 animate-pulse bg-muted" />}
+      <img
+        src={actual}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        onLoad={() => setLoaded(true)}
+        onError={() => { setErrored(true); setLoaded(true); }}
+        className={`w-full h-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+      />
     </div>
   );
 }

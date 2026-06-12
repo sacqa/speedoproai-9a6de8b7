@@ -27,6 +27,24 @@ export function ProductGalleryEditor({ productId }: { productId: string }) {
   useEffect(() => { load(); }, [productId]);
 
   const upload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      return toast.error("Please choose an image file (JPG, PNG, WebP).");
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      return toast.error("Image must be 5MB or less.");
+    }
+    // Optional aspect-ratio hint (recommend square)
+    try {
+      const dims = await new Promise<{ w: number; h: number }>((res, rej) => {
+        const img = new Image();
+        img.onload = () => res({ w: img.naturalWidth, h: img.naturalHeight });
+        img.onerror = rej;
+        img.src = URL.createObjectURL(file);
+      });
+      if (dims.w < 400 || dims.h < 400) {
+        toast.warning(`Low resolution (${dims.w}×${dims.h}). 800×800+ recommended.`);
+      }
+    } catch { /* ignore */ }
     setUploading(true);
     try {
       const path = `${productId}/${Date.now()}-${file.name.replace(/\s/g, "_")}`;
