@@ -116,7 +116,38 @@ export default function AdminOrders() {
         ))}
       </div>
       <Input placeholder="Search by order #…" value={q} onChange={(e) => update({ q: e.target.value || null, page: null })} className="max-w-sm" />
-      <div className="bg-card rounded-xl shadow-card overflow-x-auto">
+      {/* Mobile card list */}
+      <div className="md:hidden space-y-2">
+        {filtered.map((o: any) => (
+          <Link
+            key={o.id}
+            to={`/admin/orders/${o.id}`}
+            className="block bg-card rounded-2xl shadow-card p-3 active:scale-[0.99] transition-transform"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="font-bold text-primary truncate">{o.order_number}</div>
+                <div className="text-xs text-muted-foreground truncate">
+                  {o.address_snapshot?.recipient_name ?? "—"}
+                  {o.address_snapshot?.phone ? ` · ${o.address_snapshot.phone}` : ""}
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="font-bold text-sm tabular-nums">{formatPKR(Number(o.total))}</div>
+                <div className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+              <span className="text-[10px] px-2 py-0.5 rounded-pill bg-primary-tint text-primary font-semibold">{statusLabel(o.type)}</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-pill bg-muted font-semibold">{statusLabel(o.status)}</span>
+            </div>
+          </Link>
+        ))}
+        {filtered.length === 0 && <p className="text-center text-muted-foreground py-10">No orders</p>}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block bg-card rounded-xl shadow-card overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-xs text-muted-foreground border-b border-border">
             <tr><th className="text-left p-3">Order</th><th className="text-left">Type</th><th className="text-left">Customer</th><th className="text-left">Status</th><th className="text-right">Total</th><th className="text-right p-3">Date</th></tr>
