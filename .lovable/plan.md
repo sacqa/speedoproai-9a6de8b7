@@ -1,71 +1,52 @@
-A large, multi-area change. Below is the scoped plan.
+# Full PWA Quality & Modernization Pass
 
-## 1. Database schema (new)
+A focused, multi-area sweep. Brand colors stay the same — only typography, spacing, glass/blur, icon treatment, and component polish change.
 
-Two new tables in `public`, both with GRANTs, RLS, and update triggers.
+## 1. Double footer fix (desktop)
+- Audit `AppShell.tsx` + `Footer.tsx` + routes. Likely the global `Footer` is rendered both in `AppShell` and inside a page (Home/SpeedMart). Remove the duplicate so only one renders on desktop, and keep the mobile bottom-nav untouched.
 
-**`product_variants`**
-- `product_id` (fk → products, on delete cascade)
-- `name` (e.g. "Size", "Flavor")
-- `value` (e.g. "500ml", "Mango")
-- `price_delta` (numeric, default 0 — added to base price)
-- `stock` (int, default 0)
-- `sort_order` (int, default 0)
-- `is_active` (bool, default true)
+## 2. Customer screen responsive sweep (320 / 375 / 414 / 768 / 1024 / 1280)
+Screens audited & fixed:
+- Home, SpeedMart, Search, ProductDetail, Cart, Checkout, OrderConfirm, Orders, OrderDetails, Notifications, Profile, Addresses, Chat, Help, Food, FoodVendor, FoodCheckout, Nearby, Friends, Login/Otp/Onboarding/Splash.
 
-**`product_images`**
-- `product_id` (fk → products, on delete cascade)
-- `image_url` (text)
-- `sort_order` (int, default 0)
-- `is_primary` (bool, default false)
+Common fixes:
+- Container `max-w` + `px-4 sm:px-6 lg:px-8`, `min-w-0` on flex children to stop overflow.
+- Sticky CTAs sit above the floating bottom-nav (`bottom-24`) with `safe-bottom`.
+- Touch targets ≥ 44px. Text wrapping with `break-words` / `truncate` where needed.
+- Horizontal scrollers use `no-scrollbar` + `snap-x`.
+- Drawers/dialogs: `max-h-[90vh] overflow-y-auto`, full-width on mobile.
 
-RLS: public read for active rows; admin-only write (mirrors existing `products` policies).
+## 3. Admin responsive sweep
+- All admin tables (`Products`, `Orders`, `Customers`, `Categories`, `Approvals`, `Birthdays`, `Roles`, `FoodVendors`, `Chats`) get a **card-list fallback below `md:`** while keeping the desktop table.
+- Admin dialogs become scrollable on mobile; sidebar already uses `Sheet`.
 
-## 2. Admin UI
+## 4. SpeedMart + cart hardening
+- ProductCard: prevent swipe-to-add gesture from conflicting with vertical scroll on small phones; ensure stepper buttons never overflow on 320px (already shrink-0, verify); make the floating ADD button never clip the badge.
+- Cart page: variant label wraps; quantity stepper + remove are reachable on 320px; sticky checkout bar above bottom-nav.
+- ProductDetail: sticky stepper consistent; variant chips wrap; gallery thumbs scroll horizontally.
+- Checkout: form fields stack at <640px, address card wraps, totals stay visible.
 
-Extend `src/pages/admin/Products.tsx` product edit dialog with two new tabs/sections:
-- **Variants editor**: add/remove rows (name, value, price delta, stock, active toggle).
-- **Gallery editor**: drag-and-drop reorder, mark primary, upload to existing `products` storage bucket.
+## 5. Premium UI modernization (reference-inspired, brand colors kept)
+Applied app-wide via tokens & component polish — **no palette change**.
+- **Typography**: keep current fonts but tighten — bold tracking-tight headings, lighter body. Bigger first-screen titles on mobile.
+- **Cards**: softer 2xl–3xl radii, layered shadows (`shadow-[0_10px_40px_-15px_rgba(0,0,0,0.08)]`), subtle gradient surfaces.
+- **Glassmorphism**: bottom-nav, sticky CTAs, top headers get `bg-background/80 backdrop-blur-xl border border-border/40`.
+- **Icon treatment**: lucide icons in rounded tinted tiles (like the reference's category icons).
+- **Hero banner**: SpeedMart/Home banners get the reference's "big offer + product image right, dark pill CTA, soft pastel bg" layout — using existing brand accent for the CTA.
+- **Bottom nav**: floating pill nav with the active item lifted in brand accent (matches reference exactly).
+- **Footer (desktop)**: clean multi-column with subtle divider, smaller secondary links, brand mark left — replaces the current heavier footer.
+- **Micro-interactions**: keep existing `cart-bump`, `heart-pop`, `added-pop`; add `hover:-translate-y-0.5` on tappable cards.
 
-Keep existing single `image_url` working as fallback / primary.
+## 6. Out of scope
+- No color/brand changes.
+- No new features, no DB changes, no auth changes.
+- No native (Capacitor) work.
 
-## 3. Storefront — Product Detail (`src/pages/app/ProductDetail.tsx`)
+## Files likely touched
+`src/components/layout/AppShell.tsx`, `Footer.tsx`, `src/index.css`, `tailwind.config.ts` (utility only),
+`src/pages/app/*` (responsive sweep), `src/pages/admin/*` (card fallbacks),
+`src/components/speedo/*` (ProductCard, ProductGallery, VariantSelector, Skeletons),
+new `src/components/admin/ResponsiveTable.tsx` helper if needed.
 
-- **Swipeable gallery**: Embla carousel hero + thumbnail strip below. Smooth fade between hero changes. Pinch/swipe on mobile. Falls back to single `image_url` when no `product_images` rows exist.
-- **Variant selector**: grouped by `name` → chip pills per `value`. Out-of-stock chips disabled with strikethrough. Selected chip uses accent. Shows live price (`base + delta`) and stock count.
-- **Sticky bottom stepper** (mobile): already present — upgrade with quantity stepper visible at all times, animated +1 fly-to-cart confirmation toast.
-- **Animated cart confirmation**: framer-motion-less CSS keyframes — a small badge "Added ✓" slides up + cart icon bounces in bottom nav.
-
-## 4. Storefront — Product Card (`src/components/speedo/ProductCard.tsx`)
-
-- **Category-colored badge**: derive from `category_id` via a stable hash → palette of 6 tailwind-safe tints. Shown as small pill above price.
-- **Hover/press micro-interactions**: card lifts (translate-y), image scales (already partial), add button pulses on press, wishlist heart pop animation.
-
-## 5. Responsive sweep — customer app
-
-Audit and fix on `375 / 414 / 768 / 1024 / 1280` widths:
-- `Home`, `ProductDetail`, `Cart`, `Checkout`, `Orders`, `OrderDetails`, `Search`, `Profile`, `Notifications`.
-- Common fixes: container max-widths, overflow-x on horizontal lists with `no-scrollbar`, sticky footers above bottom-nav (`bottom-24 lg:bottom-0`), text wrapping (`break-words`), safe-area padding (`safe-bottom`), grid breakpoints (`grid-cols-2 sm:grid-cols-3 lg:grid-cols-4`).
-
-## 6. Responsive sweep — admin
-
-Audit and fix `Dashboard`, `Products`, `Orders`, `Categories`, `Banners`, `Customers`, `Chats`:
-- Tables → switch to card lists below `md:`.
-- Dialogs → `max-h-[90vh] overflow-y-auto`, `w-[95vw] sm:max-w-lg`.
-- Sidebar collapses cleanly on mobile (use existing `Sheet`).
-
-## Technical notes
-
-- New files: `src/components/speedo/ProductGallery.tsx`, `src/components/speedo/VariantSelector.tsx`, `src/components/speedo/AddedToCartToast.tsx`, `src/components/admin/ProductVariantsEditor.tsx`, `src/components/admin/ProductGalleryEditor.tsx`.
-- Cart store gets optional `variant_id`, `variant_label` fields (additive; existing items keep working).
-- Category colors derived via small util `src/lib/categoryColor.ts` (no DB change).
-- Embla already in `package.json` (used by `ui/carousel.tsx`).
-- No design exploration needed — we already locked the Modern Grocery Chic direction.
-
-## Out of scope
-
-- Variant images (one image set per product, not per variant).
-- Admin responsive pass beyond layout fixes (no full redesign).
-- Push/notification UX.
-
-Approve and I'll proceed in this order: migration → admin editors → storefront gallery/variants → cart UX → responsive sweep.
+## Deliverable
+A single large patch series across the above files. After applying I'll spot-check at 320/375/768/1280 via the preview and report what changed.
