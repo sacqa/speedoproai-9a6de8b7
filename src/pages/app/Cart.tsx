@@ -29,27 +29,37 @@ export default function Cart() {
       <h1 className="text-2xl font-extrabold">Your Cart</h1>
       <div className="space-y-3">
         {items.map((i) => (
-          <div key={i.product_id} className="bg-card rounded-xl shadow-card p-3 flex flex-wrap sm:flex-nowrap gap-3 items-center">
+          <div key={i.product_id} className="bg-card rounded-2xl shadow-card p-3 grid grid-cols-[auto_1fr_auto] gap-3 items-center">
             <img
               src={i.image_url ?? "/placeholder.svg"}
               alt={i.name}
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
-              className="h-16 w-16 rounded-lg object-cover bg-muted shrink-0"
+              className="h-16 w-16 rounded-xl object-cover bg-muted shrink-0"
             />
-            <div className="flex-1 min-w-0 order-3 sm:order-none basis-full sm:basis-auto">
-              <div className="font-semibold text-sm line-clamp-2 break-words">{i.name}</div>
+            <div className="min-w-0">
+              <div className="font-semibold text-sm line-clamp-2 break-words pr-1">{i.name}</div>
               {i.variant_label && (
-                <div className="text-[10px] font-bold uppercase tracking-wider text-accent-foreground bg-accent rounded-md inline-block px-1.5 py-0.5 mt-0.5">{i.variant_label}</div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-accent-foreground bg-accent rounded-md inline-block px-1.5 py-0.5 mt-1 max-w-full truncate">{i.variant_label}</div>
               )}
-              <div className="text-xs text-muted-foreground">{i.unit}</div>
+              {i.unit && <div className="text-[11px] text-muted-foreground mt-0.5">{i.unit}</div>}
               <div className="text-primary font-bold mt-1 tabular-nums">{formatPKR(i.price)}</div>
+              <div className="flex items-center gap-2 mt-2 sm:hidden">
+                <div className="flex items-center gap-1.5 bg-primary-tint rounded-pill p-0.5">
+                  <button onClick={() => setQty(i.product_id, i.quantity - 1)} className="h-7 w-7 rounded-full bg-card text-primary flex items-center justify-center" aria-label="Decrease"><Minus className="h-3 w-3" /></button>
+                  <span className="text-sm font-bold text-primary px-1 tabular-nums min-w-[1.5ch] text-center">{i.quantity}</span>
+                  <button onClick={() => setQty(i.product_id, i.quantity + 1)} className="h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center" aria-label="Increase"><Plus className="h-3 w-3" /></button>
+                </div>
+                <button onClick={() => remove(i.product_id)} className="ml-auto p-2 text-destructive" aria-label="Remove"><Trash2 className="h-4 w-4" /></button>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 bg-primary-tint rounded-pill p-0.5 shrink-0 ml-auto">
-              <button onClick={() => setQty(i.product_id, i.quantity - 1)} className="h-7 w-7 rounded-full bg-card text-primary flex items-center justify-center"><Minus className="h-3 w-3" /></button>
-              <span className="text-sm font-bold text-primary px-1">{i.quantity}</span>
-              <button onClick={() => setQty(i.product_id, i.quantity + 1)} className="h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center"><Plus className="h-3 w-3" /></button>
+            <div className="hidden sm:flex flex-col items-end gap-2">
+              <div className="flex items-center gap-1.5 bg-primary-tint rounded-pill p-0.5">
+                <button onClick={() => setQty(i.product_id, i.quantity - 1)} className="h-7 w-7 rounded-full bg-card text-primary flex items-center justify-center" aria-label="Decrease"><Minus className="h-3 w-3" /></button>
+                <span className="text-sm font-bold text-primary px-1 tabular-nums min-w-[1.5ch] text-center">{i.quantity}</span>
+                <button onClick={() => setQty(i.product_id, i.quantity + 1)} className="h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center" aria-label="Increase"><Plus className="h-3 w-3" /></button>
+              </div>
+              <button onClick={() => remove(i.product_id)} className="p-1.5 text-destructive" aria-label="Remove"><Trash2 className="h-4 w-4" /></button>
             </div>
-            <button onClick={() => remove(i.product_id)} className="p-2 text-destructive shrink-0" aria-label="Remove"><Trash2 className="h-4 w-4" /></button>
           </div>
         ))}
       </div>

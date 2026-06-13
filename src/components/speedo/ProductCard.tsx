@@ -71,7 +71,11 @@ export function ProductCard({ p }: { p: Product }) {
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
-      style={{ transform: swipeX ? `translateX(${swipeX}px)` : undefined }}
+      style={{
+        transform: swipeX ? `translateX(${swipeX}px)` : undefined,
+        // Keep vertical scroll responsive while we listen for horizontal swipe
+        touchAction: "pan-y",
+      }}
       className="group relative flex flex-col bg-white rounded-3xl p-2.5 sm:p-3 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] transition-all duration-300 ease-out"
     >
       {/* Swipe-reveal hint */}
