@@ -160,7 +160,50 @@ export default function AdminCustomers() {
         </Select>
         <span className="text-xs text-muted-foreground ml-auto">{total} match</span>
       </div>
-      <div className="bg-card rounded-xl shadow-card overflow-x-auto">
+      {/* Mobile card list */}
+      <div className="md:hidden space-y-2">
+        {rows.map((c: any) => (
+          <div key={c.id} className="bg-card rounded-2xl shadow-card p-3">
+            <div className="flex items-start justify-between gap-2">
+              <Link to={`/admin/customers/${c.id}`} className="min-w-0 flex-1">
+                <div className="font-bold text-primary truncate">{c.full_name ?? "—"}</div>
+                <div className="text-xs text-muted-foreground truncate">{c.phone ?? "—"}</div>
+              </Link>
+              <span className={`text-[10px] font-bold uppercase shrink-0 ${c.approval_status === "approved" ? "text-emerald-600" : c.approval_status === "rejected" ? "text-destructive" : "text-amber-600"}`}>
+                {c.approval_status}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mt-2 text-[11px]">
+              <div><div className="text-muted-foreground">Orders</div><div className="font-bold">{c.count}</div></div>
+              <div><div className="text-muted-foreground">Spent</div><div className="font-bold tabular-nums">Rs {Math.round(c.spent).toLocaleString()}</div></div>
+              <div><div className="text-muted-foreground">Joined</div><div className="font-semibold">{new Date(c.created_at).toLocaleDateString()}</div></div>
+            </div>
+            {isSuper && (
+              <div className="flex justify-end mt-2">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="sm" variant="ghost" className="text-destructive h-8"><Trash2 className="h-4 w-4 mr-1" />Delete</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete {c.full_name ?? c.phone}?</AlertDialogTitle>
+                      <AlertDialogDescription>Permanently deletes this customer and all their orders, chats, addresses, and friendships. Cannot be undone.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => deleteOne(c.id, c.full_name ?? c.phone)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete user</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            )}
+          </div>
+        ))}
+        {rows.length === 0 && <p className="text-center text-muted-foreground py-10">No customers</p>}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block bg-card rounded-xl shadow-card overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-xs text-muted-foreground border-b border-border">
             <tr>
