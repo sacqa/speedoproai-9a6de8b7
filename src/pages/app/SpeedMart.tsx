@@ -42,15 +42,20 @@ export default function SpeedMart() {
   }, [products.data, q]);
 
   return (
-    <div className="p-4 lg:p-0 space-y-4">
-      <h1 className="text-2xl font-extrabold">SpeedMart</h1>
+    <div className="px-3 sm:px-4 lg:px-0 py-4 lg:py-0 space-y-4 max-w-7xl mx-auto">
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">SpeedMart</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Fresh groceries & daily essentials</p>
+        </div>
+      </div>
 
       <div className="flex items-center gap-2 bg-card rounded-pill px-4 py-2.5 shadow-card border border-border">
         <SearchIcon className="h-4 w-4 text-muted-foreground" />
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search SpeedMart…" className="flex-1 bg-transparent outline-none text-sm" />
       </div>
 
-      <div className="overflow-x-auto no-scrollbar -mx-4 px-4 lg:mx-0 lg:px-0">
+      <div className="overflow-x-auto no-scrollbar -mx-3 sm:-mx-4 px-3 sm:px-4 lg:mx-0 lg:px-0">
         <div className="flex gap-3 py-1">
           <Chip active={cat === "all"} onClick={() => { setParams({}); setShown(PAGE); }}>All</Chip>
           {(cats.data ?? []).map((c: any) => (
@@ -70,7 +75,7 @@ export default function SpeedMart() {
         <ProductGridSkeleton count={9} />
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3 lg:gap-4">
             {filtered.slice(0, shown).map((p: any) => <ProductCard key={p.id} p={p} />)}
           </div>
           {shown < filtered.length && (

@@ -207,28 +207,6 @@ export default function Home() {
         </section>
       )}
 
-      {/* Footer (desktop) */}
-      <footer className="hidden lg:block border-t border-border mt-10 pt-8 pb-4 text-sm text-muted-foreground">
-        <div className="grid grid-cols-4 gap-6">
-          <div>
-            <div className="font-bold text-foreground mb-2">Speedo</div>
-            <p>Hyperlocal delivery in Dipalpur, Pakistan.</p>
-          </div>
-          <div>
-            <div className="font-semibold text-foreground mb-2">Company</div>
-            <ul className="space-y-1"><li>About</li><li>Contact</li><li>Careers</li></ul>
-          </div>
-          <div>
-            <div className="font-semibold text-foreground mb-2">Legal</div>
-            <ul className="space-y-1"><li>Privacy Policy</li><li>Terms of Service</li></ul>
-          </div>
-          <div>
-            <div className="font-semibold text-foreground mb-2">Get the app</div>
-            <p className="text-xs">Install Speedo from your browser menu → Add to Home Screen.</p>
-          </div>
-        </div>
-        <p className="text-xs mt-6 text-center">© {new Date().getFullYear()} Speedo. All rights reserved.</p>
-      </footer>
     </div>
   );
 }
