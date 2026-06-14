@@ -96,12 +96,31 @@ export function BirthdaysPanel({ showHeading = true }: { showHeading?: boolean }
         )}
       </div>
 
-      <div className="bg-card rounded-xl shadow-card overflow-x-auto">
+      <div className="bg-card rounded-xl shadow-card overflow-hidden">
         <div className="px-4 py-3 border-b border-border font-bold">Upcoming (next 30 days)</div>
         {upcoming.length === 0 ? (
           <div className="p-6 text-sm text-muted-foreground text-center">No upcoming birthdays.</div>
         ) : (
-          <table className="w-full text-sm">
+          <>
+          {/* Mobile cards */}
+          <ul className="md:hidden divide-y divide-border">
+            {upcoming.map((p) => {
+              const d = new Date(p.dob!);
+              return (
+                <li key={p.id} className="p-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <Link to={`/admin/customers/${p.id}`} className="font-semibold text-primary hover:underline truncate block">
+                      {p.full_name ?? "—"}
+                    </Link>
+                    <div className="text-xs text-muted-foreground">{p.phone ?? "—"} · {monthName(d.getMonth())} {d.getDate()}</div>
+                  </div>
+                  <div className="text-xs font-semibold whitespace-nowrap shrink-0">{p.days}d</div>
+                </li>
+              );
+            })}
+          </ul>
+          {/* Desktop table */}
+          <table className="w-full text-sm hidden md:table">
             <thead className="text-xs text-muted-foreground border-b border-border">
               <tr>
                 <th className="text-left p-3">Customer</th>
@@ -128,6 +147,7 @@ export function BirthdaysPanel({ showHeading = true }: { showHeading?: boolean }
               })}
             </tbody>
           </table>
+          </>
         )}
       </div>
     </div>
