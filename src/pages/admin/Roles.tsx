@@ -139,7 +139,49 @@ export default function AdminRoles() {
         </div>
       </div>
 
-      <div className="bg-card rounded-xl shadow-card overflow-x-auto">
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-2">
+        {allUsers.map((u: any) => {
+          const rs = rolesByUser.get(u.id) ?? [];
+          return (
+            <div key={u.id} className="bg-card rounded-2xl shadow-card p-3 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="font-semibold flex items-center gap-1.5 truncate">
+                    {rs.includes("super_admin") && <Crown className="h-4 w-4 text-amber-500 shrink-0" />}
+                    {u.full_name || "—"}
+                  </div>
+                  <div className="text-xs text-muted-foreground">{u.phone || "—"}</div>
+                </div>
+                <Button size="sm" variant="outline" className="gap-1 shrink-0" onClick={() => setPinUser({ id: u.id, name: u.full_name || u.id })}>
+                  <KeyRound className="h-3.5 w-3.5" /> PIN
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {rs.length === 0 && <span className="text-xs text-muted-foreground">no roles</span>}
+                {rs.map((r) => (
+                  <span key={r} className="inline-flex items-center gap-1 text-[10px] uppercase font-bold bg-muted px-2 py-0.5 rounded-pill">
+                    {r}
+                    <button onClick={() => revoke(u.id, r)} className="text-destructive hover:opacity-70"><Trash2 className="h-3 w-3" /></button>
+                  </span>
+                ))}
+              </div>
+              <Select onValueChange={(v) => assign(u.id, v)}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Add role…" /></SelectTrigger>
+                <SelectContent>
+                  {ROLE_OPTIONS.filter((r) => !rs.includes(r)).map((r) => (
+                    <SelectItem key={r} value={r}>{r}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          );
+        })}
+        {allUsers.length === 0 && <div className="text-center py-10 text-muted-foreground bg-card rounded-2xl">No users</div>}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block bg-card rounded-xl shadow-card overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-xs text-muted-foreground border-b border-border">
             <tr>

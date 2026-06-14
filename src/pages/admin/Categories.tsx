@@ -83,7 +83,35 @@ export default function AdminCategories() {
           <Button onClick={() => { setEditing(empty); setOpen(true); }}><Plus className="h-4 w-4 mr-1" />Add Category</Button>
         </div>
       </div>
-      <div className="bg-card rounded-xl shadow-card overflow-x-auto">
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-2">
+        {(cats.data ?? []).map((c: any) => (
+          <div key={c.id} className="bg-card rounded-2xl shadow-card p-3 flex items-center gap-3">
+            {c.image_url ? (
+              <img src={c.image_url} alt="" className="h-12 w-12 rounded-xl object-cover border" />
+            ) : (
+              <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center text-xl">{c.icon || "•"}</div>
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="font-semibold truncate">{c.name}</div>
+              <div className="text-xs text-muted-foreground truncate">{c.slug} · order {c.sort_order}</div>
+              <div className="flex gap-1 mt-1 flex-wrap">
+                <span className={`text-[10px] px-2 py-0.5 rounded-pill ${c.is_active ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>{c.is_active ? "Active" : "Inactive"}</span>
+                {c.is_popular && <span className="text-[10px] px-2 py-0.5 rounded-pill bg-primary/10 text-primary">Popular</span>}
+                {c.is_hot_selling && <span className="text-[10px] px-2 py-0.5 rounded-pill bg-orange/10 text-orange">Hot</span>}
+              </div>
+            </div>
+            <div className="flex flex-col gap-1 shrink-0">
+              <Button size="icon" variant="ghost" onClick={() => { setEditing(c); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
+              <Button size="icon" variant="ghost" onClick={() => remove(c)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+            </div>
+          </div>
+        ))}
+        {(cats.data ?? []).length === 0 && <div className="text-center py-10 text-muted-foreground bg-card rounded-2xl">No categories</div>}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block bg-card rounded-xl shadow-card overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-xs text-muted-foreground border-b border-border"><tr><th className="text-left p-3">Name</th><th className="text-left">Slug</th><th className="text-center">Order</th><th className="text-center">Popular</th><th className="text-center">Active</th><th></th></tr></thead>
           <tbody>
