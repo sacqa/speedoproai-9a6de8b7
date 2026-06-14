@@ -148,7 +148,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       {/* MAIN */}
-      <main className="lg:ml-60 lg:pt-0 pb-24 lg:pb-12">
+      <main className="lg:ml-60 lg:pt-0 pb-32 lg:pb-12">
         <div className="lg:max-w-7xl lg:mx-auto lg:px-6 lg:py-6">
           {children}
         </div>
@@ -178,7 +178,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {cartQty > 0 && !hideCheckoutBar && (
         <Link
           to="/cart"
-          className="fixed left-1/2 -translate-x-1/2 bottom-24 lg:bottom-6 z-50 w-[92%] max-w-md flex items-center justify-between gap-3 btn-glossy px-4 py-3 hover:scale-[1.02] transition-transform"
+          className="fixed left-1/2 -translate-x-1/2 bottom-28 lg:bottom-6 z-50 w-[92%] max-w-md flex items-center justify-between gap-3 btn-glossy px-4 py-3 hover:scale-[1.02] transition-transform"
         >
           <div className="flex items-center gap-3">
             <div className="relative h-9 w-9 rounded-xl bg-white/20 flex items-center justify-center">
