@@ -27,7 +27,7 @@ export function Footer() {
       .then(({ data }) => { if (data?.value) setV({ ...DEFAULTS, ...(data.value as FooterValue) }); });
   }, []);
   return (
-    <footer className="border-t border-border bg-card/60 mt-12">
+    <footer className="hidden lg:block border-t border-border bg-card/60 mt-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 lg:py-10 grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 text-sm">
         <div className="col-span-2 lg:col-span-1">
           <div className="flex items-center gap-2 mb-3"><SpeedoLogo size={28} /><span className="font-extrabold">Speedo</span></div>
