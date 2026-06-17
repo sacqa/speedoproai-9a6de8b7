@@ -65,7 +65,7 @@ export function SmartSuggestions({
         <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-bold">AI</span>
       </div>
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="grid-products">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-44 glass-card animate-pulse" />
           ))}
@@ -73,7 +73,7 @@ export function SmartSuggestions({
       ) : error ? (
         <p className="text-xs text-muted-foreground">Couldn't load suggestions right now.</p>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="grid-products">
           {items.map((p) => (
             <ProductCard key={p.id} p={p as any} />
           ))}

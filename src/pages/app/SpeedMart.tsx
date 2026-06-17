@@ -75,7 +75,7 @@ export default function SpeedMart() {
         <ProductGridSkeleton count={9} />
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3 lg:gap-4">
+          <div className="grid-products">
             {filtered.slice(0, shown).map((p: any) => <ProductCard key={p.id} p={p} />)}
           </div>
           {shown < filtered.length && (

@@ -161,7 +161,7 @@ export default function Home() {
             </div>
             <Link to={`/speedmart?cat=${hotCategory.data.slug}`} className="text-xs font-bold text-primary">View all →</Link>
           </div>
-          <div className="px-4 lg:px-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="px-4 lg:px-0 grid-products">
             {(hotProducts.data ?? []).map((p: any) => (
               <ProductCard key={p.id} p={p as any} />
             ))}
@@ -189,7 +189,7 @@ export default function Home() {
             </div>
             <Link to="/speedmart" className="text-xs font-bold text-primary">View all →</Link>
           </div>
-          <div className="px-4 lg:px-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="px-4 lg:px-0 grid-products">
             {(sale.data ?? []).map((p: any) => {
               const off = Math.max(0, Math.round((1 - Number(p.price) / Number(p.compare_price)) * 100));
               return (
