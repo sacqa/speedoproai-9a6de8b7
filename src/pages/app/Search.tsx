@@ -76,13 +76,13 @@ export default function Search() {
               <h2 className="font-bold text-base">Popular right now</h2>
             </div>
             {featured.isLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div className="grid-products">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="h-44 glass-card animate-pulse" />
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div className="grid-products">
                 {(featured.data ?? []).map((p: any) => <ProductCard key={p.id} p={p} />)}
               </div>
             )}
@@ -91,7 +91,7 @@ export default function Search() {
       ) : results.isLoading ? (
         <p className="text-center text-muted-foreground py-12">Searching…</p>
       ) : results.data?.length ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="grid-products">
           {results.data.map((p) => <ProductCard key={p.id} p={p as any} />)}
         </div>
       ) : (

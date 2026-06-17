@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SpeedoLogo } from "@/components/speedo/SpeedoLogo";
 
@@ -26,31 +27,80 @@ export function Footer() {
     supabase.from("app_settings").select("value").eq("key", "footer").maybeSingle()
       .then(({ data }) => { if (data?.value) setV({ ...DEFAULTS, ...(data.value as FooterValue) }); });
   }, []);
+  const company = v.company_links ?? [];
+  const legal = v.legal_links ?? [];
   return (
-    <footer className="hidden lg:block border-t border-border bg-card/60 mt-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 lg:py-10 grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 text-sm">
-        <div className="col-span-2 lg:col-span-1">
-          <div className="flex items-center gap-2 mb-3"><SpeedoLogo size={28} /><span className="font-extrabold">Speedo</span></div>
-          <p className="text-muted-foreground">{v.brand_tagline}</p>
+    <footer className="mt-10 lg:mt-14 px-3 sm:px-4 lg:px-0 pb-24 lg:pb-6">
+      <div className="glass-sheet rounded-3xl overflow-hidden max-w-7xl mx-auto">
+        {/* Brand band */}
+        <div className="p-5 sm:p-7 lg:p-10 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
+          <div className="max-w-md">
+            <div className="flex items-center gap-2 mb-2">
+              <SpeedoLogo size={32} />
+              <span className="font-extrabold text-lg">Speedo</span>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">{v.brand_tagline}</p>
+          </div>
+          <Link
+            to="/help"
+            className="self-start sm:self-center inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold bg-foreground text-background shadow-card hover:scale-[1.03] active:scale-95 transition-transform"
+          >
+            Need help?
+          </Link>
         </div>
-        <div>
-          <div className="font-bold mb-3">Company</div>
-          <ul className="space-y-2 text-muted-foreground">
-            {(v.company_links ?? []).map((l, i) => <li key={i}><Link to={l.url || "#"} className="hover:text-primary">{l.label}</Link></li>)}
-          </ul>
+
+        {/* Mobile accordion groups / desktop columns */}
+        <div className="border-t border-white/40 px-2 sm:px-4 lg:px-10 lg:py-8 lg:grid lg:grid-cols-3 lg:gap-10">
+          <AccordionGroup title="Company" links={company} />
+          <AccordionGroup title="Legal" links={legal} />
+          <div className="lg:block">
+            <details className="lg:hidden group border-b border-white/40">
+              <summary className="flex items-center justify-between py-3.5 px-2 text-sm font-bold cursor-pointer list-none">
+                Get the app
+                <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+              </summary>
+              <p className="pb-4 px-2 text-sm text-muted-foreground">{v.app_note}</p>
+            </details>
+            <div className="hidden lg:block">
+              <div className="font-bold mb-3">Get the app</div>
+              <p className="text-sm text-muted-foreground">{v.app_note}</p>
+            </div>
+          </div>
         </div>
-        <div>
-          <div className="font-bold mb-3">Legal</div>
-          <ul className="space-y-2 text-muted-foreground">
-            {(v.legal_links ?? []).map((l, i) => <li key={i}><Link to={l.url || "#"} className="hover:text-primary">{l.label}</Link></li>)}
-          </ul>
-        </div>
-        <div>
-          <div className="font-bold mb-3">Get the app</div>
-          <p className="text-muted-foreground">{v.app_note}</p>
+
+        {/* Legal bar */}
+        <div className="border-t border-white/40 px-4 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-1.5 text-[11px] text-muted-foreground">
+          <span>{v.copyright}</span>
+          <span className="opacity-70">Made with ♥ in Dipalpur</span>
         </div>
       </div>
-      <div className="border-t border-border py-4 px-4 text-center text-xs text-muted-foreground">{v.copyright}</div>
     </footer>
+  );
+}
+
+function AccordionGroup({ title, links }: { title: string; links: { label: string; url: string }[] }) {
+  if (!links.length) return null;
+  return (
+    <>
+      <details className="lg:hidden group border-b border-white/40">
+        <summary className="flex items-center justify-between py-3.5 px-2 text-sm font-bold cursor-pointer list-none">
+          {title}
+          <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+        </summary>
+        <ul className="pb-3 px-2 space-y-2 text-sm text-muted-foreground">
+          {links.map((l, i) => (
+            <li key={i}><Link to={l.url || "#"} className="hover:text-primary">{l.label}</Link></li>
+          ))}
+        </ul>
+      </details>
+      <div className="hidden lg:block">
+        <div className="font-bold mb-3">{title}</div>
+        <ul className="space-y-2 text-sm text-muted-foreground">
+          {links.map((l, i) => (
+            <li key={i}><Link to={l.url || "#"} className="hover:text-primary">{l.label}</Link></li>
+          ))}
+        </ul>
+      </div>
+    </>
   );
 }
