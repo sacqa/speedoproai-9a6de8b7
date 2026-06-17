@@ -269,7 +269,7 @@ function BannerSlider({ banners }: { banners: any[] }) {
               alt={b.title}
               loading="lazy"
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
-              className="relative z-10 absolute inset-0 w-full h-full object-contain object-right drop-shadow-[0_20px_30px_rgba(0,0,0,0.45)]"
+              className="absolute inset-0 z-10 w-full h-full object-contain object-right drop-shadow-[0_20px_30px_rgba(0,0,0,0.45)]"
             />
           </div>
         </div>
