@@ -16,6 +16,7 @@ import { Footer } from "@/components/layout/Footer";
 import {
   Sheet, SheetContent, SheetTrigger,
 } from "@/components/ui/sheet";
+import { useGridSettings } from "@/hooks/useGridSettings";
 
 const navItems = [
   { to: "/", label: "Home", icon: Home },
@@ -33,6 +34,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const { Banner } = useRealtimeNotifications();
+  useGridSettings();
   const hideChrome = ["/login", "/otp", "/onboarding", "/splash", "/admin"].some((p) => location.pathname.startsWith(p));
   const hideCheckoutBar = ["/cart", "/checkout", "/order", "/product", "/login", "/splash", "/onboarding"].some((p) => location.pathname.startsWith(p));
 
