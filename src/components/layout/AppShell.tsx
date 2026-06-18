@@ -160,19 +160,19 @@ export function AppShell({ children }: { children: ReactNode }) {
       </main>
 
       {/* MOBILE BOTTOM NAV */}
-      <nav className="lg:hidden fixed bottom-3 left-3 right-3 z-40 floating-nav safe-bottom">
-        <div className="grid grid-cols-5 h-16 items-center px-1">
-          <BottomTab to="/" icon={Home} label="Home" />
-          <BottomTab to="/search" icon={Search} label="Explore" />
-          <Link to="/speedmart" aria-label="SpeedMart" className="flex justify-center -mt-8 pointer-events-none">
-            <div className="h-16 w-16 rounded-2xl btn-glossy rotate-45 flex items-center justify-center pointer-events-auto">
-              <div className="-rotate-45">
-                <SpeedoLogo size={28} variant="mark" className="[&>path]:fill-accent" />
+      <nav className="lg:hidden fixed bottom-3 left-3 right-3 z-40 safe-bottom">
+        <div className="relative rounded-[28px] bg-white/75 dark:bg-foreground/80 backdrop-blur-2xl border border-white/60 shadow-[0_18px_50px_-12px_rgba(0,0,0,0.25)] overflow-visible">
+          <div className="grid grid-cols-5 h-[68px] items-stretch px-1">
+            <BottomTab to="/" icon={Home} label="Home" />
+            <BottomTab to="/search" icon={Search} label="Explore" />
+            <Link to="/speedmart" aria-label="SpeedMart" className="flex justify-center items-start -mt-7">
+              <div className="h-14 w-14 rounded-2xl gradient-primary flex items-center justify-center shadow-[0_12px_28px_-6px_hsl(var(--primary)/0.65)] ring-4 ring-background/90 active:scale-95 transition-transform">
+                <SpeedoLogo size={26} variant="mark" className="[&>path]:fill-white" />
               </div>
-            </div>
-          </Link>
-          <BottomTab to="/cart" icon={ShoppingCart} label="Cart" badge={cartQty} />
-          <BottomTab to={user ? "/profile" : "/login"} icon={User} label={user ? "Profile" : "More"} />
+            </Link>
+            <BottomTab to="/cart" icon={ShoppingCart} label="Cart" badge={cartQty} />
+            <BottomTab to={user ? "/profile" : "/login"} icon={User} label={user ? "Profile" : "More"} />
+          </div>
         </div>
       </nav>
 
@@ -207,22 +207,23 @@ function BottomTab({ to, icon: Icon, label, badge }: { to: string; icon: React.E
       to={to}
       end={to === "/"}
       className={({ isActive }) =>
-        `flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold transition-colors ${
+        `flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold transition-colors ${
           isActive ? "text-primary" : "text-muted-foreground"
         }`
       }
     >
       {({ isActive }) => (
         <>
-          <div className={`relative px-4 py-1 rounded-full transition-all ${isActive ? "bg-primary/15 scale-105" : ""}`}>
-            <Icon className={`h-5 w-5 ${isActive ? "stroke-[2.5]" : ""}`} />
+          <div className={`relative h-9 w-12 rounded-2xl flex items-center justify-center transition-all ${isActive ? "bg-primary/15" : ""}`}>
+            <Icon className={`h-[22px] w-[22px] transition-all ${isActive ? "stroke-[2.5] scale-110" : "stroke-2"}`} />
             {badge !== undefined && badge > 0 && (
-              <span className="absolute -top-0.5 -right-1 bg-primary text-primary-foreground text-[9px] font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-1">
+              <span className="absolute top-0 right-1 bg-orange text-orange-foreground text-[9px] font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-1 ring-2 ring-background">
                 {badge}
               </span>
             )}
           </div>
-          <span className={isActive ? "font-bold" : ""}>{label}</span>
+          <span className={`leading-none ${isActive ? "font-bold" : ""}`}>{label}</span>
+          {isActive && <span className="absolute -bottom-0.5 h-1 w-1 rounded-full bg-primary" />}
         </>
       )}
     </NavLink>
