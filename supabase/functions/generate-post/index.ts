@@ -114,11 +114,25 @@ No commentary. JSON only.`;
     for (let i = 0; i < variants.length; i++) {
       const v = variants[i];
       const visual = `Scroll-stopping social media post visual. ${VIBE_STYLE[vibe] ?? VIBE_STYLE.Bold}. ${v.imagePrompt ?? topic}. Sharp focus, photoreal where appropriate, generous negative space for overlay text, hyper-detailed, premium ad-campaign quality. STRICT: no text, no letters, no logos, no watermarks.`;
-      const imgRes = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
+      let imgRes = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
         method: "POST",
         headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({ model: "openai/gpt-image-2", prompt: visual, size, quality: "low", n: 1 }),
       });
+      if (!imgRes.ok && imgRes.status >= 400 && imgRes.status < 500 && imgRes.status !== 429) {
+        // Fall back to Gemini if OpenAI rejects the prompt (content policy etc.)
+        const t = await imgRes.text();
+        console.warn("OpenAI image failed, falling back to Gemini:", imgRes.status, t);
+        imgRes = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "google/gemini-3.1-flash-image-preview",
+            messages: [{ role: "user", content: visual }],
+            modalities: ["image", "text"],
+          }),
+        });
+      }
       if (!imgRes.ok) {
         const t = await imgRes.text();
         const code = imgRes.status === 402 || imgRes.status === 429 ? imgRes.status : 500;
