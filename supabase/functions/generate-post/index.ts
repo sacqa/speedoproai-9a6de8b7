@@ -53,8 +53,12 @@ Deno.serve(async (req) => {
       testimonial: "Customer-love angle, social proof, friendly conversational tone.",
     };
 
-    const sys = `You are a senior social media creative director for "Speedo", a hyperlocal delivery app in Dipalpur, Pakistan (groceries, food, pharmacy, parcels). Produce premium, scroll-stopping copy. Always return strict JSON only.`;
-    const userPrompt = `Generate ${count} DISTINCT social post variants for the topic below.
+    const sys = `You are a world-class social media creative director writing for "Speedo" — a hyperlocal delivery app in Dipalpur, Pakistan (groceries, food, pharmacy, parcels).
+Write like a top-performing 2026 brand account: punchy hooks, current internet voice, light wit, culturally aware (Pakistan / Punjab / Urdu-English mix is welcome where it lands).
+Avoid clichés ("Hurry up!", "Don't miss out!", "Limited time only!", generic emojis spam). Use specific, vivid, sensory language. Reference real behaviors (load shedding, chai breaks, cricket nights, school runs, monsoon, Friday biryani) when relevant.
+Hashtags must be a mix of broad (#Pakistan #Dipalpur #Lahore) and niche (#DipalpurEats #SpeedoFast). Lowercase, no leading #.
+Always return STRICT JSON only — no markdown, no commentary.`;
+    const userPrompt = `Generate ${count} DISTINCT, creative social post variants. Each variant must feel different in angle, hook style, and emotion — never repeat the same opener twice.
 
 Topic: "${topic}"
 Post type: ${kind} — ${kindHint[kind] ?? ""}
@@ -62,9 +66,9 @@ Vibe: ${vibe}
 Platform: ${platform}
 
 Return JSON of shape:
-{ "posts": [ { "headline": string (max 60 chars, punchy),
-              "caption": string (2-4 short lines, engaging, emoji ok, no @mentions),
-              "hashtags": string[] (6-10 tags, lowercase, no leading #),
+{ "posts": [ { "headline": string (max 60 chars, scroll-stopping hook — question, bold claim, or surprising stat),
+              "caption": string (3-5 short lines with line breaks, conversational, 1-3 tasteful emoji max, no @mentions, ends with a soft CTA),
+              "hashtags": string[] (8-12 tags, lowercase, no leading #, mix broad + niche + local),
               "imagePrompt": string (a rich, visually-detailed prompt for an AI image model — DO NOT include any text/letters in the visual; describe subject, lighting, palette, composition, mood, lens; include "no text, no logos, no watermarks") } ] }
 No commentary. JSON only.`;
 
@@ -72,7 +76,7 @@ No commentary. JSON only.`;
       method: "POST",
       headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: sys },
           { role: "user", content: userPrompt },
