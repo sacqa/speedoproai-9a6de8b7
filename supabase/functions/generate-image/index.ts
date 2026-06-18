@@ -60,21 +60,45 @@ Deno.serve(async (req) => {
       styled = `${prompt}. ${modifier}. No text or letters, no watermarks, no logos.`;
     }
 
-    const generateOne = async (idx: number): Promise<string> => {
-      // Slight per-image variance keeps a batch from returning duplicates.
-      const seed = idx === 0 ? styled : `${styled} Variant ${idx + 1}: alternate angle, fresh composition, different lighting mood.`;
+    const callOpenAI = async (prompt: string) => {
       const res = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
         method: "POST",
         headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "openai/gpt-image-2", prompt: seed, size, quality: "low", n: 1 }),
+        body: JSON.stringify({ model: "openai/gpt-image-2", prompt, size, quality: "low", n: 1 }),
       });
+      return res;
+    };
+    const callGemini = async (prompt: string) => {
+      const res = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-3.1-flash-image-preview",
+          messages: [{ role: "user", content: prompt }],
+          modalities: ["image", "text"],
+        }),
+      });
+      return res;
+    };
+
+    const generateOne = async (idx: number): Promise<string> => {
+      const seed = idx === 0 ? styled : `${styled} Variant ${idx + 1}: alternate angle, fresh composition, different lighting mood.`;
+      let res = await callOpenAI(seed);
       if (!res.ok) {
         const t = await res.text();
-        const code = res.status === 402 || res.status === 429 ? res.status : 500;
-        throw new Response(JSON.stringify({ error: `AI failed: ${res.status} ${t}` }), {
-          status: code,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        // 4xx (often content_policy_violation) → fall back to Gemini once.
+        if (res.status >= 400 && res.status < 500 && res.status !== 429) {
+          console.warn("OpenAI image failed, falling back to Gemini:", res.status, t);
+          res = await callGemini(seed);
+        }
+        if (!res.ok) {
+          const t2 = await res.text().catch(() => t);
+          const code = res.status === 402 || res.status === 429 ? res.status : 500;
+          throw new Response(JSON.stringify({ error: `AI failed: ${res.status} ${t2}` }), {
+            status: code,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
       }
       const json = await res.json();
       const b64 = json?.data?.[0]?.b64_json;

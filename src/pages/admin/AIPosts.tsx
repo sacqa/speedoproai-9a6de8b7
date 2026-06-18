@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { Sparkles, Loader2, Copy, Download, Wand2 } from "lucide-react";
+import { Sparkles, Loader2, Copy, Download, Wand2, Eye, Heart, MessageCircle, Send, Bookmark } from "lucide-react";
 import { toast } from "sonner";
 
 const POST_KINDS = [
@@ -32,6 +33,7 @@ export default function AIPosts() {
   const [count, setCount] = useState(1);
   const [busy, setBusy] = useState(false);
   const [results, setResults] = useState<Post[]>([]);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
 
   const generate = async () => {
     if (!topic.trim()) return toast.error("Enter a topic, e.g. 'Mango season 30% off'");
@@ -140,6 +142,12 @@ export default function AIPosts() {
             <Card key={i} className="overflow-hidden glass-sheet border-white/60">
               <div className="relative bg-muted">
                 <img src={r.imageUrl} alt={r.headline} className="w-full aspect-square object-cover" />
+                <button
+                  onClick={() => setPreviewIndex(i)}
+                  className="absolute top-2 right-2 inline-flex items-center gap-1 text-[11px] font-bold bg-black/70 text-white rounded-full px-2.5 py-1 backdrop-blur hover:bg-black"
+                >
+                  <Eye className="h-3.5 w-3.5" /> Live preview
+                </button>
               </div>
               <CardContent className="p-4 space-y-2">
                 <h3 className="font-extrabold leading-tight">{r.headline}</h3>
@@ -150,6 +158,9 @@ export default function AIPosts() {
                   ))}
                 </div>
                 <div className="flex flex-wrap gap-2 pt-2">
+                  <Button size="sm" onClick={() => setPreviewIndex(i)}>
+                    <Eye className="h-4 w-4 mr-1" /> Preview
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => copy(`${r.headline}\n\n${r.caption}\n\n${r.hashtags.map((h) => "#" + h.replace(/^#/, "")).join(" ")}`)}>
                     <Copy className="h-4 w-4 mr-1" /> Copy text
                   </Button>
@@ -162,6 +173,67 @@ export default function AIPosts() {
           ))}
         </div>
       )}
+
+      <Dialog open={previewIndex !== null} onOpenChange={(v) => !v && setPreviewIndex(null)}>
+        <DialogContent className="max-w-md p-0 overflow-hidden glass-sheet border-white/60">
+          <DialogHeader className="px-4 pt-4">
+            <DialogTitle className="text-base">Live preview · {platform === "facebook" ? "Facebook" : platform === "story" ? "Story / Reel" : "Instagram"}</DialogTitle>
+          </DialogHeader>
+          {previewIndex !== null && results[previewIndex] && (
+            <PlatformPreview post={results[previewIndex]} platform={platform} />
+          )}
+          {previewIndex !== null && results[previewIndex] && (
+            <div className="p-3 flex gap-2 border-t border-white/40">
+              <Button size="sm" className="flex-1" onClick={() => copy(`${results[previewIndex]!.headline}\n\n${results[previewIndex]!.caption}\n\n${results[previewIndex]!.hashtags.map((h) => "#" + h.replace(/^#/, "")).join(" ")}`)}>
+                <Copy className="h-4 w-4 mr-1" /> Copy text
+              </Button>
+              <Button size="sm" variant="outline" className="flex-1" onClick={() => download(results[previewIndex]!.imageUrl, `speedo-post-${Date.now()}.png`)}>
+                <Download className="h-4 w-4 mr-1" /> Download image
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function PlatformPreview({ post, platform }: { post: Post; platform: string }) {
+  const aspect = platform === "story" ? "aspect-[9/16]" : platform === "facebook" ? "aspect-[16/10]" : "aspect-square";
+  return (
+    <div className="bg-background">
+      {/* Header */}
+      <div className="flex items-center gap-2.5 p-3">
+        <div className="h-9 w-9 rounded-full gradient-primary flex items-center justify-center text-white font-extrabold text-sm">S</div>
+        <div className="flex-1 min-w-0">
+          <div className="font-bold text-sm leading-tight">speedo.dipalpur</div>
+          <div className="text-[11px] text-muted-foreground leading-tight">Sponsored · Dipalpur</div>
+        </div>
+        <span className="text-muted-foreground text-lg leading-none">···</span>
+      </div>
+      {/* Image */}
+      <div className={`relative bg-muted ${aspect} overflow-hidden`}>
+        <img src={post.imageUrl} alt={post.headline} className="w-full h-full object-cover" />
+      </div>
+      {/* Action row */}
+      <div className="px-3 pt-2.5 flex items-center gap-4">
+        <Heart className="h-6 w-6" strokeWidth={1.8} />
+        <MessageCircle className="h-6 w-6" strokeWidth={1.8} />
+        <Send className="h-6 w-6" strokeWidth={1.8} />
+        <Bookmark className="h-6 w-6 ml-auto" strokeWidth={1.8} />
+      </div>
+      {/* Caption */}
+      <div className="px-3 py-2 space-y-1">
+        <div className="font-extrabold text-sm leading-snug">{post.headline}</div>
+        <p className="text-sm leading-snug whitespace-pre-wrap">
+          <span className="font-bold mr-1.5">speedo.dipalpur</span>
+          {post.caption}
+        </p>
+        <p className="text-xs text-primary leading-snug">
+          {post.hashtags.map((h) => "#" + h.replace(/^#/, "")).join(" ")}
+        </p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wide pt-1">Just now</p>
+      </div>
     </div>
   );
 }

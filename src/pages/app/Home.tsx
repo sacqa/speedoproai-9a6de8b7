@@ -216,7 +216,7 @@ function BannerSlider({ banners }: { banners: any[] }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (banners.length === 0) return;
-    const t = setInterval(() => setI((x) => (x + 1) % banners.length), 4000);
+    const t = setInterval(() => setI((x) => (x + 1) % banners.length), 5000);
     return () => clearInterval(t);
   }, [banners.length]);
   if (!banners.length) return null;
@@ -225,76 +225,78 @@ function BannerSlider({ banners }: { banners: any[] }) {
     <div className="px-4 lg:px-0">
       <div
         ref={ref}
-        className="relative rounded-[32px] overflow-hidden mx-auto max-w-md lg:max-w-4xl border border-white/60 shadow-[0_25px_60px_-25px_hsl(var(--primary)/0.55)]"
-        style={{ background: "linear-gradient(135deg,#1a0033 0%,#3d0066 45%,#8a00d4 100%)" }}
+        className="group relative rounded-[28px] overflow-hidden mx-auto max-w-md lg:max-w-5xl border border-white/40 shadow-[0_20px_45px_-22px_hsl(var(--primary)/0.55)]"
+        style={{ background: "linear-gradient(120deg,#1a0033 0%,#3d0066 50%,#7a1bc7 100%)" }}
       >
-        {/* Aurora wash */}
-        <div className="absolute inset-0 aurora animate-aurora opacity-80 pointer-events-none" />
-        {/* Noise / shine overlay */}
+        {/* Aurora wash + soft shine */}
+        <div className="absolute inset-0 aurora animate-aurora opacity-70 pointer-events-none" />
         <div
-          className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-30"
-          style={{ background: "radial-gradient(120% 80% at 20% 0%, rgba(255,255,255,0.55), transparent 55%)" }}
+          className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-25"
+          style={{ background: "radial-gradient(110% 70% at 15% 0%, rgba(255,255,255,0.55), transparent 55%)" }}
         />
 
-        <div className="relative grid grid-cols-[1.1fr_1fr] items-center gap-3 p-5 lg:p-10 min-h-[210px] lg:min-h-[280px]">
-          <div className="relative z-10 flex flex-col text-white">
-            <span className="inline-flex items-center gap-1.5 self-start text-[10px] lg:text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/15 backdrop-blur border border-white/25">
+        <div className="relative grid grid-cols-[1.1fr_minmax(0,1fr)] items-center gap-2 sm:gap-4 p-4 sm:p-6 lg:p-8 min-h-[150px] sm:min-h-[170px] lg:min-h-[220px]">
+          <div className="relative z-10 flex flex-col text-white min-w-0">
+            <span className="inline-flex items-center gap-1.5 self-start text-[9px] sm:text-[10px] lg:text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/15 backdrop-blur border border-white/25">
               <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" /> Featured
             </span>
-            <h3 className="mt-3 font-display text-[24px] leading-[1.05] lg:text-5xl font-extrabold tracking-tight drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+            <h3 className="mt-2 sm:mt-2.5 font-display font-extrabold tracking-tight leading-[1.1] text-[clamp(18px,5vw,40px)] line-clamp-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
               {b.title}
             </h3>
             {b.subtitle && (
-              <p className="mt-2 text-[12px] lg:text-base text-white/85 line-clamp-2 max-w-[26ch]">
+              <p className="mt-1 sm:mt-1.5 text-white/85 leading-snug line-clamp-2 text-[clamp(11px,2.6vw,15px)]">
                 {b.subtitle}
               </p>
             )}
             {b.cta_label && (
               <Link
                 to={b.cta_link || "/"}
-                className="mt-4 lg:mt-6 inline-flex items-center gap-2 self-start bg-white text-primary font-extrabold text-[13px] lg:text-sm pl-4 pr-3 py-2.5 lg:py-3 rounded-full shadow-[0_10px_30px_-6px_rgba(0,0,0,0.45)] hover:scale-[1.04] active:scale-95 transition-transform"
+                className="mt-2.5 sm:mt-4 inline-flex items-center gap-1.5 self-start bg-white text-primary font-extrabold text-[11px] sm:text-[13px] lg:text-sm pl-3 pr-2 py-2 sm:py-2.5 rounded-full shadow-[0_8px_24px_-6px_rgba(0,0,0,0.45)] hover:scale-[1.04] active:scale-95 transition-transform"
               >
                 {b.cta_label}
-                <span className="h-5 w-5 rounded-full gradient-primary flex items-center justify-center text-white">
-                  <ArrowRight className="h-3 w-3" strokeWidth={3} />
+                <span className="h-4 w-4 sm:h-5 sm:w-5 rounded-full gradient-primary flex items-center justify-center text-white">
+                  <ArrowRight className="h-2.5 w-2.5 sm:h-3 sm:w-3" strokeWidth={3} />
                 </span>
               </Link>
             )}
           </div>
-          <div className="relative h-full min-h-[150px] lg:min-h-[220px]">
-            {/* Glow ring behind product */}
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 h-[88%] aspect-square rounded-full bg-white/15 blur-2xl" />
+          <div className="relative h-full min-h-[110px] sm:min-h-[130px] lg:min-h-[180px]">
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-[85%] aspect-square rounded-full bg-white/15 blur-2xl" />
             <img
               src={b.image_url}
               alt={b.title}
               loading="lazy"
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
-              className="absolute inset-0 z-10 w-full h-full object-contain object-right drop-shadow-[0_20px_30px_rgba(0,0,0,0.45)]"
+              className="absolute inset-0 z-10 w-full h-full object-contain object-right drop-shadow-[0_18px_28px_rgba(0,0,0,0.45)]"
             />
           </div>
         </div>
 
-        <button
-          onClick={() => setI((x) => (x - 1 + banners.length) % banners.length)}
-          aria-label="Previous"
-          className="absolute left-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white/20 backdrop-blur border border-white/30 flex items-center justify-center text-white hover:bg-white/30"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-        <button
-          onClick={() => setI((x) => (x + 1) % banners.length)}
-          aria-label="Next"
-          className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-white/20 backdrop-blur border border-white/30 flex items-center justify-center text-white hover:bg-white/30"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+        {banners.length > 1 && (
+          <>
+            <button
+              onClick={() => setI((x) => (x - 1 + banners.length) % banners.length)}
+              aria-label="Previous"
+              className="hidden sm:flex absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/20 backdrop-blur border border-white/30 items-center justify-center text-white hover:bg-white/30 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setI((x) => (x + 1) % banners.length)}
+              aria-label="Next"
+              className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-white/20 backdrop-blur border border-white/30 items-center justify-center text-white hover:bg-white/30 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </>
+        )}
+        <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1.5">
           {banners.map((_, idx) => (
             <button
               key={idx}
               onClick={() => setI(idx)}
               aria-label={`Slide ${idx + 1}`}
-              className={`h-1.5 rounded-full transition-all ${idx === i ? "w-7 bg-white" : "w-1.5 bg-white/40"}`}
+              className={`h-1.5 rounded-full transition-all ${idx === i ? "w-6 bg-white" : "w-1.5 bg-white/40"}`}
             />
           ))}
         </div>

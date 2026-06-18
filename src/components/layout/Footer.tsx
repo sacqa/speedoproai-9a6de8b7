@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SpeedoLogo } from "@/components/speedo/SpeedoLogo";
+import { useIsStandalone } from "@/hooks/useIsStandalone";
 
 type LinkItem = { label: string; url: string };
 export type FooterValue = {
@@ -23,12 +24,24 @@ const DEFAULTS: FooterValue = {
 
 export function Footer() {
   const [v, setV] = useState<FooterValue>(DEFAULTS);
+  const isStandalone = useIsStandalone();
   useEffect(() => {
     supabase.from("app_settings").select("value").eq("key", "footer").maybeSingle()
       .then(({ data }) => { if (data?.value) setV({ ...DEFAULTS, ...(data.value as FooterValue) }); });
   }, []);
   const company = v.company_links ?? [];
   const legal = v.legal_links ?? [];
+  // When installed as a PWA on mobile, hide the link/help sections — they're for web visitors,
+  // not for users already inside the installed app. Keep only a slim copyright bar.
+  if (isStandalone) {
+    return (
+      <footer className="mt-6 pb-24 lg:pb-6 px-4">
+        <div className="text-center text-[11px] text-muted-foreground">
+          {v.copyright} · Made with ♥ in Dipalpur
+        </div>
+      </footer>
+    );
+  }
   return (
     <footer className="mt-10 lg:mt-14 px-3 sm:px-4 lg:px-0 pb-24 lg:pb-6">
       <div className="glass-sheet rounded-3xl overflow-hidden max-w-7xl mx-auto">
