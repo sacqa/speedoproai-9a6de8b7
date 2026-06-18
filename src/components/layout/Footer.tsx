@@ -35,7 +35,7 @@ export function Footer() {
   // not for users already inside the installed app. Keep only a slim copyright bar.
   if (isStandalone) {
     return (
-      <footer className="lg:hidden mt-6 pb-24 px-4">
+      <footer className="mt-6 pb-24 lg:pb-6 px-4">
         <div className="text-center text-[11px] text-muted-foreground">
           {v.copyright} · Made with ♥ in Dipalpur
         </div>
