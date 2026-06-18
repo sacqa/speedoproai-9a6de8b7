@@ -207,7 +207,7 @@ function BottomTab({ to, icon: Icon, label, badge }: { to: string; icon: React.E
       to={to}
       end={to === "/"}
       className={({ isActive }) =>
-        `flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold transition-colors ${
+        `relative flex flex-col items-center justify-center gap-0.5 text-[10px] font-semibold transition-colors ${
           isActive ? "text-primary" : "text-muted-foreground"
         }`
       }
