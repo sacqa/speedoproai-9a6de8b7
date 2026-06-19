@@ -53,52 +53,93 @@ Deno.serve(async (req) => {
       testimonial: "Customer-love angle, social proof, friendly conversational tone.",
     };
 
-    const sys = `You are a world-class social media creative director writing for "Speedo" — a hyperlocal delivery app in Dipalpur, Pakistan (groceries, food, pharmacy, parcels).
-Write like a top-performing 2026 brand account: punchy hooks, current internet voice, light wit, culturally aware (Pakistan / Punjab / Urdu-English mix is welcome where it lands).
-Avoid clichés ("Hurry up!", "Don't miss out!", "Limited time only!", generic emojis spam). Use specific, vivid, sensory language. Reference real behaviors (load shedding, chai breaks, cricket nights, school runs, monsoon, Friday biryani) when relevant.
-Hashtags must be a mix of broad (#Pakistan #Dipalpur #Lahore) and niche (#DipalpurEats #SpeedoFast). Lowercase, no leading #.
-Always return STRICT JSON only — no markdown, no commentary.`;
-    const userPrompt = `Generate ${count} DISTINCT, creative social post variants. Each variant must feel different in angle, hook style, and emotion — never repeat the same opener twice.
+    const PLATFORM_SPEC: Record<string, string> = {
+      instagram: "Instagram feed post. Lead with a 1-line HOOK (question, bold stat, or pattern interrupt). Then 3-5 punchy lines, each on its own line. Use 1-2 short bullet rows with • for benefits. End with a clear single CTA line. 1-3 tasteful emoji max. ~150 words max.",
+      facebook: "Facebook post. Friendlier, slightly longer (5-7 short lines). Open with a hook, mid-section can include a tiny mini-story or 2-3 • bullets, close with a soft CTA + link prompt. 1-2 emoji.",
+      story: "Instagram/Facebook Story. Ultra short and vertical-readable: a 4-7 word hook line, then 2-3 micro lines, then a swipe-style CTA (e.g. 'Tap to order →'). 1-2 emoji max.",
+    };
+
+    const sys = `You are a world-class social media creative director for "Speedo" — a hyperlocal delivery app in Dipalpur, Pakistan (groceries, food, pharmacy, parcels).
+Write like a top-performing 2026 brand account: scroll-stopping hooks, current internet voice, light wit, culturally fluent (Pakistan / Punjab / Urdu-English code-switch welcome where it lands naturally — never forced).
+Banned phrases & moves: "Hurry up", "Don't miss out", "Limited time only", "Act now", generic 🔥💯 spam, vague "amazing deals", any caps-locked shouting.
+Use specific, vivid, sensory language. Reference real local behaviors when relevant (load shedding, chai breaks, cricket nights, school runs, monsoon, Friday biryani, Sunday cleaning, Eid prep, Ramadan iftar, exam season, mango season, electricity bill day).
+Each variant must feel DIFFERENT — different hook archetype (question / bold claim / mini-story / surprising stat / contrarian take / observation / before-after), different emotional register, different opener word.
+Hashtags: 8-12, lowercase, NO leading #, blend broad (pakistan, dipalpur, lahore, okara) + niche (dipalpureats, speedofast, hyperlocaldelivery) + intent (latenightcravings, grocerydelivery).
+Always return STRICT JSON only — no markdown fence, no commentary, no trailing text.`;
+
+    const userPrompt = `Generate ${count} DISTINCT, creative social post variants. Never reuse the same opening word or hook archetype twice.
 
 Topic: "${topic}"
 Post type: ${kind} — ${kindHint[kind] ?? ""}
 Vibe: ${vibe}
 Platform: ${platform}
+Platform format spec: ${PLATFORM_SPEC[platform] ?? PLATFORM_SPEC.instagram}
 
 Return JSON of shape:
-{ "posts": [ { "headline": string (max 60 chars, scroll-stopping hook — question, bold claim, or surprising stat),
-              "caption": string (3-5 short lines with line breaks, conversational, 1-3 tasteful emoji max, no @mentions, ends with a soft CTA),
-              "hashtags": string[] (8-12 tags, lowercase, no leading #, mix broad + niche + local),
-              "imagePrompt": string (a rich, visually-detailed prompt for an AI image model — DO NOT include any text/letters in the visual; describe subject, lighting, palette, composition, mood, lens; include "no text, no logos, no watermarks") } ] }
+{ "posts": [ {
+    "headline": string (max 60 chars, scroll-stopping hook — question, bold claim, observation, or surprising stat. No emoji here.),
+    "caption": string (formatted per the platform spec above. Use real line breaks (\\n). Include at least one bullet line starting with "• " when the platform spec allows it. End with one clear CTA line.),
+    "hashtags": string[] (8-12 tags, lowercase, no leading #, mix broad + niche + local + intent),
+    "imagePrompt": string (a rich, visually-detailed prompt for an AI image model — DO NOT include any text/letters/logos in the visual; describe subject, lighting, palette, composition, mood, lens, camera angle; end with "no text, no letters, no logos, no watermarks")
+} ] }
 No commentary. JSON only.`;
 
-    const chatRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: sys },
-          { role: "user", content: userPrompt },
-        ],
-        response_format: { type: "json_object" },
-      }),
-    });
-    if (!chatRes.ok) {
-      const t = await chatRes.text();
-      const code = chatRes.status === 402 || chatRes.status === 429 ? chatRes.status : 500;
-      return json({ error: `AI copy failed: ${chatRes.status} ${t}` }, code);
+    // ---------- 1) Generate copy with Gemini, auto-fallback across models ----------
+    const COPY_MODELS = [
+      "google/gemini-3-flash-preview",
+      "google/gemini-2.5-flash",
+      "openai/gpt-5-mini",
+    ];
+    let variants: any[] = [];
+    const copyAttempts: string[] = [];
+    let lastCopyStatus = 0;
+    let lastCopyBody = "";
+    for (const model of COPY_MODELS) {
+      console.log(`[generate-post] copy attempt model=${model}`);
+      const chatRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: sys },
+            { role: "user", content: userPrompt },
+          ],
+          response_format: { type: "json_object" },
+        }),
+      });
+      lastCopyStatus = chatRes.status;
+      if (!chatRes.ok) {
+        lastCopyBody = await chatRes.text();
+        copyAttempts.push(`${model} → ${chatRes.status} ${lastCopyBody.slice(0, 220)}`);
+        console.warn(`[generate-post] copy fail ${model}`, chatRes.status, lastCopyBody.slice(0, 500));
+        // Hard-stop on auth/billing — fallback won't help.
+        if (chatRes.status === 402) {
+          return json({ error: "AI credits exhausted. Top up Lovable AI credits to continue.", attempts: copyAttempts }, 402);
+        }
+        if (chatRes.status === 401 || chatRes.status === 403) {
+          return json({ error: `AI auth failed (${chatRes.status}). Check LOVABLE_API_KEY.`, attempts: copyAttempts }, 500);
+        }
+        continue;
+      }
+      const chatJson = await chatRes.json();
+      try {
+        const txt = chatJson?.choices?.[0]?.message?.content ?? "{}";
+        const payload = typeof txt === "string" ? JSON.parse(txt) : txt;
+        const arr = Array.isArray(payload?.posts) ? payload.posts.slice(0, count) : [];
+        if (arr.length) { variants = arr; break; }
+        copyAttempts.push(`${model} → 200 but no posts in payload`);
+      } catch (e) {
+        copyAttempts.push(`${model} → 200 but JSON parse failed: ${(e as Error).message}`);
+      }
     }
-    const chatJson = await chatRes.json();
-    let payload: any;
-    try {
-      const txt = chatJson?.choices?.[0]?.message?.content ?? "{}";
-      payload = typeof txt === "string" ? JSON.parse(txt) : txt;
-    } catch {
-      payload = { posts: [] };
+    if (!variants.length) {
+      return json({
+        error: "AI failed to generate post copy after all fallbacks.",
+        lastStatus: lastCopyStatus,
+        attempts: copyAttempts,
+      }, lastCopyStatus === 429 ? 429 : 500);
     }
-    const variants: any[] = Array.isArray(payload?.posts) ? payload.posts.slice(0, count) : [];
-    if (!variants.length) return json({ error: "AI returned no variants" }, 500);
 
     // ---------- 2) Generate one image per variant ----------
     const VIBE_STYLE: Record<string, string> = {
@@ -114,16 +155,31 @@ No commentary. JSON only.`;
     for (let i = 0; i < variants.length; i++) {
       const v = variants[i];
       const visual = `Scroll-stopping social media post visual. ${VIBE_STYLE[vibe] ?? VIBE_STYLE.Bold}. ${v.imagePrompt ?? topic}. Sharp focus, photoreal where appropriate, generous negative space for overlay text, hyper-detailed, premium ad-campaign quality. STRICT: no text, no letters, no logos, no watermarks.`;
-      let imgRes = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
+
+      const imageAttempts: { model: string; status: number; body: string }[] = [];
+      const tryImage = async (init: RequestInit) => {
+        const r = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", init);
+        if (!r.ok) {
+          const body = await r.text();
+          return { ok: false as const, status: r.status, body, json: null as any };
+        }
+        return { ok: true as const, status: r.status, body: "", json: await r.json() };
+      };
+
+      // 1st: OpenAI gpt-image-2
+      let imgResult = await tryImage({
         method: "POST",
         headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({ model: "openai/gpt-image-2", prompt: visual, size, quality: "low", n: 1 }),
       });
-      if (!imgRes.ok && imgRes.status >= 400 && imgRes.status < 500 && imgRes.status !== 429) {
-        // Fall back to Gemini if OpenAI rejects the prompt (content policy etc.)
-        const t = await imgRes.text();
-        console.warn("OpenAI image failed, falling back to Gemini:", imgRes.status, t);
-        imgRes = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
+      if (!imgResult.ok) {
+        imageAttempts.push({ model: "openai/gpt-image-2", status: imgResult.status, body: imgResult.body.slice(0, 220) });
+        console.warn(`[generate-post] image#${i} openai fail`, imgResult.status, imgResult.body.slice(0, 500));
+      }
+
+      // 2nd: Gemini 3.1 flash image
+      if (!imgResult.ok && imgResult.status !== 402) {
+        imgResult = await tryImage({
           method: "POST",
           headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -132,15 +188,39 @@ No commentary. JSON only.`;
             modalities: ["image", "text"],
           }),
         });
+        if (!imgResult.ok) {
+          imageAttempts.push({ model: "google/gemini-3.1-flash-image-preview", status: imgResult.status, body: imgResult.body.slice(0, 220) });
+          console.warn(`[generate-post] image#${i} gemini-3.1 fail`, imgResult.status, imgResult.body.slice(0, 500));
+        }
       }
-      if (!imgRes.ok) {
-        const t = await imgRes.text();
-        const code = imgRes.status === 402 || imgRes.status === 429 ? imgRes.status : 500;
-        return json({ error: `AI image failed: ${imgRes.status} ${t}` }, code);
+
+      // 3rd: Gemini 2.5 flash image (Nano Banana)
+      if (!imgResult.ok && imgResult.status !== 402) {
+        imgResult = await tryImage({
+          method: "POST",
+          headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-image",
+            messages: [{ role: "user", content: visual }],
+            modalities: ["image", "text"],
+          }),
+        });
+        if (!imgResult.ok) {
+          imageAttempts.push({ model: "google/gemini-2.5-flash-image", status: imgResult.status, body: imgResult.body.slice(0, 220) });
+        }
       }
-      const imgJson = await imgRes.json();
+
+      if (!imgResult.ok) {
+        const code = imgResult.status === 402 ? 402 : imgResult.status === 429 ? 429 : 500;
+        return json({
+          error: `AI image failed after ${imageAttempts.length} fallbacks (variant ${i + 1}/${variants.length})`,
+          attempts: imageAttempts,
+          copyAttempts,
+        }, code);
+      }
+      const imgJson = imgResult.json;
       const b64 = imgJson?.data?.[0]?.b64_json;
-      if (!b64) return json({ error: "No image returned" }, 500);
+      if (!b64) return json({ error: "No image returned (empty b64_json)", attempts: imageAttempts }, 500);
       const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
       const path = `posts/${Date.now()}-${i}-${crypto.randomUUID().slice(0, 8)}.png`;
       const { error: upErr } = await admin.storage.from("banners").upload(path, bin, { contentType: "image/png", upsert: true });
