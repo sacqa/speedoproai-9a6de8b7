@@ -43,14 +43,34 @@ export default function AIPosts() {
       const { data, error } = await supabase.functions.invoke("generate-post", {
         body: { topic: topic.trim(), kind, vibe, platform, count },
       });
-      if (error) throw error;
+      // supabase-js swallows non-2xx bodies into a generic error; read the Response ourselves.
+      if (error) {
+        let status = 0;
+        let serverMsg = "";
+        const res: Response | undefined = (error as any)?.context;
+        if (res && typeof res.json === "function") {
+          status = res.status;
+          try {
+            const body = await res.clone().json();
+            serverMsg = body?.error || body?.message || JSON.stringify(body);
+          } catch {
+            try { serverMsg = await res.clone().text(); } catch {}
+          }
+        }
+        if (status === 402 || /not enough credits|credits? exhausted|payment_required/i.test(serverMsg)) {
+          toast.error("AI credits exhausted. Top up Lovable AI credits to keep generating.", { duration: 8000 });
+        } else if (status === 429) {
+          toast.error("Rate limit hit — please wait a few seconds and retry.");
+        } else {
+          toast.error(serverMsg || error.message || "Generation failed", { duration: 8000 });
+        }
+        console.error("generate-post failed", { status, serverMsg, error });
+        return;
+      }
       setResults((data?.posts ?? []) as Post[]);
       toast.success(`Generated ${data?.posts?.length ?? 0} post${(data?.posts?.length ?? 0) > 1 ? "s" : ""}`);
     } catch (e: any) {
-      const msg = String(e?.message ?? "");
-      if (msg.includes("429")) toast.error("Rate limit — please retry shortly");
-      else if (msg.includes("402")) toast.error("AI credits exhausted — please top up");
-      else toast.error(msg || "Generation failed");
+      toast.error(String(e?.message ?? "Generation failed"));
     } finally {
       setBusy(false);
     }
