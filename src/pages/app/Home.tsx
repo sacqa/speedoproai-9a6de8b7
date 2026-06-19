@@ -235,23 +235,23 @@ function BannerSlider({ banners }: { banners: any[] }) {
           style={{ background: "radial-gradient(110% 70% at 15% 0%, rgba(255,255,255,0.55), transparent 55%)" }}
         />
 
-        <div className="relative grid grid-cols-[1.1fr_minmax(0,1fr)] items-center gap-2 sm:gap-4 p-4 sm:p-6 lg:p-8 min-h-[150px] sm:min-h-[170px] lg:min-h-[220px]">
-          <div className="relative z-10 flex flex-col text-white min-w-0">
-            <span className="inline-flex items-center gap-1.5 self-start text-[9px] sm:text-[10px] lg:text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/15 backdrop-blur border border-white/25">
+        <div className="relative grid grid-cols-[1.15fr_minmax(0,0.95fr)] items-stretch gap-3 sm:gap-5 lg:gap-7 px-4 sm:px-6 lg:px-9 py-4 sm:py-5 lg:py-7 min-h-[132px] sm:min-h-[156px] md:min-h-[176px] lg:min-h-[196px]">
+          <div className="relative z-10 flex flex-col justify-center text-white min-w-0">
+            <span className="inline-flex items-center gap-1.5 self-start text-[9px] sm:text-[10px] lg:text-[11px] font-bold uppercase tracking-[0.12em] px-2 py-0.5 rounded-full bg-white/15 backdrop-blur border border-white/25">
               <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" /> Featured
             </span>
-            <h3 className="mt-2 sm:mt-2.5 font-display font-extrabold tracking-tight leading-[1.1] text-[clamp(18px,5vw,40px)] line-clamp-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+            <h3 className="mt-1.5 sm:mt-2 font-display font-extrabold tracking-tight leading-[1.08] text-[clamp(17px,4.6vw,34px)] line-clamp-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]">
               {b.title}
             </h3>
             {b.subtitle && (
-              <p className="mt-1 sm:mt-1.5 text-white/85 leading-snug line-clamp-2 text-[clamp(11px,2.6vw,15px)]">
+              <p className="mt-1 sm:mt-1.5 text-white/85 leading-snug line-clamp-2 text-[clamp(10.5px,2.4vw,14px)]">
                 {b.subtitle}
               </p>
             )}
             {b.cta_label && (
               <Link
                 to={b.cta_link || "/"}
-                className="mt-2.5 sm:mt-4 inline-flex items-center gap-1.5 self-start bg-white text-primary font-extrabold text-[11px] sm:text-[13px] lg:text-sm pl-3 pr-2 py-2 sm:py-2.5 rounded-full shadow-[0_8px_24px_-6px_rgba(0,0,0,0.45)] hover:scale-[1.04] active:scale-95 transition-transform"
+                className="mt-2 sm:mt-3 inline-flex items-center gap-1.5 self-start bg-white text-primary font-extrabold text-[11px] sm:text-[12.5px] lg:text-sm pl-3 pr-2 py-1.5 sm:py-2 rounded-full shadow-[0_8px_24px_-6px_rgba(0,0,0,0.45)] hover:scale-[1.04] active:scale-95 transition-transform"
               >
                 {b.cta_label}
                 <span className="h-4 w-4 sm:h-5 sm:w-5 rounded-full gradient-primary flex items-center justify-center text-white">
@@ -260,14 +260,14 @@ function BannerSlider({ banners }: { banners: any[] }) {
               </Link>
             )}
           </div>
-          <div className="relative h-full min-h-[110px] sm:min-h-[130px] lg:min-h-[180px]">
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 h-[85%] aspect-square rounded-full bg-white/15 blur-2xl" />
+          <div className="relative self-stretch">
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 h-[78%] aspect-square rounded-full bg-white/15 blur-2xl" />
             <img
               src={b.image_url}
               alt={b.title}
               loading="lazy"
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
-              className="absolute inset-0 z-10 w-full h-full object-contain object-right drop-shadow-[0_18px_28px_rgba(0,0,0,0.45)]"
+              className="relative z-10 ml-auto h-full w-full max-h-[150px] sm:max-h-[170px] md:max-h-[185px] lg:max-h-[210px] object-contain object-right drop-shadow-[0_18px_28px_rgba(0,0,0,0.45)]"
             />
           </div>
         </div>
