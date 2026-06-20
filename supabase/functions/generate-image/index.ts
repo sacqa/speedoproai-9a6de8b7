@@ -6,10 +6,25 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const SIZES: Record<string, string> = {
-  square: "1024x1024",
-  banner: "1536x1024",
-  portrait: "1024x1536",
+const SIZES: Record<string, { w: number; h: number }> = {
+  square: { w: 1024, h: 1024 },
+  banner: { w: 1536, h: 1024 },
+  landscape: { w: 1536, h: 1024 },
+  portrait: { w: 1024, h: 1536 },
+};
+
+// Pollinations.ai — free, unlimited, no API key required.
+// Models exposed to the admin (named for marketing clarity):
+//   - "gpt-image-2"      → flux        (highest quality general purpose)
+//   - "gpt-image-1-mini" → turbo       (fastest, lower fidelity)
+//   - "nano-banana"      → flux-realism (photoreal)
+const MODEL_MAP: Record<string, string> = {
+  "gpt-image-2": "flux",
+  "gpt-image-1-mini": "turbo",
+  "nano-banana": "flux-realism",
+  flux: "flux",
+  turbo: "turbo",
+  "flux-realism": "flux-realism",
 };
 
 Deno.serve(async (req) => {
@@ -19,8 +34,6 @@ Deno.serve(async (req) => {
     const supaUrl = Deno.env.get("SUPABASE_URL")!;
     const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
     const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const lovableKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!lovableKey) return new Response(JSON.stringify({ error: "Missing LOVABLE_API_KEY" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const userClient = createClient(supaUrl, anon, { global: { headers: { Authorization: auth } } });
     const { data: { user } } = await userClient.auth.getUser();
@@ -32,10 +45,11 @@ Deno.serve(async (req) => {
     if (!isAdmin) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const body = await req.json();
-    const { prompt, preset = "square", bucket = "products", context, style = "vibrant" } = body;
+    const { prompt, preset = "square", bucket = "products", context, style = "vibrant", model = "gpt-image-2" } = body;
     const count = Math.max(1, Math.min(6, Number(body.count ?? 1)));
     if (!prompt || typeof prompt !== "string") return new Response(JSON.stringify({ error: "prompt required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const size = SIZES[preset] ?? SIZES.square;
+    const polliModel = MODEL_MAP[model] ?? "flux";
 
     // ----- Creative prompt engineering -----
     const STYLE_MODIFIERS: Record<string, string> = {
@@ -60,62 +74,62 @@ Deno.serve(async (req) => {
       styled = `${prompt}. ${modifier}. No text or letters, no watermarks, no logos.`;
     }
 
-    const callOpenAI = async (prompt: string) => {
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "openai/gpt-image-2", prompt, size, quality: "low", n: 1 }),
-      });
-      return res;
-    };
-    const callGemini = async (prompt: string) => {
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "google/gemini-3.1-flash-image-preview",
-          messages: [{ role: "user", content: prompt }],
-          modalities: ["image", "text"],
-        }),
-      });
-      return res;
-    };
-
+    // ---- Pollinations.ai: free, unlimited, no key required ----
     const generateOne = async (idx: number): Promise<string> => {
-      const seed = idx === 0 ? styled : `${styled} Variant ${idx + 1}: alternate angle, fresh composition, different lighting mood.`;
-      let res = await callOpenAI(seed);
-      if (!res.ok) {
-        const t = await res.text();
-        // 4xx (often content_policy_violation) → fall back to Gemini once.
-        if (res.status >= 400 && res.status < 500 && res.status !== 429) {
-          console.warn("OpenAI image failed, falling back to Gemini:", res.status, t);
-          res = await callGemini(seed);
-        }
-        if (!res.ok) {
-          const t2 = await res.text().catch(() => t);
-          const code = res.status === 402 || res.status === 429 ? res.status : 500;
-          throw new Response(JSON.stringify({ error: `AI failed: ${res.status} ${t2}` }), {
-            status: code,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
+      const seed = Math.floor(Math.random() * 1_000_000_000) + idx;
+      const variantHint =
+        idx === 0 ? styled : `${styled} Variant ${idx + 1}: alternate angle, fresh composition, different lighting mood.`;
+      const url = new URL(`https://image.pollinations.ai/prompt/${encodeURIComponent(variantHint)}`);
+      url.searchParams.set("width", String(size.w));
+      url.searchParams.set("height", String(size.h));
+      url.searchParams.set("model", polliModel);
+      url.searchParams.set("seed", String(seed));
+      url.searchParams.set("nologo", "true");
+      url.searchParams.set("enhance", "true");
+      url.searchParams.set("safe", "false");
+
+      // 60s timeout per image; pollinations can be slow on cold model.
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 60_000);
+      let res: Response;
+      try {
+        res = await fetch(url.toString(), { signal: ctrl.signal });
+      } finally {
+        clearTimeout(timer);
       }
-      const json = await res.json();
-      const b64 = json?.data?.[0]?.b64_json;
-      if (!b64) throw new Response(JSON.stringify({ error: "No image returned" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      if (!res.ok) {
+        const t = await res.text().catch(() => "");
+        throw new Response(
+          JSON.stringify({ error: `Image provider failed: ${res.status} ${t.slice(0, 200)}` }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      const buf = new Uint8Array(await res.arrayBuffer());
+      if (buf.byteLength < 1000) {
+        throw new Response(JSON.stringify({ error: "Provider returned empty image" }), {
+          status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       const path = `ai/${Date.now()}-${idx}-${crypto.randomUUID().slice(0, 8)}.png`;
-      const { error: upErr } = await admin.storage.from(bucket).upload(path, bin, { contentType: "image/png", upsert: true });
-      if (upErr) throw new Response(JSON.stringify({ error: upErr.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const { error: upErr } = await admin.storage
+        .from(bucket)
+        .upload(path, buf, { contentType: "image/png", upsert: true });
+      if (upErr) {
+        throw new Response(JSON.stringify({ error: upErr.message }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       const { data: pub } = admin.storage.from(bucket).getPublicUrl(path);
       return pub.publicUrl;
     };
 
     try {
-      // Sequential to respect rate limits and ordering.
-      const urls: string[] = [];
-      for (let i = 0; i < count; i++) urls.push(await generateOne(i));
-      return new Response(JSON.stringify({ url: urls[0], urls }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      // Parallel for speed — pollinations handles concurrency fine.
+      const urls = await Promise.all(Array.from({ length: count }, (_, i) => generateOne(i)));
+      return new Response(
+        JSON.stringify({ url: urls[0], urls, model: polliModel, provider: "pollinations" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     } catch (resp) {
       if (resp instanceof Response) return resp;
       throw resp;
