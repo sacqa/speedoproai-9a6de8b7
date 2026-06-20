@@ -6,10 +6,10 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const SIZES: Record<string, string> = {
-  instagram: "1024x1024",
-  story: "1024x1536",
-  facebook: "1536x1024",
+const SIZES: Record<string, { w: number; h: number }> = {
+  instagram: { w: 1024, h: 1024 },
+  story: { w: 1024, h: 1536 },
+  facebook: { w: 1536, h: 1024 },
 };
 
 type Post = { imageUrl: string; caption: string; hashtags: string[]; headline: string };
@@ -21,8 +21,6 @@ Deno.serve(async (req) => {
     const supaUrl = Deno.env.get("SUPABASE_URL")!;
     const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
     const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const lovableKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!lovableKey) return json({ error: "Missing LOVABLE_API_KEY" }, 500);
 
     const userClient = createClient(supaUrl, anon, { global: { headers: { Authorization: auth } } });
     const { data: { user } } = await userClient.auth.getUser();
@@ -84,61 +82,65 @@ Return JSON of shape:
 } ] }
 No commentary. JSON only.`;
 
-    // ---------- 1) Generate copy with Gemini, auto-fallback across models ----------
-    const COPY_MODELS = [
-      "google/gemini-3-flash-preview",
-      "google/gemini-2.5-flash",
-      "openai/gpt-5-mini",
-    ];
+    // ---------- 1) Generate copy with Pollinations (free, no key, no credits) ----------
+    // OpenAI-compatible endpoint. Try a few of their hosted models in order.
+    const COPY_MODELS = ["openai-large", "openai", "mistral"];
     let variants: any[] = [];
     const copyAttempts: string[] = [];
     let lastCopyStatus = 0;
-    let lastCopyBody = "";
     for (const model of COPY_MODELS) {
       console.log(`[generate-post] copy attempt model=${model}`);
-      const chatRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: sys },
-            { role: "user", content: userPrompt },
-          ],
-          response_format: { type: "json_object" },
-        }),
-      });
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 45_000);
+      let chatRes: Response;
+      try {
+        chatRes = await fetch("https://text.pollinations.ai/openai", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "system", content: sys },
+              { role: "user", content: userPrompt },
+            ],
+            response_format: { type: "json_object" },
+            private: true,
+            referrer: "speedo-app",
+          }),
+          signal: ctrl.signal,
+        });
+      } catch (e) {
+        copyAttempts.push(`${model} → fetch error: ${(e as Error).message}`);
+        continue;
+      } finally {
+        clearTimeout(t);
+      }
       lastCopyStatus = chatRes.status;
       if (!chatRes.ok) {
-        lastCopyBody = await chatRes.text();
-        copyAttempts.push(`${model} → ${chatRes.status} ${lastCopyBody.slice(0, 220)}`);
-        console.warn(`[generate-post] copy fail ${model}`, chatRes.status, lastCopyBody.slice(0, 500));
-        // Hard-stop on auth/billing — fallback won't help.
-        if (chatRes.status === 402) {
-          return json({ error: "AI credits exhausted. Top up Lovable AI credits to continue.", attempts: copyAttempts }, 402);
-        }
-        if (chatRes.status === 401 || chatRes.status === 403) {
-          return json({ error: `AI auth failed (${chatRes.status}). Check LOVABLE_API_KEY.`, attempts: copyAttempts }, 500);
-        }
+        const body = await chatRes.text().catch(() => "");
+        copyAttempts.push(`${model} → ${chatRes.status} ${body.slice(0, 200)}`);
         continue;
       }
-      const chatJson = await chatRes.json();
       try {
-        const txt = chatJson?.choices?.[0]?.message?.content ?? "{}";
-        const payload = typeof txt === "string" ? JSON.parse(txt) : txt;
+        const chatJson = await chatRes.json();
+        let txt = chatJson?.choices?.[0]?.message?.content ?? "{}";
+        if (typeof txt !== "string") txt = JSON.stringify(txt);
+        // Strip accidental code fences.
+        txt = txt.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
+        const payload = JSON.parse(txt);
         const arr = Array.isArray(payload?.posts) ? payload.posts.slice(0, count) : [];
         if (arr.length) { variants = arr; break; }
         copyAttempts.push(`${model} → 200 but no posts in payload`);
       } catch (e) {
-        copyAttempts.push(`${model} → 200 but JSON parse failed: ${(e as Error).message}`);
+        copyAttempts.push(`${model} → JSON parse failed: ${(e as Error).message}`);
       }
     }
     if (!variants.length) {
       return json({
-        error: "AI failed to generate post copy after all fallbacks.",
+        error: "Post copy generation failed. The free text provider may be busy — please retry.",
         lastStatus: lastCopyStatus,
         attempts: copyAttempts,
-      }, lastCopyStatus === 429 ? 429 : 500);
+      }, 502);
     }
 
     // ---------- 2) Generate one image per variant ----------
@@ -151,83 +153,47 @@ No commentary. JSON only.`;
       Witty: "playful surreal composition, unexpected scale, conceptual visual pun",
     };
 
+    // ---------- 2) Generate one image per variant via Pollinations (free) ----------
+    const generateImage = async (visual: string, i: number): Promise<string> => {
+      const seed = Math.floor(Math.random() * 1_000_000_000) + i;
+      const u = new URL(`https://image.pollinations.ai/prompt/${encodeURIComponent(visual)}`);
+      u.searchParams.set("width", String(size.w));
+      u.searchParams.set("height", String(size.h));
+      u.searchParams.set("model", "flux");
+      u.searchParams.set("seed", String(seed));
+      u.searchParams.set("nologo", "true");
+      u.searchParams.set("enhance", "true");
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 60_000);
+      let r: Response;
+      try { r = await fetch(u.toString(), { signal: ctrl.signal }); }
+      finally { clearTimeout(t); }
+      if (!r.ok) throw new Error(`image provider ${r.status}`);
+      const buf = new Uint8Array(await r.arrayBuffer());
+      if (buf.byteLength < 1000) throw new Error("image provider returned empty");
+      const path = `posts/${Date.now()}-${i}-${crypto.randomUUID().slice(0, 8)}.png`;
+      const { error: upErr } = await admin.storage.from("banners").upload(path, buf, { contentType: "image/png", upsert: true });
+      if (upErr) throw new Error(upErr.message);
+      const { data: pub } = admin.storage.from("banners").getPublicUrl(path);
+      return pub.publicUrl;
+    };
+
     const posts: Post[] = [];
     for (let i = 0; i < variants.length; i++) {
       const v = variants[i];
       const visual = `Scroll-stopping social media post visual. ${VIBE_STYLE[vibe] ?? VIBE_STYLE.Bold}. ${v.imagePrompt ?? topic}. Sharp focus, photoreal where appropriate, generous negative space for overlay text, hyper-detailed, premium ad-campaign quality. STRICT: no text, no letters, no logos, no watermarks.`;
-
-      const imageAttempts: { model: string; status: number; body: string }[] = [];
-      const tryImage = async (init: RequestInit) => {
-        const r = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", init);
-        if (!r.ok) {
-          const body = await r.text();
-          return { ok: false as const, status: r.status, body, json: null as any };
-        }
-        return { ok: true as const, status: r.status, body: "", json: await r.json() };
-      };
-
-      // 1st: OpenAI gpt-image-2
-      let imgResult = await tryImage({
-        method: "POST",
-        headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "openai/gpt-image-2", prompt: visual, size, quality: "low", n: 1 }),
-      });
-      if (!imgResult.ok) {
-        imageAttempts.push({ model: "openai/gpt-image-2", status: imgResult.status, body: imgResult.body.slice(0, 220) });
-        console.warn(`[generate-post] image#${i} openai fail`, imgResult.status, imgResult.body.slice(0, 500));
-      }
-
-      // 2nd: Gemini 3.1 flash image
-      if (!imgResult.ok && imgResult.status !== 402) {
-        imgResult = await tryImage({
-          method: "POST",
-          headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "google/gemini-3.1-flash-image-preview",
-            messages: [{ role: "user", content: visual }],
-            modalities: ["image", "text"],
-          }),
-        });
-        if (!imgResult.ok) {
-          imageAttempts.push({ model: "google/gemini-3.1-flash-image-preview", status: imgResult.status, body: imgResult.body.slice(0, 220) });
-          console.warn(`[generate-post] image#${i} gemini-3.1 fail`, imgResult.status, imgResult.body.slice(0, 500));
-        }
-      }
-
-      // 3rd: Gemini 2.5 flash image (Nano Banana)
-      if (!imgResult.ok && imgResult.status !== 402) {
-        imgResult = await tryImage({
-          method: "POST",
-          headers: { Authorization: `Bearer ${lovableKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash-image",
-            messages: [{ role: "user", content: visual }],
-            modalities: ["image", "text"],
-          }),
-        });
-        if (!imgResult.ok) {
-          imageAttempts.push({ model: "google/gemini-2.5-flash-image", status: imgResult.status, body: imgResult.body.slice(0, 220) });
-        }
-      }
-
-      if (!imgResult.ok) {
-        const code = imgResult.status === 402 ? 402 : imgResult.status === 429 ? 429 : 500;
+      let imageUrl = "";
+      try {
+        imageUrl = await generateImage(visual, i);
+      } catch (e) {
+        console.warn(`[generate-post] image#${i} failed`, (e as Error).message);
         return json({
-          error: `AI image failed after ${imageAttempts.length} fallbacks (variant ${i + 1}/${variants.length})`,
-          attempts: imageAttempts,
-          copyAttempts,
-        }, code);
+          error: `Image generation failed on variant ${i + 1}/${variants.length}. Free provider may be busy — please retry.`,
+          detail: (e as Error).message,
+        }, 502);
       }
-      const imgJson = imgResult.json;
-      const b64 = imgJson?.data?.[0]?.b64_json;
-      if (!b64) return json({ error: "No image returned (empty b64_json)", attempts: imageAttempts }, 500);
-      const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-      const path = `posts/${Date.now()}-${i}-${crypto.randomUUID().slice(0, 8)}.png`;
-      const { error: upErr } = await admin.storage.from("banners").upload(path, bin, { contentType: "image/png", upsert: true });
-      if (upErr) return json({ error: upErr.message }, 500);
-      const { data: pub } = admin.storage.from("banners").getPublicUrl(path);
       posts.push({
-        imageUrl: pub.publicUrl,
+        imageUrl,
         headline: String(v.headline ?? topic).slice(0, 120),
         caption: String(v.caption ?? ""),
         hashtags: Array.isArray(v.hashtags) ? v.hashtags.map((h: any) => String(h)).slice(0, 12) : [],
