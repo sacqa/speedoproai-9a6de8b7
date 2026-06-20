@@ -153,31 +153,6 @@ export function AIImageButton({
     { id: "landscape", label: "Landscape", sub: "1536×1024" },
   ];
 
-  const _go_legacy = async () => {
-    if (!prompt.trim()) return toast.error("Enter a prompt");
-    setBusy(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-image", {
-        body: { prompt: prompt.trim(), preset, context, bucket, count, style },
-      });
-      if (error) throw error;
-      const urls: string[] = data?.urls ?? (data?.url ? [data.url] : []);
-      if (!urls.length) throw new Error("No image returned");
-      if (urls.length > 1 && onGeneratedMany) onGeneratedMany(urls);
-      else urls.forEach((u) => onGenerated(u));
-      toast.success(urls.length > 1 ? `${urls.length} images generated` : "Image generated");
-      setOpen(false);
-      setPrompt("");
-    } catch (e: any) {
-      const msg = String(e?.message ?? "");
-      if (msg.includes("429")) toast.error("Rate limit — please try again shortly");
-      else if (msg.includes("402")) toast.error("AI credits exhausted — please top up");
-      else toast.error(msg || "Generation failed");
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const STYLES: { id: Style; label: string }[] = [
     { id: "studio", label: "Studio" },
     { id: "cinematic", label: "Cinematic" },
