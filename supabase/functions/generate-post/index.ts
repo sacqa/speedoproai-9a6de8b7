@@ -12,6 +12,15 @@ const SIZES: Record<string, { w: number; h: number }> = {
   facebook: { w: 1536, h: 1024 },
 };
 
+const MODEL_MAP: Record<string, string> = {
+  "gpt-image-2": "flux",
+  "gpt-image-1-mini": "turbo",
+  "nano-banana": "flux-realism",
+  flux: "flux",
+  turbo: "turbo",
+  "flux-realism": "flux-realism",
+};
+
 type Post = { imageUrl: string; caption: string; hashtags: string[]; headline: string };
 
 const unique = (items: string[]) => Array.from(new Set(items.filter(Boolean)));
@@ -38,6 +47,7 @@ Deno.serve(async (req) => {
     const kind = String(body.kind ?? "sale");
     const vibe = String(body.vibe ?? "Bold");
     const platform = String(body.platform ?? "instagram") as keyof typeof SIZES;
+    const imageModel = String(body.imageModel ?? "gpt-image-2");
     const count = Math.max(1, Math.min(6, Number(body.count ?? 1)));
     if (!topic) return json({ error: "topic required" }, 400);
 
@@ -156,7 +166,7 @@ No commentary. JSON only.`;
       let buf: Uint8Array | null = null;
       let contentType = "image/jpeg";
       const attempts: string[] = [];
-      for (const model of unique(["flux", "flux-realism", "turbo"])) {
+      for (const model of unique([MODEL_MAP[imageModel] ?? "flux", "flux", "flux-realism", "turbo"])) {
         const u = new URL(`https://image.pollinations.ai/prompt/${encodeURIComponent(visual)}`);
         u.searchParams.set("width", String(size.w));
         u.searchParams.set("height", String(size.h));
@@ -220,7 +230,7 @@ No commentary. JSON only.`;
       });
     }
 
-    return json({ posts, provider: "pollinations-free", unlimited: true });
+    return json({ posts, provider: "pollinations-free", imageModel, unlimited: true });
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
   }
