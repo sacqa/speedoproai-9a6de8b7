@@ -87,6 +87,7 @@ Deno.serve(async (req) => {
         idx === 0 ? styled : `${styled} Variant ${idx + 1}: alternate angle, fresh composition, different lighting mood.`;
       const attempts: string[] = [];
       let buf: Uint8Array | null = null;
+      let contentType = "image/jpeg";
       let resolvedModel = polliModel;
       for (const providerModel of unique([polliModel, "flux", "flux-realism", "turbo"])) {
         const url = new URL(`https://image.pollinations.ai/prompt/${encodeURIComponent(variantHint)}`);
@@ -100,7 +101,10 @@ Deno.serve(async (req) => {
         const ctrl = new AbortController();
         const timer = setTimeout(() => ctrl.abort(), 70_000);
         try {
-          const res = await fetch(url.toString(), { signal: ctrl.signal });
+          const res = await fetch(url.toString(), {
+            signal: ctrl.signal,
+            headers: { "User-Agent": "SpeedoAdminImageGenerator/1.0", Accept: "image/*" },
+          });
           if (!res.ok) {
             const t = await res.text().catch(() => "");
             attempts.push(`${providerModel}: HTTP ${res.status} ${t.slice(0, 160)}`);
@@ -112,6 +116,7 @@ Deno.serve(async (req) => {
             continue;
           }
           buf = next;
+          contentType = res.headers.get("content-type")?.split(";")[0] || contentType;
           resolvedModel = providerModel;
           break;
         } catch (e) {
@@ -125,10 +130,11 @@ Deno.serve(async (req) => {
           status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const path = `ai/${Date.now()}-${idx}-${crypto.randomUUID().slice(0, 8)}.png`;
+      const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
+      const path = `ai/${Date.now()}-${idx}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
       const { error: upErr } = await admin.storage
         .from(bucket)
-        .upload(path, buf, { contentType: "image/png", upsert: true });
+        .upload(path, buf, { contentType, upsert: true });
       if (upErr) {
         throw new Response(JSON.stringify({ error: upErr.message }), {
           status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
