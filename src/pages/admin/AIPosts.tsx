@@ -22,6 +22,11 @@ const PLATFORMS = [
   { id: "story", label: "Story / Reel (9:16)" },
   { id: "facebook", label: "Facebook (16:10)" },
 ] as const;
+const IMAGE_MODELS = [
+  { id: "gpt-image-2", label: "GPT-Image-2" },
+  { id: "gpt-image-1-mini", label: "GPT-Image-1 Mini" },
+  { id: "nano-banana", label: "Nano Banana" },
+] as const;
 
 type Post = { imageUrl: string; caption: string; hashtags: string[]; headline: string };
 
@@ -30,6 +35,7 @@ export default function AIPosts() {
   const [kind, setKind] = useState<(typeof POST_KINDS)[number]["id"]>("sale");
   const [vibe, setVibe] = useState("Bold");
   const [platform, setPlatform] = useState<(typeof PLATFORMS)[number]["id"]>("instagram");
+  const [imageModel, setImageModel] = useState<(typeof IMAGE_MODELS)[number]["id"]>("gpt-image-2");
   const [count, setCount] = useState(1);
   const [busy, setBusy] = useState(false);
   const [results, setResults] = useState<Post[]>([]);
@@ -41,7 +47,7 @@ export default function AIPosts() {
     setResults([]);
     try {
       const { data, error } = await supabase.functions.invoke("generate-post", {
-        body: { topic: topic.trim(), kind, vibe, platform, count },
+        body: { topic: topic.trim(), kind, vibe, platform, imageModel, count },
       });
       // supabase-js swallows non-2xx bodies into a generic error; read the Response ourselves.
       if (error) {
@@ -127,6 +133,15 @@ export default function AIPosts() {
                   <Chip key={p.id} active={platform === p.id} onClick={() => setPlatform(p.id)}>{p.label}</Chip>
                 ))}
               </div>
+            </div>
+          </div>
+
+          <div>
+            <Label className="mb-1.5 block">Image model</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {IMAGE_MODELS.map((m) => (
+                <Chip key={m.id} active={imageModel === m.id} onClick={() => setImageModel(m.id)}>{m.label}</Chip>
+              ))}
             </div>
           </div>
 
