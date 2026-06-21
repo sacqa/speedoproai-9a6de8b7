@@ -157,6 +157,7 @@ No commentary. JSON only.`;
     const generateImage = async (visual: string, i: number): Promise<string> => {
       const seed = Math.floor(Math.random() * 1_000_000_000) + i;
       let buf: Uint8Array | null = null;
+      let contentType = "image/jpeg";
       const attempts: string[] = [];
       for (const model of unique(["flux", "flux-realism", "turbo"])) {
         const u = new URL(`https://image.pollinations.ai/prompt/${encodeURIComponent(visual)}`);
@@ -169,7 +170,10 @@ No commentary. JSON only.`;
         const ctrl = new AbortController();
         const t = setTimeout(() => ctrl.abort(), 70_000);
         try {
-          const r = await fetch(u.toString(), { signal: ctrl.signal });
+          const r = await fetch(u.toString(), {
+            signal: ctrl.signal,
+            headers: { "User-Agent": "SpeedoAdminPostGenerator/1.0", Accept: "image/*" },
+          });
           if (!r.ok) {
             const body = await r.text().catch(() => "");
             attempts.push(`${model}: HTTP ${r.status} ${body.slice(0, 160)}`);
@@ -181,6 +185,7 @@ No commentary. JSON only.`;
             continue;
           }
           buf = next;
+          contentType = r.headers.get("content-type")?.split(";")[0] || contentType;
           console.log(`[generate-post] image#${i} generated model=${model}`);
           break;
         } catch (e) {
@@ -188,8 +193,9 @@ No commentary. JSON only.`;
         } finally { clearTimeout(t); }
       }
       if (!buf) throw new Error(`free image provider failed after fallbacks: ${attempts.join(" | ")}`);
-      const path = `posts/${Date.now()}-${i}-${crypto.randomUUID().slice(0, 8)}.png`;
-      const { error: upErr } = await admin.storage.from("banners").upload(path, buf, { contentType: "image/png", upsert: true });
+      const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
+      const path = `posts/${Date.now()}-${i}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
+      const { error: upErr } = await admin.storage.from("banners").upload(path, buf, { contentType, upsert: true });
       if (upErr) throw new Error(upErr.message);
       const { data: pub } = admin.storage.from("banners").getPublicUrl(path);
       return pub.publicUrl;
