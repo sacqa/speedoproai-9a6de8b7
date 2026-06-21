@@ -137,11 +137,8 @@ No commentary. JSON only.`;
       }
     }
     if (!variants.length) {
-      return json({
-        error: "Post copy generation failed. The free text provider may be busy — please retry.",
-        lastStatus: lastCopyStatus,
-        attempts: copyAttempts,
-      }, 502);
+      console.warn("[generate-post] copy provider failed; using local creative fallback", { lastCopyStatus, copyAttempts });
+      variants = buildFallbackVariants(topic, kind, vibe, platform, count);
     }
 
     // ---------- 2) Generate one image per variant via Pollinations ----------
@@ -234,4 +231,26 @@ function json(body: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+function buildFallbackVariants(topic: string, kind: string, vibe: string, platform: string, count: number) {
+  const hooks = [
+    `Your ${topic} plan just got easier`,
+    `Dipalpur, this one is for today`,
+    `Small errand, big time saved`,
+    `The faster way to handle ${topic}`,
+    `No extra trip needed`,
+    `Make room in your day`,
+  ];
+  const ctas = platform === "story"
+    ? ["Tap to order →", "Send your list now →", "Get it delivered today →"]
+    : ["Order on Speedo today.", "Send your list — Speedo will handle the run.", "Tap, order, and get back to your day."];
+  return Array.from({ length: count }, (_, i) => ({
+    headline: hooks[i % hooks.length].slice(0, 60),
+    caption: platform === "story"
+      ? `${hooks[i % hooks.length]}\n• Fresh pick\n• Quick delivery\n${ctas[i % ctas.length]}`
+      : `${hooks[i % hooks.length]}\n\n• Built for busy Dipalpur routines\n• Groceries, food, pharmacy and essentials without the extra ride\n• ${vibe} offer energy, clear value, zero fuss\n\n${ctas[i % ctas.length]}`,
+    hashtags: ["speedo", "dipalpur", "pakistan", "hyperlocaldelivery", "grocerydelivery", "fooddelivery", "speedofast", "okara", "dailyessentials", kind.toLowerCase()].slice(0, 10),
+    imagePrompt: `Premium ${vibe.toLowerCase()} social media advertising visual for ${topic}, hyperlocal delivery app in Dipalpur Pakistan, modern commercial photography, app-order convenience mood, clean composition, bright fresh colors, strong subject focus, mobile-first ad creative, no text, no letters, no logos, no watermarks`,
+  }));
 }
