@@ -14,6 +14,8 @@ const SIZES: Record<string, { w: number; h: number }> = {
 
 type Post = { imageUrl: string; caption: string; hashtags: string[]; headline: string };
 
+const unique = (items: string[]) => Array.from(new Set(items.filter(Boolean)));
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
@@ -41,7 +43,7 @@ Deno.serve(async (req) => {
 
     const size = SIZES[platform] ?? SIZES.instagram;
 
-    // ---------- 1) Generate copy with Gemini (single call, structured JSON) ----------
+    // ---------- 1) Generate copy with a free provider (no Lovable credits) ----------
     const kindHint: Record<string, string> = {
       sale: "Punchy flash-sale energy with urgency and a clear discount call-out.",
       feature: "Spotlight a feature/service of Speedo with confident benefit-driven copy.",
@@ -82,8 +84,7 @@ Return JSON of shape:
 } ] }
 No commentary. JSON only.`;
 
-    // ---------- 1) Generate copy with Pollinations (free, no key, no credits) ----------
-    // OpenAI-compatible endpoint. Try a few of their hosted models in order.
+    // OpenAI-compatible endpoint. Try a few hosted models in order.
     const COPY_MODELS = ["openai-large", "openai", "mistral"];
     let variants: any[] = [];
     const copyAttempts: string[] = [];
@@ -143,7 +144,7 @@ No commentary. JSON only.`;
       }, 502);
     }
 
-    // ---------- 2) Generate one image per variant ----------
+    // ---------- 2) Generate one image per variant via Pollinations (free, no credits) ----------
     const VIBE_STYLE: Record<string, string> = {
       Bold: "high-contrast, electric colors, dramatic lighting, oversized hero subject",
       Playful: "bubbly 3D-render aesthetic, candy colors, kinetic shapes, joyful",
@@ -153,24 +154,40 @@ No commentary. JSON only.`;
       Witty: "playful surreal composition, unexpected scale, conceptual visual pun",
     };
 
-    // ---------- 2) Generate one image per variant via Pollinations (free) ----------
     const generateImage = async (visual: string, i: number): Promise<string> => {
       const seed = Math.floor(Math.random() * 1_000_000_000) + i;
-      const u = new URL(`https://image.pollinations.ai/prompt/${encodeURIComponent(visual)}`);
-      u.searchParams.set("width", String(size.w));
-      u.searchParams.set("height", String(size.h));
-      u.searchParams.set("model", "flux");
-      u.searchParams.set("seed", String(seed));
-      u.searchParams.set("nologo", "true");
-      u.searchParams.set("enhance", "true");
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 60_000);
-      let r: Response;
-      try { r = await fetch(u.toString(), { signal: ctrl.signal }); }
-      finally { clearTimeout(t); }
-      if (!r.ok) throw new Error(`image provider ${r.status}`);
-      const buf = new Uint8Array(await r.arrayBuffer());
-      if (buf.byteLength < 1000) throw new Error("image provider returned empty");
+      let buf: Uint8Array | null = null;
+      const attempts: string[] = [];
+      for (const model of unique(["flux", "flux-realism", "turbo"])) {
+        const u = new URL(`https://image.pollinations.ai/prompt/${encodeURIComponent(visual)}`);
+        u.searchParams.set("width", String(size.w));
+        u.searchParams.set("height", String(size.h));
+        u.searchParams.set("model", model);
+        u.searchParams.set("seed", String(seed));
+        u.searchParams.set("nologo", "true");
+        u.searchParams.set("enhance", "true");
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 70_000);
+        try {
+          const r = await fetch(u.toString(), { signal: ctrl.signal });
+          if (!r.ok) {
+            const body = await r.text().catch(() => "");
+            attempts.push(`${model}: HTTP ${r.status} ${body.slice(0, 160)}`);
+            continue;
+          }
+          const next = new Uint8Array(await r.arrayBuffer());
+          if (next.byteLength < 1000) {
+            attempts.push(`${model}: empty image response`);
+            continue;
+          }
+          buf = next;
+          console.log(`[generate-post] image#${i} generated model=${model}`);
+          break;
+        } catch (e) {
+          attempts.push(`${model}: ${(e as Error).message}`);
+        } finally { clearTimeout(t); }
+      }
+      if (!buf) throw new Error(`free image provider failed after fallbacks: ${attempts.join(" | ")}`);
       const path = `posts/${Date.now()}-${i}-${crypto.randomUUID().slice(0, 8)}.png`;
       const { error: upErr } = await admin.storage.from("banners").upload(path, buf, { contentType: "image/png", upsert: true });
       if (upErr) throw new Error(upErr.message);
@@ -200,7 +217,7 @@ No commentary. JSON only.`;
       });
     }
 
-    return json({ posts });
+    return json({ posts, provider: "pollinations-free", unlimited: true });
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
   }
