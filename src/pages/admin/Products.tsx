@@ -156,7 +156,7 @@ export default function AdminProducts() {
   const bulkGenerateImages = async () => {
     if (selected.size === 0) return;
     const targets = (prods.data ?? []).filter((p: any) => selected.has(p.id));
-    if (!confirm(`Generate AI product images for ${targets.length} selected product(s)? This may take a while and consumes AI credits.`)) return;
+    if (!confirm(`Generate free AI product images for ${targets.length} selected product(s)? This may take a while.`)) return;
     setAiBulkBusy(true);
     setAiProgress({ done: 0, total: targets.length });
     let ok = 0, fail = 0;
@@ -166,14 +166,24 @@ export default function AdminProducts() {
         const { data, error } = await supabase.functions.invoke("generate-image", {
           body: { prompt: p.name, preset: "square", context: "product", bucket: "products" },
         });
-        if (error || !data?.url) throw new Error(error?.message || "no url");
+        if (error || !data?.url) {
+          let msg = error?.message || "no url";
+          const res: Response | undefined = (error as any)?.context;
+          if (res) {
+            try {
+              const body = await res.clone().json();
+              msg = body?.error || body?.message || msg;
+            } catch {}
+          }
+          throw new Error(msg);
+        }
         const { error: uErr } = await supabase.from("products").update({ image_url: data.url }).eq("id", p.id);
         if (uErr) throw uErr;
         ok++;
       } catch (e: any) {
         fail++;
-        const msg = String(e?.message ?? "");
-        if (msg.includes("402")) { toast.error("AI credits exhausted — stopping bulk generation"); break; }
+        const msg = String(e?.message ?? "Free generation failed");
+        console.error("bulk product image generation failed", msg);
       }
       setAiProgress({ done: i + 1, total: targets.length });
     }

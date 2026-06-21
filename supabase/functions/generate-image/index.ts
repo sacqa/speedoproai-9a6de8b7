@@ -27,6 +27,8 @@ const MODEL_MAP: Record<string, string> = {
   "flux-realism": "flux-realism",
 };
 
+const unique = (items: string[]) => Array.from(new Set(items.filter(Boolean)));
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
@@ -50,6 +52,10 @@ Deno.serve(async (req) => {
     if (!prompt || typeof prompt !== "string") return new Response(JSON.stringify({ error: "prompt required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const size = SIZES[preset] ?? SIZES.square;
     const polliModel = MODEL_MAP[model] ?? "flux";
+    const allowedBuckets = new Set(["products", "banners", "food", "avatars"]);
+    if (!allowedBuckets.has(bucket)) {
+      return new Response(JSON.stringify({ error: "Invalid storage bucket" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     // ----- Creative prompt engineering -----
     const STYLE_MODIFIERS: Record<string, string> = {
@@ -79,55 +85,70 @@ Deno.serve(async (req) => {
       const seed = Math.floor(Math.random() * 1_000_000_000) + idx;
       const variantHint =
         idx === 0 ? styled : `${styled} Variant ${idx + 1}: alternate angle, fresh composition, different lighting mood.`;
-      const url = new URL(`https://image.pollinations.ai/prompt/${encodeURIComponent(variantHint)}`);
-      url.searchParams.set("width", String(size.w));
-      url.searchParams.set("height", String(size.h));
-      url.searchParams.set("model", polliModel);
-      url.searchParams.set("seed", String(seed));
-      url.searchParams.set("nologo", "true");
-      url.searchParams.set("enhance", "true");
-      url.searchParams.set("safe", "false");
+      const attempts: string[] = [];
+      let buf: Uint8Array | null = null;
+      let contentType = "image/jpeg";
+      let resolvedModel = polliModel;
+      for (const providerModel of unique([polliModel, "flux", "flux-realism", "turbo"])) {
+        const url = new URL(`https://image.pollinations.ai/prompt/${encodeURIComponent(variantHint)}`);
+        url.searchParams.set("width", String(size.w));
+        url.searchParams.set("height", String(size.h));
+        url.searchParams.set("model", providerModel);
+        url.searchParams.set("seed", String(seed));
+        url.searchParams.set("nologo", "true");
+        url.searchParams.set("enhance", "true");
 
-      // 60s timeout per image; pollinations can be slow on cold model.
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 60_000);
-      let res: Response;
-      try {
-        res = await fetch(url.toString(), { signal: ctrl.signal });
-      } finally {
-        clearTimeout(timer);
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 70_000);
+        try {
+          const res = await fetch(url.toString(), {
+            signal: ctrl.signal,
+            headers: { "User-Agent": "SpeedoAdminImageGenerator/1.0", Accept: "image/*" },
+          });
+          if (!res.ok) {
+            const t = await res.text().catch(() => "");
+            attempts.push(`${providerModel}: HTTP ${res.status} ${t.slice(0, 160)}`);
+            continue;
+          }
+          const next = new Uint8Array(await res.arrayBuffer());
+          if (next.byteLength < 1000) {
+            attempts.push(`${providerModel}: empty image response`);
+            continue;
+          }
+          buf = next;
+          contentType = res.headers.get("content-type")?.split(";")[0] || contentType;
+          resolvedModel = providerModel;
+          break;
+        } catch (e) {
+          attempts.push(`${providerModel}: ${(e as Error).message}`);
+        } finally {
+          clearTimeout(timer);
+        }
       }
-      if (!res.ok) {
-        const t = await res.text().catch(() => "");
-        throw new Response(
-          JSON.stringify({ error: `Image provider failed: ${res.status} ${t.slice(0, 200)}` }),
-          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-      const buf = new Uint8Array(await res.arrayBuffer());
-      if (buf.byteLength < 1000) {
-        throw new Response(JSON.stringify({ error: "Provider returned empty image" }), {
+      if (!buf) {
+        throw new Response(JSON.stringify({ error: "Free image provider failed after fallback retries. Please retry.", attempts }), {
           status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const path = `ai/${Date.now()}-${idx}-${crypto.randomUUID().slice(0, 8)}.png`;
+      const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
+      const path = `ai/${Date.now()}-${idx}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
       const { error: upErr } = await admin.storage
         .from(bucket)
-        .upload(path, buf, { contentType: "image/png", upsert: true });
+        .upload(path, buf, { contentType, upsert: true });
       if (upErr) {
         throw new Response(JSON.stringify({ error: upErr.message }), {
           status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const { data: pub } = admin.storage.from(bucket).getPublicUrl(path);
+      console.log(`[generate-image] generated idx=${idx} model=${resolvedModel} bucket=${bucket}`);
       return pub.publicUrl;
     };
 
     try {
-      // Parallel for speed — pollinations handles concurrency fine.
       const urls = await Promise.all(Array.from({ length: count }, (_, i) => generateOne(i)));
       return new Response(
-        JSON.stringify({ url: urls[0], urls, model: polliModel, provider: "pollinations" }),
+        JSON.stringify({ url: urls[0], urls, model: polliModel, provider: "pollinations-free", unlimited: true }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     } catch (resp) {

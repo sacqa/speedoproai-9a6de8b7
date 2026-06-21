@@ -12,7 +12,18 @@ const SIZES: Record<string, { w: number; h: number }> = {
   facebook: { w: 1536, h: 1024 },
 };
 
+const MODEL_MAP: Record<string, string> = {
+  "gpt-image-2": "flux",
+  "gpt-image-1-mini": "turbo",
+  "nano-banana": "flux-realism",
+  flux: "flux",
+  turbo: "turbo",
+  "flux-realism": "flux-realism",
+};
+
 type Post = { imageUrl: string; caption: string; hashtags: string[]; headline: string };
+
+const unique = (items: string[]) => Array.from(new Set(items.filter(Boolean)));
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -36,12 +47,13 @@ Deno.serve(async (req) => {
     const kind = String(body.kind ?? "sale");
     const vibe = String(body.vibe ?? "Bold");
     const platform = String(body.platform ?? "instagram") as keyof typeof SIZES;
+    const imageModel = String(body.imageModel ?? "gpt-image-2");
     const count = Math.max(1, Math.min(6, Number(body.count ?? 1)));
     if (!topic) return json({ error: "topic required" }, 400);
 
     const size = SIZES[platform] ?? SIZES.instagram;
 
-    // ---------- 1) Generate copy with Gemini (single call, structured JSON) ----------
+    // ---------- 1) Generate copy with a free provider ----------
     const kindHint: Record<string, string> = {
       sale: "Punchy flash-sale energy with urgency and a clear discount call-out.",
       feature: "Spotlight a feature/service of Speedo with confident benefit-driven copy.",
@@ -82,8 +94,7 @@ Return JSON of shape:
 } ] }
 No commentary. JSON only.`;
 
-    // ---------- 1) Generate copy with Pollinations (free, no key, no credits) ----------
-    // OpenAI-compatible endpoint. Try a few of their hosted models in order.
+    // OpenAI-compatible endpoint. Try a few hosted models in order.
     const COPY_MODELS = ["openai-large", "openai", "mistral"];
     let variants: any[] = [];
     const copyAttempts: string[] = [];
@@ -136,14 +147,11 @@ No commentary. JSON only.`;
       }
     }
     if (!variants.length) {
-      return json({
-        error: "Post copy generation failed. The free text provider may be busy — please retry.",
-        lastStatus: lastCopyStatus,
-        attempts: copyAttempts,
-      }, 502);
+      console.warn("[generate-post] copy provider failed; using local creative fallback", { lastCopyStatus, copyAttempts });
+      variants = buildFallbackVariants(topic, kind, vibe, platform, count);
     }
 
-    // ---------- 2) Generate one image per variant ----------
+    // ---------- 2) Generate one image per variant via Pollinations ----------
     const VIBE_STYLE: Record<string, string> = {
       Bold: "high-contrast, electric colors, dramatic lighting, oversized hero subject",
       Playful: "bubbly 3D-render aesthetic, candy colors, kinetic shapes, joyful",
@@ -153,26 +161,48 @@ No commentary. JSON only.`;
       Witty: "playful surreal composition, unexpected scale, conceptual visual pun",
     };
 
-    // ---------- 2) Generate one image per variant via Pollinations (free) ----------
     const generateImage = async (visual: string, i: number): Promise<string> => {
       const seed = Math.floor(Math.random() * 1_000_000_000) + i;
-      const u = new URL(`https://image.pollinations.ai/prompt/${encodeURIComponent(visual)}`);
-      u.searchParams.set("width", String(size.w));
-      u.searchParams.set("height", String(size.h));
-      u.searchParams.set("model", "flux");
-      u.searchParams.set("seed", String(seed));
-      u.searchParams.set("nologo", "true");
-      u.searchParams.set("enhance", "true");
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), 60_000);
-      let r: Response;
-      try { r = await fetch(u.toString(), { signal: ctrl.signal }); }
-      finally { clearTimeout(t); }
-      if (!r.ok) throw new Error(`image provider ${r.status}`);
-      const buf = new Uint8Array(await r.arrayBuffer());
-      if (buf.byteLength < 1000) throw new Error("image provider returned empty");
-      const path = `posts/${Date.now()}-${i}-${crypto.randomUUID().slice(0, 8)}.png`;
-      const { error: upErr } = await admin.storage.from("banners").upload(path, buf, { contentType: "image/png", upsert: true });
+      let buf: Uint8Array | null = null;
+      let contentType = "image/jpeg";
+      const attempts: string[] = [];
+      for (const model of unique([MODEL_MAP[imageModel] ?? "flux", "flux", "flux-realism", "turbo"])) {
+        const u = new URL(`https://image.pollinations.ai/prompt/${encodeURIComponent(visual)}`);
+        u.searchParams.set("width", String(size.w));
+        u.searchParams.set("height", String(size.h));
+        u.searchParams.set("model", model);
+        u.searchParams.set("seed", String(seed));
+        u.searchParams.set("nologo", "true");
+        u.searchParams.set("enhance", "true");
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 70_000);
+        try {
+          const r = await fetch(u.toString(), {
+            signal: ctrl.signal,
+            headers: { "User-Agent": "SpeedoAdminPostGenerator/1.0", Accept: "image/*" },
+          });
+          if (!r.ok) {
+            const body = await r.text().catch(() => "");
+            attempts.push(`${model}: HTTP ${r.status} ${body.slice(0, 160)}`);
+            continue;
+          }
+          const next = new Uint8Array(await r.arrayBuffer());
+          if (next.byteLength < 1000) {
+            attempts.push(`${model}: empty image response`);
+            continue;
+          }
+          buf = next;
+          contentType = r.headers.get("content-type")?.split(";")[0] || contentType;
+          console.log(`[generate-post] image#${i} generated model=${model}`);
+          break;
+        } catch (e) {
+          attempts.push(`${model}: ${(e as Error).message}`);
+        } finally { clearTimeout(t); }
+      }
+      if (!buf) throw new Error(`free image provider failed after fallbacks: ${attempts.join(" | ")}`);
+      const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
+      const path = `posts/${Date.now()}-${i}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
+      const { error: upErr } = await admin.storage.from("banners").upload(path, buf, { contentType, upsert: true });
       if (upErr) throw new Error(upErr.message);
       const { data: pub } = admin.storage.from("banners").getPublicUrl(path);
       return pub.publicUrl;
@@ -200,7 +230,7 @@ No commentary. JSON only.`;
       });
     }
 
-    return json({ posts });
+    return json({ posts, provider: "pollinations-free", imageModel, unlimited: true });
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
   }
@@ -211,4 +241,26 @@ function json(body: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+function buildFallbackVariants(topic: string, kind: string, vibe: string, platform: string, count: number) {
+  const hooks = [
+    `Your ${topic} plan just got easier`,
+    `Dipalpur, this one is for today`,
+    `Small errand, big time saved`,
+    `The faster way to handle ${topic}`,
+    `No extra trip needed`,
+    `Make room in your day`,
+  ];
+  const ctas = platform === "story"
+    ? ["Tap to order →", "Send your list now →", "Get it delivered today →"]
+    : ["Order on Speedo today.", "Send your list — Speedo will handle the run.", "Tap, order, and get back to your day."];
+  return Array.from({ length: count }, (_, i) => ({
+    headline: hooks[i % hooks.length].slice(0, 60),
+    caption: platform === "story"
+      ? `${hooks[i % hooks.length]}\n• Fresh pick\n• Quick delivery\n${ctas[i % ctas.length]}`
+      : `${hooks[i % hooks.length]}\n\n• Built for busy Dipalpur routines\n• Groceries, food, pharmacy and essentials without the extra ride\n• ${vibe} offer energy, clear value, zero fuss\n\n${ctas[i % ctas.length]}`,
+    hashtags: ["speedo", "dipalpur", "pakistan", "hyperlocaldelivery", "grocerydelivery", "fooddelivery", "speedofast", "okara", "dailyessentials", kind.toLowerCase()].slice(0, 10),
+    imagePrompt: `Premium ${vibe.toLowerCase()} social media advertising visual for ${topic}, hyperlocal delivery app in Dipalpur Pakistan, modern commercial photography, app-order convenience mood, clean composition, bright fresh colors, strong subject focus, mobile-first ad creative, no text, no letters, no logos, no watermarks`,
+  }));
 }
