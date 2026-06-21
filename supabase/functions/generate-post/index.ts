@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
 
     const size = SIZES[platform] ?? SIZES.instagram;
 
-    // ---------- 1) Generate copy with a free provider (no Lovable credits) ----------
+    // ---------- 1) Generate copy with a free provider ----------
     const kindHint: Record<string, string> = {
       sale: "Punchy flash-sale energy with urgency and a clear discount call-out.",
       feature: "Spotlight a feature/service of Speedo with confident benefit-driven copy.",
@@ -144,7 +144,7 @@ No commentary. JSON only.`;
       }, 502);
     }
 
-    // ---------- 2) Generate one image per variant via Pollinations (free, no credits) ----------
+    // ---------- 2) Generate one image per variant via Pollinations ----------
     const VIBE_STYLE: Record<string, string> = {
       Bold: "high-contrast, electric colors, dramatic lighting, oversized hero subject",
       Playful: "bubbly 3D-render aesthetic, candy colors, kinetic shapes, joyful",
