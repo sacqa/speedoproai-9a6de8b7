@@ -57,12 +57,10 @@ export default function AIPosts() {
             try { serverMsg = await res.clone().text(); } catch {}
           }
         }
-        if (status === 402 || /not enough credits|credits? exhausted|payment_required/i.test(serverMsg)) {
-          toast.error("AI credits exhausted. Top up Lovable AI credits to keep generating.", { duration: 8000 });
-        } else if (status === 429) {
-          toast.error("Rate limit hit — please wait a few seconds and retry.");
+        if (status === 429) {
+          toast.error("Free provider is busy — please wait a few seconds and retry.");
         } else {
-          toast.error(serverMsg || error.message || "Generation failed", { duration: 8000 });
+          toast.error(serverMsg || error.message || "Free generation failed", { duration: 8000 });
         }
         console.error("generate-post failed", { status, serverMsg, error });
         return;
