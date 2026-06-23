@@ -14,25 +14,27 @@ const SIZES: Record<string, { w: number; h: number }> = {
   portrait: { w: 1024, h: 1536 },
 };
 
-// Two providers, both free for the admin:
-//   1. Pollinations.ai      → no API key required, unlimited.
-//   2. Lovable AI Gateway   → uses the project's LOVABLE_API_KEY.
-//      - "gpt-2"          → openai/gpt-image-2
-//      - "gemini-latest"  → google/gemini-3.1-flash-image (Nano Banana 2)
-// Pollinations model mapping:
-const MODEL_MAP: Record<string, string> = {
+// All quality models route through the Lovable AI Gateway (premium quality).
+// Pollinations.ai is kept ONLY as an emergency fallback if the gateway is down.
+const GATEWAY_MODELS: Record<string, { upstream: string; provider: "openai" | "gemini" }> = {
+  // Flagship / default — highest-quality, ChatGPT-grade outputs.
+  "gemini-3-pro": { upstream: "google/gemini-3-pro-image", provider: "gemini" },
+  // Other premium options exposed in the UI.
+  "gemini-latest": { upstream: "google/gemini-3.1-flash-image", provider: "gemini" },
+  "nano-banana": { upstream: "google/gemini-2.5-flash-image", provider: "gemini" },
+  "gpt-image-2": { upstream: "openai/gpt-image-2", provider: "openai" },
+  "gpt-2": { upstream: "openai/gpt-image-2", provider: "openai" },
+  "gpt-image-1-mini": { upstream: "openai/gpt-image-1-mini", provider: "openai" },
+};
+
+// Pollinations fallback map (only used if the gateway fails for the chosen model).
+const POLLINATIONS_FALLBACK: Record<string, string> = {
   "gpt-image-2": "flux",
   "gpt-image-1-mini": "turbo",
   "nano-banana": "flux-realism",
-  flux: "flux",
-  turbo: "turbo",
-  "flux-realism": "flux-realism",
-};
-
-// Models routed through the Lovable AI Gateway (require LOVABLE_API_KEY).
-const GATEWAY_MODELS: Record<string, { upstream: string; provider: "openai" | "gemini" }> = {
-  "gpt-2": { upstream: "openai/gpt-image-2", provider: "openai" },
-  "gemini-latest": { upstream: "google/gemini-3.1-flash-image", provider: "gemini" },
+  "gemini-latest": "flux",
+  "gemini-3-pro": "flux",
+  "gpt-2": "flux",
 };
 
 const unique = (items: string[]) => Array.from(new Set(items.filter(Boolean)));
@@ -55,12 +57,12 @@ Deno.serve(async (req) => {
     if (!isAdmin) return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const body = await req.json();
-    const { prompt, preset = "square", bucket = "products", context, style = "vibrant", model = "gpt-image-2" } = body;
+    const { prompt, preset = "square", bucket = "products", context, style = "vibrant", model = "gemini-3-pro" } = body;
     const count = Math.max(1, Math.min(6, Number(body.count ?? 1)));
     if (!prompt || typeof prompt !== "string") return new Response(JSON.stringify({ error: "prompt required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const size = SIZES[preset] ?? SIZES.square;
-    const polliModel = MODEL_MAP[model] ?? "flux";
-    const gatewayModel = GATEWAY_MODELS[model];
+    const polliModel = POLLINATIONS_FALLBACK[model] ?? "flux";
+    const gatewayModel = GATEWAY_MODELS[model] ?? GATEWAY_MODELS["gemini-3-pro"];
     const allowedBuckets = new Set(["products", "banners", "food", "avatars"]);
     if (!allowedBuckets.has(bucket)) {
       return new Response(JSON.stringify({ error: "Invalid storage bucket" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -97,7 +99,7 @@ Deno.serve(async (req) => {
         idx === 0 ? styled : `${styled} Variant ${idx + 1}: alternate angle, fresh composition, different lighting mood.`;
       const sizeStr = `${size.w}x${size.h}`;
       const reqBody = gatewayModel.provider === "openai"
-        ? { model: gatewayModel.upstream, prompt: variantHint, size: sizeStr, quality: "low", n: 1 }
+        ? { model: gatewayModel.upstream, prompt: variantHint, size: sizeStr, quality: "high", n: 1 }
         : { model: gatewayModel.upstream, messages: [{ role: "user", content: variantHint }], modalities: ["image", "text"] };
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 90_000);
