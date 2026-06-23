@@ -8,16 +8,18 @@ const corsHeaders = {
 
 const SIZES: Record<string, { w: number; h: number }> = {
   square: { w: 1024, h: 1024 },
-  banner: { w: 1536, h: 1024 },
+  banner: { w: 1536, h: 768 },
+  hero_banner: { w: 1536, h: 768 },
   landscape: { w: 1536, h: 1024 },
   portrait: { w: 1024, h: 1536 },
 };
 
-// Pollinations.ai — free, unlimited, no API key required.
-// Models exposed to the admin (named for marketing clarity):
-//   - "gpt-image-2"      → flux        (highest quality general purpose)
-//   - "gpt-image-1-mini" → turbo       (fastest, lower fidelity)
-//   - "nano-banana"      → flux-realism (photoreal)
+// Two providers, both free for the admin:
+//   1. Pollinations.ai      → no API key required, unlimited.
+//   2. Lovable AI Gateway   → uses the project's LOVABLE_API_KEY.
+//      - "gpt-2"          → openai/gpt-image-2
+//      - "gemini-latest"  → google/gemini-3.1-flash-image (Nano Banana 2)
+// Pollinations model mapping:
 const MODEL_MAP: Record<string, string> = {
   "gpt-image-2": "flux",
   "gpt-image-1-mini": "turbo",
@@ -25,6 +27,12 @@ const MODEL_MAP: Record<string, string> = {
   flux: "flux",
   turbo: "turbo",
   "flux-realism": "flux-realism",
+};
+
+// Models routed through the Lovable AI Gateway (require LOVABLE_API_KEY).
+const GATEWAY_MODELS: Record<string, { upstream: string; provider: "openai" | "gemini" }> = {
+  "gpt-2": { upstream: "openai/gpt-image-2", provider: "openai" },
+  "gemini-latest": { upstream: "google/gemini-3.1-flash-image", provider: "gemini" },
 };
 
 const unique = (items: string[]) => Array.from(new Set(items.filter(Boolean)));
@@ -52,6 +60,7 @@ Deno.serve(async (req) => {
     if (!prompt || typeof prompt !== "string") return new Response(JSON.stringify({ error: "prompt required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const size = SIZES[preset] ?? SIZES.square;
     const polliModel = MODEL_MAP[model] ?? "flux";
+    const gatewayModel = GATEWAY_MODELS[model];
     const allowedBuckets = new Set(["products", "banners", "food", "avatars"]);
     if (!allowedBuckets.has(bucket)) {
       return new Response(JSON.stringify({ error: "Invalid storage bucket" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -75,21 +84,72 @@ Deno.serve(async (req) => {
     } else if (context === "category") {
       styled = `A premium app category illustration representing "${prompt}". ${modifier}. Flat-meets-3D look, soft gradient background, single iconic object, friendly modern art direction, no text, no logos.`;
     } else if (context === "banner") {
-      styled = `Striking promotional banner concept: "${prompt}". ${modifier}. Strong subject on the right, generous empty negative space on the left for headline text, glowing accents, modern advertising aesthetic, no text or letters in the image.`;
+      styled = `Striking full-bleed promotional hero banner: "${prompt}". ${modifier}. Edge-to-edge composition that fills the entire 2:1 frame, cinematic subject placement, generous negative space on the left third for headline text, glowing accents, modern advertising aesthetic, no text or letters anywhere in the image.`;
     } else {
       styled = `${prompt}. ${modifier}. No text or letters, no watermarks, no logos.`;
     }
 
-    // ---- Pollinations.ai: free, unlimited, no key required ----
-    const generateOne = async (idx: number): Promise<string> => {
-      const seed = Math.floor(Math.random() * 1_000_000_000) + idx;
+    // ---- Lovable AI Gateway path (gpt-2 / gemini-latest) ----
+    const LOVABLE_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const generateViaGateway = async (idx: number): Promise<{ buf: Uint8Array; contentType: string } | null> => {
+      if (!gatewayModel || !LOVABLE_KEY) return null;
       const variantHint =
         idx === 0 ? styled : `${styled} Variant ${idx + 1}: alternate angle, fresh composition, different lighting mood.`;
+      const sizeStr = `${size.w}x${size.h}`;
+      const reqBody = gatewayModel.provider === "openai"
+        ? { model: gatewayModel.upstream, prompt: variantHint, size: sizeStr, quality: "low", n: 1 }
+        : { model: gatewayModel.upstream, messages: [{ role: "user", content: variantHint }], modalities: ["image", "text"] };
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 90_000);
+      try {
+        const res = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
+          method: "POST",
+          signal: ctrl.signal,
+          headers: { Authorization: `Bearer ${LOVABLE_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify(reqBody),
+        });
+        if (!res.ok) {
+          const t = await res.text().catch(() => "");
+          console.warn(`[generate-image] gateway ${gatewayModel.upstream} failed ${res.status}: ${t.slice(0, 200)}`);
+          return null;
+        }
+        const json = await res.json();
+        const b64 = json?.data?.[0]?.b64_json;
+        if (!b64) return null;
+        const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+        return { buf: bin, contentType: "image/png" };
+      } catch (e) {
+        console.warn(`[generate-image] gateway error: ${(e as Error).message}`);
+        return null;
+      } finally {
+        clearTimeout(timer);
+      }
+    };
+
+    // ---- Pollinations.ai: free, unlimited, no key required ----
+    const generateOne = async (idx: number): Promise<string> => {
+      // 1) Try the Lovable Gateway path first for gpt-2 / gemini-latest.
       const attempts: string[] = [];
       let buf: Uint8Array | null = null;
       let contentType = "image/jpeg";
-      let resolvedModel = polliModel;
-      for (const providerModel of unique([polliModel, "flux", "flux-realism", "turbo"])) {
+      let resolvedModel = gatewayModel?.upstream ?? polliModel;
+
+      if (gatewayModel) {
+        const gw = await generateViaGateway(idx);
+        if (gw) {
+          buf = gw.buf;
+          contentType = gw.contentType;
+        } else {
+          attempts.push(`${gatewayModel.upstream}: gateway unavailable, falling back to free provider`);
+        }
+      }
+
+      // 2) Pollinations free fallback (always available).
+      const seed = Math.floor(Math.random() * 1_000_000_000) + idx;
+      const variantHint =
+        idx === 0 ? styled : `${styled} Variant ${idx + 1}: alternate angle, fresh composition, different lighting mood.`;
+      const polliCandidates = unique([polliModel, "flux", "flux-realism", "turbo"]);
+      for (const providerModel of (buf ? [] : polliCandidates)) {
         const url = new URL(`https://image.pollinations.ai/prompt/${encodeURIComponent(variantHint)}`);
         url.searchParams.set("width", String(size.w));
         url.searchParams.set("height", String(size.h));
@@ -126,7 +186,7 @@ Deno.serve(async (req) => {
         }
       }
       if (!buf) {
-        throw new Response(JSON.stringify({ error: "Free image provider failed after fallback retries. Please retry.", attempts }), {
+        throw new Response(JSON.stringify({ error: "Image generation failed across all providers. Please retry.", attempts }), {
           status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -141,14 +201,21 @@ Deno.serve(async (req) => {
         });
       }
       const { data: pub } = admin.storage.from(bucket).getPublicUrl(path);
-      console.log(`[generate-image] generated idx=${idx} model=${resolvedModel} bucket=${bucket}`);
+      console.log(`[generate-image] generated idx=${idx} model=${resolvedModel} size=${size.w}x${size.h} bucket=${bucket}`);
       return pub.publicUrl;
     };
 
     try {
       const urls = await Promise.all(Array.from({ length: count }, (_, i) => generateOne(i)));
       return new Response(
-        JSON.stringify({ url: urls[0], urls, model: polliModel, provider: "pollinations-free", unlimited: true }),
+        JSON.stringify({
+          url: urls[0],
+          urls,
+          model: gatewayModel?.upstream ?? polliModel,
+          provider: gatewayModel ? "lovable-gateway" : "pollinations-free",
+          size,
+          unlimited: true,
+        }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     } catch (resp) {
