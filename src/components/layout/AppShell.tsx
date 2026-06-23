@@ -44,82 +44,69 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-page-gradient">
+    <div className="min-h-screen bg-page-gradient lg:bg-[#fafaf7]">
       <AnalyticsLoader />
       {Banner}
       <AnnouncementPopup />
       <InstallPrompt />
-      {/* DESKTOP HEADER */}
-      <header className="hidden lg:flex sticky top-0 z-40 h-16 items-center glass border-b border-white/40 px-6">
-        <Link to="/" className="flex items-center gap-3 mr-6">
-          <SpeedoLogo size={36} />
-          <span className="text-xl font-extrabold tracking-tight">Speedo</span>
-        </Link>
-        <div className="flex items-center gap-2 mr-6 px-3 py-2 rounded-pill bg-muted/60 cursor-pointer">
-          <MapPin className="h-4 w-4 text-primary" />
-          <div className="text-sm">
-            <div className="text-muted-foreground text-xs leading-none">Delivering to</div>
-            <div className="font-semibold leading-tight">Dipalpur</div>
-          </div>
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
-        </div>
-        <div className="flex-1 max-w-2xl">
-          <Link
-            to="/search"
-            className="flex items-center gap-2 bg-muted rounded-pill px-4 py-2.5 hover:bg-muted/80 transition-colors"
-          >
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <span className="flex-1 text-sm text-muted-foreground">
-              Search for fresh food, medicine, anything...
-            </span>
-          </Link>
-        </div>
-        <div className="flex items-center gap-2 ml-6">
-          <Link to="/notifications" className="p-2 rounded-full hover:bg-muted relative">
-            <Bell className="h-5 w-5" />
-          </Link>
-          <Link to="/cart" className="p-2 rounded-full hover:bg-muted relative">
-            <ShoppingCart className="h-5 w-5" />
-            {cartQty > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 bg-orange text-orange-foreground text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1">
-                {cartQty}
-              </span>
-            )}
-          </Link>
-          {user ? (
-            <Button variant="ghost" size="sm" onClick={signOut}>
-              <LogOut className="h-4 w-4 mr-1" /> Logout
-            </Button>
-          ) : (
-            <Link to="/login">
-              <Button size="sm" className="rounded-pill">Login</Button>
+      {/* ===== DESKTOP HEADER — Editorial (Calm Premium Neutral) ===== */}
+      <header className="hidden lg:block sticky top-0 z-40 bg-[#fafaf7]/85 backdrop-blur-md border-b border-[#e8e4dd]">
+        <div className="max-w-[1400px] mx-auto px-8 xl:px-12 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-10">
+            <Link to="/" className="flex items-center gap-2.5">
+              <SpeedoLogo size={32} />
+              <span className="text-2xl font-serif tracking-tight text-primary">Speedo</span>
             </Link>
-          )}
+            <nav className="flex gap-7 text-[11px] uppercase tracking-[0.22em] font-semibold text-[#1a1a1a]/65">
+              {[
+                { to: "/speedmart", label: "SpeedMart" },
+                { to: "/pharmacy", label: "Pharmacy" },
+                { to: "/food", label: "Food" },
+                { to: "/speedsend", label: "Parcels" },
+                { to: "/orders", label: "Orders" },
+              ].map((l) => (
+                <NavLink
+                  key={l.to}
+                  to={l.to}
+                  className={({ isActive }) => `hover:text-primary transition-colors ${isActive ? "text-primary" : ""}`}
+                >
+                  {l.label}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="hidden xl:flex items-center gap-1.5 px-3 py-2 mr-3 text-xs text-[#1a1a1a]/65">
+              <MapPin className="h-3.5 w-3.5 text-primary" />
+              <span className="font-semibold">Dipalpur</span>
+              <ChevronDown className="h-3 w-3" />
+            </div>
+            <Link to="/search" className="p-2 rounded-sm hover:bg-[#e8e4dd] transition-colors" aria-label="Search">
+              <Search className="h-[18px] w-[18px]" />
+            </Link>
+            <Link to="/notifications" className="p-2 rounded-sm hover:bg-[#e8e4dd] transition-colors" aria-label="Notifications">
+              <Bell className="h-[18px] w-[18px]" />
+            </Link>
+            <Link to="/cart" className="p-2 rounded-sm hover:bg-[#e8e4dd] transition-colors relative" aria-label="Cart">
+              <ShoppingCart className="h-[18px] w-[18px]" />
+              {cartQty > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-1">
+                  {cartQty}
+                </span>
+              )}
+            </Link>
+            {user ? (
+              <Button variant="ghost" size="sm" onClick={signOut} className="ml-2 rounded-sm text-xs uppercase tracking-wider">
+                <LogOut className="h-3.5 w-3.5 mr-1.5" /> Logout
+              </Button>
+            ) : (
+              <Link to="/login" className="ml-2">
+                <Button size="sm" className="rounded-sm bg-primary hover:bg-primary-dark text-xs uppercase tracking-wider">Login</Button>
+              </Link>
+            )}
+          </div>
         </div>
       </header>
-
-      {/* DESKTOP SIDEBAR */}
-      <aside className="hidden lg:flex fixed left-0 top-16 bottom-0 w-60 glass border-r border-white/40 flex-col py-6 px-3">
-        <nav className="flex flex-col gap-1">
-          {navItems.map((it) => (
-            <NavLink
-              key={it.to}
-              to={it.to}
-              end={it.to === "/"}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-colors ${
-                  isActive
-                    ? "bg-primary-tint text-primary"
-                    : "text-foreground/70 hover:bg-muted"
-                }`
-              }
-            >
-              <it.icon className="h-5 w-5" />
-              {it.label}
-            </NavLink>
-          ))}
-        </nav>
-      </aside>
 
       {/* MOBILE TOP BAR */}
       <header className="lg:hidden sticky top-0 z-40 glass border-b border-white/40 safe-top">
@@ -152,8 +139,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       {/* MAIN */}
-      <main className="lg:ml-60 lg:pt-0 pb-32 lg:pb-12">
-        <div className="lg:max-w-7xl lg:mx-auto lg:px-6 lg:py-6">
+      <main className="lg:pt-0 pb-32 lg:pb-12">
+        <div className="lg:max-w-[1400px] lg:mx-auto lg:px-8 xl:px-12 lg:py-6">
           {children}
         </div>
         <div className="lg:ml-0">
