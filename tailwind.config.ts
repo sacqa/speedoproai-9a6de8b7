@@ -82,6 +82,7 @@ export default {
       fontFamily: {
         sans: ['Figtree', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
         display: ['Outfit', 'Figtree', 'system-ui', 'sans-serif'],
+        serif: ['"Instrument Serif"', 'Georgia', 'serif'],
       },
       keyframes: {
         "accordion-down": {
