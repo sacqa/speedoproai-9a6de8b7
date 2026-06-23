@@ -80,7 +80,7 @@ export default function FoodVendor() {
 
       <div className="relative h-40 sm:h-56 bg-muted">
         {v.cover_url ? (
-          <img src={v.cover_url} alt={v.name} className="w-full h-full object-cover" />
+          <img src={v.cover_url} alt={v.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary-tint to-accent-soft" />
         )}
@@ -91,7 +91,7 @@ export default function FoodVendor() {
 
       <div className="px-4 lg:px-0 -mt-6 relative">
         <div className="bg-card rounded-2xl shadow-card p-4 flex items-center gap-3">
-          {v.logo_url && <img src={v.logo_url} alt="" className="h-14 w-14 rounded-xl object-cover bg-muted shrink-0" />}
+          {v.logo_url && <img src={v.logo_url} alt="" loading="lazy" decoding="async" className="h-14 w-14 rounded-xl object-cover bg-muted shrink-0" />}
           <div className="flex-1 min-w-0">
             <h1 className="font-extrabold text-lg leading-tight truncate">{v.name}</h1>
             <div className="text-xs text-muted-foreground truncate">{v.cuisine ?? "Various"}</div>
