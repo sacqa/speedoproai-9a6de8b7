@@ -9,32 +9,33 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { AppShell } from "@/components/layout/AppShell";
 import { RequireAuth } from "@/components/speedo/RequireAuth";
 import { RequireApproved } from "@/components/speedo/RequireApproved";
-import Splash from "./pages/app/Splash";
-import Onboarding from "./pages/app/Onboarding";
-import Login from "./pages/app/Login";
-import ForgotPin from "./pages/app/ForgotPin";
-import Waiting from "./pages/app/Waiting";
+// Home stays eager (it's the landing route); everything else is code-split.
 import Home from "./pages/app/Home";
-import Search from "./pages/app/Search";
-import SpeedMart from "./pages/app/SpeedMart";
-import Cart from "./pages/app/Cart";
-import Checkout from "./pages/app/Checkout";
-import OrderConfirm from "./pages/app/OrderConfirm";
-import OrderDetails from "./pages/app/OrderDetails";
-import Orders from "./pages/app/Orders";
-import Notifications from "./pages/app/Notifications";
-import Profile from "./pages/app/Profile";
-import Addresses from "./pages/app/Addresses";
-import Help from "./pages/app/Help";
-import RequestForm from "./pages/app/RequestForm";
-import Food from "./pages/app/Food";
-import FoodVendor from "./pages/app/FoodVendor";
-import FoodCheckout from "./pages/app/FoodCheckout";
-import ProductDetail from "./pages/app/ProductDetail";
-import Nearby from "./pages/app/Nearby";
-import Friends from "./pages/app/Friends";
-import Chat from "./pages/app/Chat";
-import CmsPage from "./pages/app/CmsPage";
+const Splash = lazy(() => import("./pages/app/Splash"));
+const Onboarding = lazy(() => import("./pages/app/Onboarding"));
+const Login = lazy(() => import("./pages/app/Login"));
+const ForgotPin = lazy(() => import("./pages/app/ForgotPin"));
+const Waiting = lazy(() => import("./pages/app/Waiting"));
+const Search = lazy(() => import("./pages/app/Search"));
+const SpeedMart = lazy(() => import("./pages/app/SpeedMart"));
+const Cart = lazy(() => import("./pages/app/Cart"));
+const Checkout = lazy(() => import("./pages/app/Checkout"));
+const OrderConfirm = lazy(() => import("./pages/app/OrderConfirm"));
+const OrderDetails = lazy(() => import("./pages/app/OrderDetails"));
+const Orders = lazy(() => import("./pages/app/Orders"));
+const Notifications = lazy(() => import("./pages/app/Notifications"));
+const Profile = lazy(() => import("./pages/app/Profile"));
+const Addresses = lazy(() => import("./pages/app/Addresses"));
+const Help = lazy(() => import("./pages/app/Help"));
+const RequestForm = lazy(() => import("./pages/app/RequestForm"));
+const Food = lazy(() => import("./pages/app/Food"));
+const FoodVendor = lazy(() => import("./pages/app/FoodVendor"));
+const FoodCheckout = lazy(() => import("./pages/app/FoodCheckout"));
+const ProductDetail = lazy(() => import("./pages/app/ProductDetail"));
+const Nearby = lazy(() => import("./pages/app/Nearby"));
+const Friends = lazy(() => import("./pages/app/Friends"));
+const Chat = lazy(() => import("./pages/app/Chat"));
+const CmsPage = lazy(() => import("./pages/app/CmsPage"));
 import { RequireAdmin } from "@/components/admin/RequireAdmin";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 
@@ -93,6 +94,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AppShell>
+            <Suspense fallback={<div className="min-h-[40vh] flex items-center justify-center text-sm text-muted-foreground">Loading…</div>}>
             <Routes>
               <Route path="/splash" element={<Splash />} />
               <Route path="/onboarding" element={<Onboarding />} />
@@ -156,6 +158,7 @@ const App = () => (
               <Route path="/admin/login" element={<Suspense fallback={null}><AdminLogin /></Suspense>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
           </AppShell>
         </BrowserRouter>
       </TooltipProvider>
