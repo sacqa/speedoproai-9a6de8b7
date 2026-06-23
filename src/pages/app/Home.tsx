@@ -7,6 +7,7 @@ import { ProductCard } from "@/components/speedo/ProductCard";
 import { SectionHeader } from "@/components/speedo/SectionHeader";
 import { Seo } from "@/components/seo/Seo";
 import { CategoryRowSkeleton, ProductGridSkeleton } from "@/components/speedo/Skeletons";
+import { DesktopHome } from "@/components/speedo/DesktopHome";
 
 export default function Home() {
   const nav = useNavigate();
@@ -96,7 +97,7 @@ export default function Home() {
   });
 
   return (
-    <div className="space-y-7 lg:space-y-10 pb-4 bg-page-gradient">
+    <>
       <Seo
         title="Speedo — Groceries, Pharmacy, Food & Parcels in Dipalpur"
         description="Order groceries, medicines, food and send parcels across Dipalpur. Fast hyperlocal delivery via Speedo."
@@ -109,6 +110,12 @@ export default function Home() {
           areaServed: "Dipalpur, Pakistan",
         }}
       />
+      {/* DESKTOP: editorial magazine layout */}
+      <div className="hidden lg:block">
+        <DesktopHome />
+      </div>
+      {/* MOBILE / TABLET: original layout (untouched) */}
+      <div className="lg:hidden space-y-7 pb-4 bg-page-gradient">
       {/* Search bar */}
       <div className="px-4 lg:px-0 pt-4 lg:pt-0">
         <Link
@@ -218,7 +225,8 @@ export default function Home() {
         </section>
       )}
 
-    </div>
+      </div>
+    </>
   );
 }
 
