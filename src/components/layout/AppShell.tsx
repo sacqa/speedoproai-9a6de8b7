@@ -13,6 +13,7 @@ import { formatPKR } from "@/lib/format";
 import { AnnouncementPopup } from "@/components/app/AnnouncementPopup";
 import { InstallPrompt } from "@/components/app/InstallPrompt";
 import { Footer } from "@/components/layout/Footer";
+import { AnalyticsLoader } from "@/components/app/AnalyticsLoader";
 import {
   Sheet, SheetContent, SheetTrigger,
 } from "@/components/ui/sheet";
@@ -39,11 +40,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const hideCheckoutBar = ["/cart", "/checkout", "/order", "/product", "/login", "/splash", "/onboarding"].some((p) => location.pathname.startsWith(p));
 
   if (hideChrome) {
-    return <main className="min-h-screen bg-background">{Banner}<AnnouncementPopup /><InstallPrompt />{children}</main>;
+    return <main className="min-h-screen bg-background">{Banner}<AnalyticsLoader /><AnnouncementPopup /><InstallPrompt />{children}</main>;
   }
 
   return (
     <div className="min-h-screen bg-page-gradient">
+      <AnalyticsLoader />
       {Banner}
       <AnnouncementPopup />
       <InstallPrompt />

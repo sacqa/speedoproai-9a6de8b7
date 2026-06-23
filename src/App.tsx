@@ -34,6 +34,7 @@ import ProductDetail from "./pages/app/ProductDetail";
 import Nearby from "./pages/app/Nearby";
 import Friends from "./pages/app/Friends";
 import Chat from "./pages/app/Chat";
+import CmsPage from "./pages/app/CmsPage";
 import { RequireAdmin } from "@/components/admin/RequireAdmin";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 
@@ -61,6 +62,8 @@ const AdminFooterSettings = lazy(() => import("./pages/admin/FooterSettings"));
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 const AdminLayoutSettings = lazy(() => import("./pages/admin/LayoutSettings"));
 const AdminAIPosts = lazy(() => import("./pages/admin/AIPosts"));
+const AdminPages = lazy(() => import("./pages/admin/Pages"));
+const AdminAnalyticsSettings = lazy(() => import("./pages/admin/AnalyticsSettings"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -117,6 +120,12 @@ const App = () => (
               <Route path="/nearby" element={<RequireApproved><Nearby /></RequireApproved>} />
               <Route path="/friends" element={<RequireApproved><Friends /></RequireApproved>} />
               <Route path="/chat/:friendId" element={<RequireApproved><Chat /></RequireApproved>} />
+              {/* Public CMS pages (admin-editable) */}
+              <Route path="/about" element={<CmsPage slug="about" />} />
+              <Route path="/contact" element={<CmsPage slug="contact" />} />
+              <Route path="/careers" element={<CmsPage slug="careers" />} />
+              <Route path="/privacy" element={<CmsPage slug="privacy" />} />
+              <Route path="/terms" element={<CmsPage slug="terms" />} />
               <Route path="/admin" element={<AdminPage><AdminDashboard /></AdminPage>} />
               <Route path="/admin/orders" element={<AdminPage><AdminOrders /></AdminPage>} />
               <Route path="/admin/orders/:id" element={<AdminPage><AdminOrderDetail /></AdminPage>} />
@@ -125,6 +134,8 @@ const App = () => (
               <Route path="/admin/footer-settings" element={<AdminPage><AdminFooterSettings /></AdminPage>} />
               <Route path="/admin/layout-settings" element={<AdminPage><AdminLayoutSettings /></AdminPage>} />
               <Route path="/admin/ai-posts" element={<AdminPage><AdminAIPosts /></AdminPage>} />
+              <Route path="/admin/pages" element={<AdminPage><AdminPages /></AdminPage>} />
+              <Route path="/admin/analytics" element={<AdminPage><AdminAnalyticsSettings /></AdminPage>} />
               <Route path="/admin/products" element={<AdminPage><AdminProducts /></AdminPage>} />
               <Route path="/admin/categories" element={<AdminPage><AdminCategories /></AdminPage>} />
               <Route path="/admin/banners" element={<AdminPage><AdminBanners /></AdminPage>} />
