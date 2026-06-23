@@ -14,6 +14,8 @@ import { AnnouncementPopup } from "@/components/app/AnnouncementPopup";
 import { InstallPrompt } from "@/components/app/InstallPrompt";
 import { Footer } from "@/components/layout/Footer";
 import { AnalyticsLoader } from "@/components/app/AnalyticsLoader";
+import { MobilePermissions } from "@/components/app/MobilePermissions";
+import { useLocationTracker } from "@/hooks/useLocationTracker";
 import {
   Sheet, SheetContent, SheetTrigger,
 } from "@/components/ui/sheet";
@@ -36,11 +38,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const location = useLocation();
   const { Banner } = useRealtimeNotifications();
   useGridSettings();
+  useLocationTracker();
   const hideChrome = ["/login", "/otp", "/onboarding", "/splash", "/admin"].some((p) => location.pathname.startsWith(p));
   const hideCheckoutBar = ["/cart", "/checkout", "/order", "/product", "/login", "/splash", "/onboarding"].some((p) => location.pathname.startsWith(p));
 
   if (hideChrome) {
-    return <main className="min-h-screen bg-background">{Banner}<AnalyticsLoader /><AnnouncementPopup /><InstallPrompt />{children}</main>;
+    return <main className="min-h-screen bg-background">{Banner}<AnalyticsLoader /><AnnouncementPopup /><InstallPrompt /><MobilePermissions />{children}</main>;
   }
 
   return (
@@ -49,6 +52,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {Banner}
       <AnnouncementPopup />
       <InstallPrompt />
+      <MobilePermissions />
       {/* ===== DESKTOP HEADER — Editorial (Calm Premium Neutral) ===== */}
       <header className="hidden lg:block sticky top-0 z-40 bg-[#fafaf7]/85 backdrop-blur-md border-b border-[#e8e4dd]">
         <div className="max-w-[1400px] mx-auto px-8 xl:px-12 py-4 flex items-center justify-between">
