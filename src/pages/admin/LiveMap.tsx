@@ -25,9 +25,19 @@ export default function AdminLiveMap() {
     setLoading(true);
     const { data } = await supabase
       .from("user_locations")
-      .select("user_id, lat, lng, updated_at, share_enabled, profile:profiles(full_name, phone, avatar_url)")
+      .select("user_id, lat, lng, updated_at, share_enabled")
       .order("updated_at", { ascending: false });
-    setLocs((data as any) ?? []);
+    const rows = (data as any[]) ?? [];
+    const ids = rows.map((r) => r.user_id);
+    let profMap: Record<string, any> = {};
+    if (ids.length) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, full_name, phone, avatar_url")
+        .in("id", ids);
+      (profs ?? []).forEach((p: any) => { profMap[p.id] = p; });
+    }
+    setLocs(rows.map((r) => ({ ...r, profile: profMap[r.user_id] ?? null })));
     setLoading(false);
   };
 
