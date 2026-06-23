@@ -17,7 +17,7 @@ type Style =
   | "vibrant"
   | "luxury"
   | "social_post";
-type Model = "gpt-image-2" | "gpt-image-1-mini" | "nano-banana" | "gpt-2" | "gemini-latest";
+type Model = "gemini-3-pro" | "gemini-latest" | "nano-banana" | "gpt-image-2" | "gpt-image-1-mini" | "gpt-2";
 
 interface HistoryItem {
   url: string;
@@ -60,7 +60,7 @@ export function AIImageButton({
   const [busy, setBusy] = useState(false);
   const [count, setCount] = useState<number>(1);
   const [style, setStyle] = useState<Style>(context === "product" ? "studio" : context === "banner" ? "cinematic" : "vibrant");
-  const [model, setModel] = useState<Model>("gpt-image-2");
+  const [model, setModel] = useState<Model>("gemini-3-pro");
   const normalizePreset = (p: Preset): Preset => (p === "banner" ? "hero_banner" : p);
   const [activePreset, setActivePreset] = useState<Preset>(normalizePreset(preset));
   const [preview, setPreview] = useState<string[]>([]);
@@ -144,11 +144,12 @@ export function AIImageButton({
   };
 
   const MODELS: { id: Model; label: string; sub: string }[] = [
-    { id: "gpt-image-2", label: "GPT-Image-2", sub: "Best quality" },
-    { id: "gpt-image-1-mini", label: "GPT-Image-1 Mini", sub: "Fastest" },
+    { id: "gemini-3-pro", label: "Gemini 3 Pro", sub: "Masterpiece ★" },
+    { id: "gemini-latest", label: "Nano Banana 2", sub: "Fast · Pro quality" },
     { id: "nano-banana", label: "Nano Banana", sub: "Photoreal" },
+    { id: "gpt-image-2", label: "GPT-Image-2", sub: "OpenAI HQ" },
+    { id: "gpt-image-1-mini", label: "GPT-Image-1 Mini", sub: "Fastest" },
     { id: "gpt-2", label: "GPT 2", sub: "OpenAI · Free" },
-    { id: "gemini-latest", label: "Gemini Latest", sub: "Nano Banana 2" },
   ];
   const ALL_PRESETS: { id: Preset; label: string; sub: string }[] = [
     { id: "square", label: "Square", sub: "1024×1024" },
