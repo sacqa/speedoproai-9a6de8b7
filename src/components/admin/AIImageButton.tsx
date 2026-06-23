@@ -61,7 +61,8 @@ export function AIImageButton({
   const [count, setCount] = useState<number>(1);
   const [style, setStyle] = useState<Style>(context === "product" ? "studio" : context === "banner" ? "cinematic" : "vibrant");
   const [model, setModel] = useState<Model>("gpt-image-2");
-  const [activePreset, setActivePreset] = useState<Preset>(preset);
+  const normalizePreset = (p: Preset): Preset => (p === "banner" ? "hero_banner" : p);
+  const [activePreset, setActivePreset] = useState<Preset>(normalizePreset(preset));
   const [preview, setPreview] = useState<string[]>([]);
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
@@ -173,7 +174,7 @@ export function AIImageButton({
 
   return (
     <>
-      <Button type="button" size={size} variant="outline" onClick={() => { setPrompt(defaultPrompt); setActivePreset(preset); setPreview([]); setOpen(true); }}>
+      <Button type="button" size={size} variant="outline" onClick={() => { setPrompt(defaultPrompt); setActivePreset(normalizePreset(preset)); setPreview([]); setOpen(true); }}>
         <Sparkles className="h-4 w-4 mr-1 text-primary" />{label}
       </Button>
       <Dialog open={open} onOpenChange={(v) => !busy && setOpen(v)}>
