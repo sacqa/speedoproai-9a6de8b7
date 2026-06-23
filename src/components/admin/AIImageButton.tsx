@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Sparkles, Loader2, Download, RefreshCw, Trash2, Check } from "lucide-react";
 import { toast } from "sonner";
 
-type Preset = "square" | "banner" | "portrait" | "landscape";
+type Preset = "square" | "banner" | "hero_banner" | "portrait" | "landscape";
 type Context = "product" | "category" | "banner" | "generic";
 type Style =
   | "studio"
@@ -17,7 +17,7 @@ type Style =
   | "vibrant"
   | "luxury"
   | "social_post";
-type Model = "gpt-image-2" | "gpt-image-1-mini" | "nano-banana";
+type Model = "gpt-image-2" | "gpt-image-1-mini" | "nano-banana" | "gpt-2" | "gemini-latest";
 
 interface HistoryItem {
   url: string;
@@ -61,7 +61,8 @@ export function AIImageButton({
   const [count, setCount] = useState<number>(1);
   const [style, setStyle] = useState<Style>(context === "product" ? "studio" : context === "banner" ? "cinematic" : "vibrant");
   const [model, setModel] = useState<Model>("gpt-image-2");
-  const [activePreset, setActivePreset] = useState<Preset>(preset);
+  const normalizePreset = (p: Preset): Preset => (p === "banner" ? "hero_banner" : p);
+  const [activePreset, setActivePreset] = useState<Preset>(normalizePreset(preset));
   const [preview, setPreview] = useState<string[]>([]);
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
@@ -146,12 +147,20 @@ export function AIImageButton({
     { id: "gpt-image-2", label: "GPT-Image-2", sub: "Best quality" },
     { id: "gpt-image-1-mini", label: "GPT-Image-1 Mini", sub: "Fastest" },
     { id: "nano-banana", label: "Nano Banana", sub: "Photoreal" },
+    { id: "gpt-2", label: "GPT 2", sub: "OpenAI · Free" },
+    { id: "gemini-latest", label: "Gemini Latest", sub: "Nano Banana 2" },
   ];
-  const PRESETS: { id: Preset; label: string; sub: string }[] = [
+  const ALL_PRESETS: { id: Preset; label: string; sub: string }[] = [
     { id: "square", label: "Square", sub: "1024×1024" },
     { id: "portrait", label: "Portrait", sub: "1024×1536" },
     { id: "landscape", label: "Landscape", sub: "1536×1024" },
+    { id: "hero_banner", label: "Hero Banner", sub: "1536×768 (2:1)" },
   ];
+  // When the caller pins a banner preset, lock the size picker to it so admins always
+  // get an image at the exact banner dimensions.
+  const PRESETS = preset === "hero_banner" || preset === "banner"
+    ? ALL_PRESETS.filter((p) => p.id === "hero_banner")
+    : ALL_PRESETS.filter((p) => p.id !== "hero_banner");
 
   const STYLES: { id: Style; label: string }[] = [
     { id: "studio", label: "Studio" },
@@ -165,7 +174,7 @@ export function AIImageButton({
 
   return (
     <>
-      <Button type="button" size={size} variant="outline" onClick={() => { setPrompt(defaultPrompt); setActivePreset(preset); setPreview([]); setOpen(true); }}>
+      <Button type="button" size={size} variant="outline" onClick={() => { setPrompt(defaultPrompt); setActivePreset(normalizePreset(preset)); setPreview([]); setOpen(true); }}>
         <Sparkles className="h-4 w-4 mr-1 text-primary" />{label}
       </Button>
       <Dialog open={open} onOpenChange={(v) => !busy && setOpen(v)}>
@@ -190,7 +199,7 @@ export function AIImageButton({
 
             <div>
               <Label className="mb-1.5 block">Model</Label>
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
                 {MODELS.map((m) => (
                   <button
                     key={m.id}

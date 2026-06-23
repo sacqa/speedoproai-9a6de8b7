@@ -16,8 +16,8 @@ export type FooterValue = {
 
 const DEFAULTS: FooterValue = {
   brand_tagline: "Hyperlocal delivery in Dipalpur, Pakistan.",
-  company_links: [{ label: "About", url: "#" }, { label: "Contact", url: "#" }, { label: "Careers", url: "#" }],
-  legal_links: [{ label: "Privacy Policy", url: "#" }, { label: "Terms of Service", url: "#" }],
+  company_links: [{ label: "About", url: "/about" }, { label: "Contact", url: "/contact" }, { label: "Careers", url: "/careers" }],
+  legal_links: [{ label: "Privacy Policy", url: "/privacy" }, { label: "Terms of Service", url: "/terms" }],
   app_note: "Install Speedo from your browser menu → Add to Home Screen.",
   copyright: "© Speedo",
 };

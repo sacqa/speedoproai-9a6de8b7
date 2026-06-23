@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronLeft, ChevronRight, ShoppingBasket, Pill, Package, UtensilsCrossed, ArrowRight, Search as SearchIcon, Mic, Flame } from "lucide-react";
 import { ProductCard } from "@/components/speedo/ProductCard";
@@ -10,6 +10,7 @@ import { CategoryRowSkeleton, ProductGridSkeleton } from "@/components/speedo/Sk
 
 export default function Home() {
   const nav = useNavigate();
+  const qc = useQueryClient();
   useEffect(() => {
     // Show mobile splash on first session entry (skip when already navigated through splash).
     if (typeof window === "undefined") return;
@@ -18,6 +19,16 @@ export default function Home() {
     if (isMobile) nav("/splash", { replace: true });
     else sessionStorage.setItem("speedo-splash-shown", "1");
   }, [nav]);
+  // Realtime: banner edits made in the admin appear instantly for users.
+  useEffect(() => {
+    const ch = supabase
+      .channel("banners-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "banners" }, () => {
+        qc.invalidateQueries({ queryKey: ["banners"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [qc]);
   const banners = useQuery({
     queryKey: ["banners"],
     staleTime: 5 * 60_000,
@@ -225,33 +236,37 @@ function BannerSlider({ banners }: { banners: any[] }) {
     <div className="px-4 lg:px-0">
       <div
         ref={ref}
-        className="group relative rounded-[28px] overflow-hidden mx-auto max-w-md lg:max-w-5xl border border-white/40 shadow-[0_20px_45px_-22px_hsl(var(--primary)/0.55)]"
-        style={{ background: "linear-gradient(120deg,#1a0033 0%,#3d0066 50%,#7a1bc7 100%)" }}
+        className="group relative rounded-[28px] overflow-hidden mx-auto max-w-md lg:max-w-5xl border border-white/40 shadow-[0_20px_45px_-22px_hsl(var(--primary)/0.55)] aspect-[2/1] bg-muted"
       >
-        {/* Aurora wash + soft shine */}
-        <div className="absolute inset-0 aurora animate-aurora opacity-70 pointer-events-none" />
-        <div
-          className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-25"
-          style={{ background: "radial-gradient(110% 70% at 15% 0%, rgba(255,255,255,0.55), transparent 55%)" }}
+        {/* Full-bleed banner image */}
+        <img
+          src={b.image_url}
+          alt={b.title}
+          loading="lazy"
+          onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
+          className="absolute inset-0 w-full h-full object-cover"
         />
-
-        <div className="relative grid grid-cols-[1.15fr_minmax(0,0.95fr)] items-stretch gap-3 sm:gap-5 lg:gap-7 px-4 sm:px-6 lg:px-9 py-4 sm:py-5 lg:py-7 min-h-[132px] sm:min-h-[156px] md:min-h-[176px] lg:min-h-[196px]">
-          <div className="relative z-10 flex flex-col justify-center text-white min-w-0">
-            <span className="inline-flex items-center gap-1.5 self-start text-[9px] sm:text-[10px] lg:text-[11px] font-bold uppercase tracking-[0.12em] px-2 py-0.5 rounded-full bg-white/15 backdrop-blur border border-white/25">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" /> Featured
-            </span>
-            <h3 className="mt-1.5 sm:mt-2 font-display font-extrabold tracking-tight leading-[1.08] text-[clamp(17px,4.6vw,34px)] line-clamp-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]">
-              {b.title}
-            </h3>
+        {/* Subtle gradient for legibility */}
+        {(b.title || b.subtitle || b.cta_label) && (
+          <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/15 to-transparent pointer-events-none" />
+        )}
+        {/* Optional overlay copy + CTA */}
+        {(b.title || b.subtitle || b.cta_label) && (
+          <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-6 lg:p-9 text-white">
+            {b.title && (
+              <h3 className="font-display font-extrabold tracking-tight leading-[1.05] text-[clamp(18px,5vw,38px)] line-clamp-2 max-w-[80%] drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]">
+                {b.title}
+              </h3>
+            )}
             {b.subtitle && (
-              <p className="mt-1 sm:mt-1.5 text-white/85 leading-snug line-clamp-2 text-[clamp(10.5px,2.4vw,14px)]">
+              <p className="mt-1 text-white/90 leading-snug line-clamp-2 text-[clamp(11px,2.6vw,15px)] max-w-[72%] drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]">
                 {b.subtitle}
               </p>
             )}
             {b.cta_label && (
               <Link
                 to={b.cta_link || "/"}
-                className="mt-2 sm:mt-3 inline-flex items-center gap-1.5 self-start bg-white text-primary font-extrabold text-[11px] sm:text-[12.5px] lg:text-sm pl-3 pr-2 py-1.5 sm:py-2 rounded-full shadow-[0_8px_24px_-6px_rgba(0,0,0,0.45)] hover:scale-[1.04] active:scale-95 transition-transform"
+                className="mt-2.5 sm:mt-3 inline-flex w-fit items-center gap-1.5 bg-white text-primary font-extrabold text-[11px] sm:text-[12.5px] lg:text-sm pl-3 pr-2 py-1.5 sm:py-2 rounded-full shadow-[0_8px_24px_-6px_rgba(0,0,0,0.55)] hover:scale-[1.04] active:scale-95 transition-transform"
               >
                 {b.cta_label}
                 <span className="h-4 w-4 sm:h-5 sm:w-5 rounded-full gradient-primary flex items-center justify-center text-white">
@@ -260,17 +275,7 @@ function BannerSlider({ banners }: { banners: any[] }) {
               </Link>
             )}
           </div>
-          <div className="relative self-stretch">
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 h-[78%] aspect-square rounded-full bg-white/15 blur-2xl" />
-            <img
-              src={b.image_url}
-              alt={b.title}
-              loading="lazy"
-              onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
-              className="relative z-10 ml-auto h-full w-full max-h-[150px] sm:max-h-[170px] md:max-h-[185px] lg:max-h-[210px] object-contain object-right drop-shadow-[0_18px_28px_rgba(0,0,0,0.45)]"
-            />
-          </div>
-        </div>
+        )}
 
         {banners.length > 1 && (
           <>

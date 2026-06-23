@@ -71,17 +71,27 @@ export default function AdminBanners() {
             <div><Label>Title</Label><Input value={editing.title ?? ""} onChange={(e) => setEditing({ ...editing, title: e.target.value })} /></div>
             <div><Label>Subtitle</Label><Input value={editing.subtitle ?? ""} onChange={(e) => setEditing({ ...editing, subtitle: e.target.value })} /></div>
             <div><Label>Image</Label>
+              <div className="mb-1.5 flex items-center justify-between gap-2">
+                <p className="text-[11px] text-muted-foreground leading-tight">
+                  <strong className="text-foreground">Recommended size:</strong> 1536 × 768 px (2:1) — full-bleed hero banner.
+                </p>
+              </div>
               <div className="flex items-center gap-2">
-                {editing.image_url && <img src={editing.image_url} alt="" className="h-12 w-20 rounded object-cover" />}
+                {editing.image_url && <img src={editing.image_url} alt="" className="h-12 w-24 rounded object-cover" />}
                 <Input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
                 <AIImageButton
                   context="banner"
-                  preset="banner"
+                  preset="hero_banner"
                   bucket="banners"
                   defaultPrompt={[editing.title, editing.subtitle].filter(Boolean).join(" — ")}
                   onGenerated={(url) => setEditing((s: any) => ({ ...s, image_url: url }))}
                 />
               </div>
+              {editing.image_url && (
+                <div className="mt-2 rounded-lg overflow-hidden border border-accent/40 aspect-[2/1] bg-muted">
+                  <img src={editing.image_url} alt="banner preview" className="w-full h-full object-cover" />
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div><Label>CTA Label</Label><Input value={editing.cta_label ?? ""} onChange={(e) => setEditing({ ...editing, cta_label: e.target.value })} /></div>
