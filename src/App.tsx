@@ -64,6 +64,7 @@ const AdminLayoutSettings = lazy(() => import("./pages/admin/LayoutSettings"));
 const AdminAIPosts = lazy(() => import("./pages/admin/AIPosts"));
 const AdminPages = lazy(() => import("./pages/admin/Pages"));
 const AdminAnalyticsSettings = lazy(() => import("./pages/admin/AnalyticsSettings"));
+const AdminLiveMap = lazy(() => import("./pages/admin/LiveMap"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -136,6 +137,7 @@ const App = () => (
               <Route path="/admin/ai-posts" element={<AdminPage><AdminAIPosts /></AdminPage>} />
               <Route path="/admin/pages" element={<AdminPage><AdminPages /></AdminPage>} />
               <Route path="/admin/analytics" element={<AdminPage><AdminAnalyticsSettings /></AdminPage>} />
+              <Route path="/admin/live-map" element={<AdminPage><AdminLiveMap /></AdminPage>} />
               <Route path="/admin/products" element={<AdminPage><AdminProducts /></AdminPage>} />
               <Route path="/admin/categories" element={<AdminPage><AdminCategories /></AdminPage>} />
               <Route path="/admin/banners" element={<AdminPage><AdminBanners /></AdminPage>} />
