@@ -41,7 +41,13 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   useAdminOrderAlert(true);
   useAdminNewCustomerAlert(true);
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen relative bg-[linear-gradient(180deg,#fafaf7,#f3f1ec)]">
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-0 overflow-hidden">
+        <div className="absolute -top-40 left-1/3 w-[900px] h-[600px] rounded-full opacity-40"
+             style={{ background: "radial-gradient(closest-side, hsl(279 100% 85% / 0.45), transparent 70%)" }} />
+        <div className="absolute top-1/2 -right-40 w-[600px] h-[600px] rounded-full opacity-30"
+             style={{ background: "radial-gradient(closest-side, hsl(190 95% 75% / 0.3), transparent 70%)" }} />
+      </div>
       <header className="sticky top-0 z-40 h-14 glass border-b border-white/40 flex items-center px-4 gap-3">
         <Sheet>
           <SheetTrigger asChild>
@@ -63,7 +69,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
           </Button>
         </div>
       </header>
-      <div className="flex">
+      <div className="flex relative z-10">
         <aside className="hidden lg:block w-60 shrink-0 border-r border-white/40 glass min-h-[calc(100vh-3.5rem)]">
           <SidebarBody pathname={location.pathname} />
         </aside>
