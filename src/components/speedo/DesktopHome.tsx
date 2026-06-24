@@ -216,42 +216,4 @@ function SectionTitle({
   );
 }
 
-function OffersStrip({ banners }: { banners: any[] }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const items = banners.length ? banners : [];
-  if (items.length === 0) return null;
-  const scroll = (dir: 1 | -1) => ref.current?.scrollBy({ left: dir * 600, behavior: "smooth" });
-  return (
-    <section className="mb-12">
-      <div className="flex items-end justify-between mb-4">
-        <h2 className="text-xl font-extrabold tracking-tight">Offers & Events</h2>
-        <div className="flex gap-2">
-          <button onClick={() => scroll(-1)} className="h-9 w-9 rounded-full glass-card flex items-center justify-center hover:text-primary" aria-label="Scroll left">
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <button onClick={() => scroll(1)} className="h-9 w-9 rounded-full glass-card flex items-center justify-center hover:text-primary" aria-label="Scroll right">
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-      <div ref={ref} className="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-2 -mx-2 px-2">
-        {items.map((b) => (
-          <Link
-            key={b.id}
-            to={b.cta_link || "/"}
-            className="relative shrink-0 w-[280px] md:w-[340px] h-[150px] rounded-2xl overflow-hidden snap-start glass-card p-0 group"
-          >
-            {b.image_url && (
-              <img src={b.image_url} alt={b.title || ""} className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700" loading="lazy" decoding="async" />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
-            <div className="absolute bottom-3 left-3 right-3 text-white">
-              {b.title && <h3 className="font-bold text-base leading-snug drop-shadow line-clamp-2">{b.title}</h3>}
-              {b.subtitle && <p className="text-[10px] opacity-90 line-clamp-1 mt-0.5">{b.subtitle}</p>}
-            </div>
-          </Link>
-        ))}
-      </div>
-    </section>
-  );
-}
+// Legacy OffersStrip removed — hero banner now serves the promo role.
