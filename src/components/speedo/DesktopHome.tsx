@@ -1,10 +1,9 @@
 import { Link } from "react-router-dom";
-import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ShoppingBasket, Pill, UtensilsCrossed, Package, ArrowRight,
-  ChevronLeft, ChevronRight, Sparkles, Flame, Tag,
+  Sparkles, Flame, Tag,
 } from "lucide-react";
 import { ProductCard } from "@/components/speedo/ProductCard";
 
