@@ -6,6 +6,7 @@ import {
   Sparkles, Flame, Tag,
 } from "lucide-react";
 import { ProductCard } from "@/components/speedo/ProductCard";
+import { ServiceBanners } from "@/components/speedo/ServiceBanners";
 
 /**
  * Editorial glass desktop home — mirrors the mobile structure.
@@ -17,13 +18,6 @@ import { ProductCard } from "@/components/speedo/ProductCard";
  *  5. Hot-selling products
  * Calm-premium-neutral glassmorphism — frosted surfaces, soft purple aurora.
  */
-
-const SERVICES = [
-  { name: "SpeedMart", desc: "Groceries in minutes",   to: "/speedmart", icon: ShoppingBasket, tint: "from-primary/15 to-primary/0" },
-  { name: "Food",      desc: "Restaurants & cafés",    to: "/food",      icon: UtensilsCrossed, tint: "from-amber-300/30 to-amber-50/0" },
-  { name: "Pharmacy",  desc: "Health & wellness",      to: "/pharmacy",  icon: Pill,            tint: "from-emerald-300/30 to-emerald-50/0" },
-  { name: "SpeedSend", desc: "Send a parcel fast",     to: "/speedsend", icon: Package,         tint: "from-sky-300/30 to-sky-50/0" },
-];
 
 export function DesktopHome() {
   const banners = useQuery({
@@ -73,22 +67,9 @@ export function DesktopHome() {
       </div>
 
       {/* ===== 1. SERVICE BANNERS — 4 equal ===== */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
-        {SERVICES.map((s) => (
-          <Link
-            key={s.name}
-            to={s.to}
-            className="group relative overflow-hidden rounded-[28px] glass-card p-6 hover:-translate-y-1 hover:shadow-elevated transition-all duration-300"
-          >
-            <div className={`absolute -right-8 -bottom-8 h-32 w-32 rounded-full bg-gradient-to-br ${s.tint} blur-2xl opacity-80 group-hover:opacity-100 transition-opacity`} />
-            <div className="relative h-12 w-12 rounded-2xl bg-white/70 ring-1 ring-white/80 backdrop-blur flex items-center justify-center mb-5">
-              <s.icon className="h-6 w-6 text-primary" strokeWidth={2.2} />
-            </div>
-            <h3 className="relative font-extrabold text-lg tracking-tight">{s.name}</h3>
-            <p className="relative text-xs text-muted-foreground mt-1">{s.desc}</p>
-          </Link>
-        ))}
-      </section>
+      <div className="mb-10">
+        <ServiceBanners />
+      </div>
 
       {/* ===== 2. HERO PROMO ===== */}
       <section className="relative mb-12 rounded-[36px] overflow-hidden glass-card p-0 h-[420px] group">
