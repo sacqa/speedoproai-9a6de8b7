@@ -8,6 +8,7 @@ import { SectionHeader } from "@/components/speedo/SectionHeader";
 import { Seo } from "@/components/seo/Seo";
 import { CategoryRowSkeleton, ProductGridSkeleton } from "@/components/speedo/Skeletons";
 import { DesktopHome } from "@/components/speedo/DesktopHome";
+import { ServiceBanners } from "@/components/speedo/ServiceBanners";
 
 export default function Home() {
   const nav = useNavigate();
@@ -131,7 +132,9 @@ export default function Home() {
       </div>
 
       {/* 4 service shortcuts in single row */}
-      <ServiceShortcuts />
+      <div className="px-4">
+        <ServiceBanners />
+      </div>
 
       {/* Hero banner */}
       <BannerSlider banners={banners.data ?? []} />

@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   Home, Search, ShoppingCart, User, Bell, MapPin, ChevronDown, Menu,
   ShoppingBasket, Pill, Package, UtensilsCrossed, ClipboardList, LogOut,
+  Mic, Settings, Shield,
 } from "lucide-react";
 import { SpeedoLogo, SpeedoWordmark } from "@/components/speedo/SpeedoLogo";
 import { useCart } from "@/store/cart";
@@ -19,6 +20,11 @@ import { useLocationTracker } from "@/hooks/useLocationTracker";
 import {
   Sheet, SheetContent, SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { useGridSettings } from "@/hooks/useGridSettings";
 
 const navItems = [
@@ -35,6 +41,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const cartQty = useCart((s) => s.totalQty());
   const cartSubtotal = useCart((s) => s.subtotal());
   const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const location = useLocation();
   const { Banner } = useRealtimeNotifications();
   useGridSettings();
@@ -53,59 +60,103 @@ export function AppShell({ children }: { children: ReactNode }) {
       <AnnouncementPopup />
       <InstallPrompt />
       <MobilePermissions />
-      {/* ===== DESKTOP HEADER — Editorial (Calm Premium Neutral) ===== */}
+      {/* ===== DESKTOP HEADER — Editorial w/ creative search & profile ===== */}
       <header className="hidden lg:block sticky top-0 z-40 bg-[#fafaf7]/85 backdrop-blur-md border-b border-[#e8e4dd]">
-        <div className="max-w-[1400px] mx-auto px-8 xl:px-12 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-10">
-            <Link to="/" className="flex items-center gap-2.5">
-              <SpeedoLogo size={32} />
-              <span className="text-2xl font-serif tracking-tight text-primary">Speedo</span>
-            </Link>
-            <nav className="flex gap-7 text-[11px] uppercase tracking-[0.22em] font-semibold text-[#1a1a1a]/65">
-              {[
-                { to: "/speedmart", label: "SpeedMart" },
-                { to: "/pharmacy", label: "Pharmacy" },
-                { to: "/food", label: "Food" },
-                { to: "/speedsend", label: "Parcels" },
-                { to: "/orders", label: "Orders" },
-              ].map((l) => (
-                <NavLink
-                  key={l.to}
-                  to={l.to}
-                  className={({ isActive }) => `hover:text-primary transition-colors ${isActive ? "text-primary" : ""}`}
-                >
-                  {l.label}
-                </NavLink>
-              ))}
-            </nav>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="hidden xl:flex items-center gap-1.5 px-3 py-2 mr-3 text-xs text-[#1a1a1a]/65">
+        <div className="max-w-[1400px] mx-auto px-8 xl:px-12 py-3.5 flex items-center gap-6">
+          <Link to="/" className="flex items-center gap-2.5 shrink-0">
+            <SpeedoLogo size={30} />
+            <span className="text-2xl font-serif tracking-tight text-primary">Speedo</span>
+          </Link>
+
+          <nav className="flex gap-6 text-[11px] uppercase tracking-[0.22em] font-semibold text-[#1a1a1a]/65 shrink-0">
+            {[
+              { to: "/speedmart", label: "Mart" },
+              { to: "/food", label: "Food" },
+              { to: "/pharmacy", label: "Pharmacy" },
+              { to: "/speedsend", label: "Parcels" },
+              { to: "/orders", label: "Orders" },
+            ].map((l) => (
+              <NavLink
+                key={l.to}
+                to={l.to}
+                className={({ isActive }) => `hover:text-primary transition-colors ${isActive ? "text-primary" : ""}`}
+              >
+                {l.label}
+              </NavLink>
+            ))}
+          </nav>
+
+          {/* Creative search bar */}
+          <Link
+            to="/search"
+            className="group flex-1 max-w-xl mx-2 flex items-center gap-3 h-11 px-4 rounded-full bg-white/80 border border-[#e8e4dd] hover:border-primary/40 hover:bg-white shadow-sm transition-all"
+          >
+            <Search className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
+            <span className="text-sm text-muted-foreground flex-1 truncate">
+              Search groceries, food, medicine…
+            </span>
+            <div className="hidden xl:flex items-center gap-1 text-[10px] font-bold tracking-wider text-muted-foreground/70 border border-[#e8e4dd] rounded-md px-1.5 py-0.5">
+              ⌘K
+            </div>
+            <span className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+              <Mic className="h-3.5 w-3.5 text-primary" />
+            </span>
+          </Link>
+
+          <div className="flex items-center gap-1 shrink-0">
+            <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 mr-1 text-xs text-[#1a1a1a]/70">
               <MapPin className="h-3.5 w-3.5 text-primary" />
               <span className="font-semibold">Dipalpur</span>
               <ChevronDown className="h-3 w-3" />
             </div>
-            <Link to="/search" className="p-2 rounded-sm hover:bg-[#e8e4dd] transition-colors" aria-label="Search">
-              <Search className="h-[18px] w-[18px]" />
-            </Link>
-            <Link to="/notifications" className="p-2 rounded-sm hover:bg-[#e8e4dd] transition-colors" aria-label="Notifications">
+            <Link to="/notifications" className="p-2 rounded-full hover:bg-[#efece6] transition-colors" aria-label="Notifications">
               <Bell className="h-[18px] w-[18px]" />
             </Link>
-            <Link to="/cart" className="p-2 rounded-sm hover:bg-[#e8e4dd] transition-colors relative" aria-label="Cart">
+            <Link to="/cart" className="p-2 rounded-full hover:bg-[#efece6] transition-colors relative" aria-label="Cart">
               <ShoppingCart className="h-[18px] w-[18px]" />
               {cartQty > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-1">
+                <span className="absolute top-0.5 right-0.5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-1">
                   {cartQty}
                 </span>
               )}
             </Link>
+
             {user ? (
-              <Button variant="ghost" size="sm" onClick={signOut} className="ml-2 rounded-sm text-xs uppercase tracking-wider">
-                <LogOut className="h-3.5 w-3.5 mr-1.5" /> Logout
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    aria-label="Account"
+                    className="ml-1 h-9 w-9 rounded-full bg-gradient-to-br from-primary to-primary-dark text-primary-foreground font-bold text-sm flex items-center justify-center ring-2 ring-white shadow-sm hover:scale-105 transition-transform"
+                  >
+                    {(user.user_metadata?.full_name as string | undefined)?.[0]?.toUpperCase()
+                      ?? user.email?.[0]?.toUpperCase()
+                      ?? "S"}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="text-xs text-muted-foreground">Signed in as</div>
+                    <div className="font-bold truncate">{user.user_metadata?.full_name || user.email}</div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild><Link to="/profile"><User className="h-4 w-4 mr-2" />Profile</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link to="/orders"><ClipboardList className="h-4 w-4 mr-2" />My orders</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link to="/addresses"><MapPin className="h-4 w-4 mr-2" />Addresses</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link to="/help"><Settings className="h-4 w-4 mr-2" />Help & settings</Link></DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin"><Shield className="h-4 w-4 mr-2" />Admin panel</Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive">
+                    <LogOut className="h-4 w-4 mr-2" />Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Link to="/login" className="ml-2">
-                <Button size="sm" className="rounded-sm bg-primary hover:bg-primary-dark text-xs uppercase tracking-wider">Login</Button>
+                <Button size="sm" className="rounded-full bg-primary hover:bg-primary-dark text-xs uppercase tracking-wider px-4">Login</Button>
               </Link>
             )}
           </div>
