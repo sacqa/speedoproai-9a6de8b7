@@ -169,7 +169,7 @@ export default function AdminServiceBanners() {
                     }}
                   />
                   <AIImageButton
-                    context="service-banner"
+                    context="banner"
                     bucket="banners"
                     defaultPrompt={editing.title}
                     onGenerated={(url) => setEditing((s: any) => ({ ...s, image_url: url }))}
