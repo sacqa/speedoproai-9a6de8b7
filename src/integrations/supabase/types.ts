@@ -1035,6 +1035,54 @@ export type Database = {
         }
         Relationships: []
       }
+      service_banners: {
+        Row: {
+          created_at: string
+          gradient_from: string | null
+          gradient_to: string | null
+          icon_name: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          link: string
+          service_key: string
+          sort_order: number
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          gradient_from?: string | null
+          gradient_to?: string | null
+          icon_name?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          link?: string
+          service_key: string
+          sort_order?: number
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          gradient_from?: string | null
+          gradient_to?: string | null
+          icon_name?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          link?: string
+          service_key?: string
+          sort_order?: number
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_locations: {
         Row: {
           lat: number
