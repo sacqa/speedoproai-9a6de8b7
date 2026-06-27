@@ -187,7 +187,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       {/* MAIN */}
-      <main className="lg:pt-0 pb-32 lg:pb-12">
+      <main className="lg:pt-0 pb-32 lg:pb-12 lg:pl-[88px]">
+        <DesktopRail />
         <div className="lg:max-w-[1400px] lg:mx-auto lg:px-8 xl:px-12 lg:py-6">
           {children}
         </div>
