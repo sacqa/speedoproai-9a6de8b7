@@ -37,6 +37,15 @@ const navItems = [
   { to: "/profile", label: "Profile", icon: User },
 ];
 
+// Desktop left-rail icon nav. Collapsed by default, expands on hover to reveal labels.
+const railItems: { to: string; label: string; icon: typeof Home; tint: string }[] = [
+  { to: "/speedmart",  label: "SpeedMart", icon: ShoppingBasket,   tint: "from-emerald-400/20 to-emerald-500/10" },
+  { to: "/food",       label: "Food",      icon: UtensilsCrossed,  tint: "from-orange-400/20 to-rose-500/10" },
+  { to: "/pharmacy",   label: "Pharmacy",  icon: Pill,             tint: "from-sky-400/20 to-cyan-500/10" },
+  { to: "/speedsend",  label: "SpeedSend", icon: Package,          tint: "from-violet-400/20 to-fuchsia-500/10" },
+  { to: "/profile",    label: "Profile",   icon: User,             tint: "from-amber-400/20 to-yellow-500/10" },
+];
+
 export function AppShell({ children }: { children: ReactNode }) {
   const cartQty = useCart((s) => s.totalQty());
   const cartSubtotal = useCart((s) => s.subtotal());
@@ -62,44 +71,28 @@ export function AppShell({ children }: { children: ReactNode }) {
       <MobilePermissions />
       {/* ===== DESKTOP HEADER — Editorial w/ creative search & profile ===== */}
       <header className="hidden lg:block sticky top-0 z-40 bg-[#fafaf7]/85 backdrop-blur-md border-b border-[#e8e4dd]">
-        <div className="max-w-[1400px] mx-auto px-8 xl:px-12 py-3.5 flex items-center gap-6">
+        <div className="pl-[104px] pr-8 xl:pr-12 py-3.5 flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2.5 shrink-0">
             <SpeedoLogo size={30} />
             <span className="text-2xl font-serif tracking-tight text-primary">Speedo</span>
           </Link>
 
-          <nav className="flex gap-6 text-[11px] uppercase tracking-[0.22em] font-semibold text-[#1a1a1a]/65 shrink-0">
-            {[
-              { to: "/speedmart", label: "Mart" },
-              { to: "/food", label: "Food" },
-              { to: "/pharmacy", label: "Pharmacy" },
-              { to: "/speedsend", label: "Parcels" },
-              { to: "/orders", label: "Orders" },
-            ].map((l) => (
-              <NavLink
-                key={l.to}
-                to={l.to}
-                className={({ isActive }) => `hover:text-primary transition-colors ${isActive ? "text-primary" : ""}`}
-              >
-                {l.label}
-              </NavLink>
-            ))}
-          </nav>
-
-          {/* Creative search bar */}
+          {/* Creative search bar (Almeera-inspired layout) */}
           <Link
             to="/search"
-            className="group flex-1 max-w-xl mx-2 flex items-center gap-3 h-11 px-4 rounded-full bg-white/80 border border-[#e8e4dd] hover:border-primary/40 hover:bg-white shadow-sm transition-all"
+            className="group flex-1 max-w-3xl flex items-center gap-3 h-14 pl-3 pr-2 rounded-full bg-white border border-[#e8e4dd] hover:border-primary/50 shadow-[0_6px_24px_-12px_rgba(0,0,0,0.18)] hover:shadow-[0_10px_28px_-10px_hsl(var(--primary)/0.35)] transition-all"
           >
-            <Search className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-            <span className="text-sm text-muted-foreground flex-1 truncate">
+            <span className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-primary-dark text-primary-foreground flex items-center justify-center shadow-sm shrink-0">
+              <Search className="h-[18px] w-[18px]" strokeWidth={2.6} />
+            </span>
+            <span className="text-[15px] text-muted-foreground flex-1 truncate font-medium">
               Search groceries, food, medicine…
             </span>
             <div className="hidden xl:flex items-center gap-1 text-[10px] font-bold tracking-wider text-muted-foreground/70 border border-[#e8e4dd] rounded-md px-1.5 py-0.5">
               ⌘K
             </div>
-            <span className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
-              <Mic className="h-3.5 w-3.5 text-primary" />
+            <span className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors shrink-0">
+              <Mic className="h-4 w-4 text-primary" />
             </span>
           </Link>
 
@@ -194,7 +187,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       {/* MAIN */}
-      <main className="lg:pt-0 pb-32 lg:pb-12">
+      <main className="lg:pt-0 pb-32 lg:pb-12 lg:pl-[88px]">
+        <DesktopRail />
         <div className="lg:max-w-[1400px] lg:mx-auto lg:px-8 xl:px-12 lg:py-6">
           {children}
         </div>
@@ -271,6 +265,59 @@ function BottomTab({ to, icon: Icon, label, badge }: { to: string; icon: React.E
         </>
       )}
     </NavLink>
+  );
+}
+
+/**
+ * Desktop left rail: icon-only by default, expands on hover to reveal labels
+ * with a soft pastel pill background per item. Fixed to viewport so it stays
+ * visible while scrolling.
+ */
+function DesktopRail() {
+  return (
+    <aside
+      className="hidden lg:flex group/rail fixed top-[68px] bottom-0 left-0 z-30 w-[72px] hover:w-56 transition-[width] duration-300 ease-out
+                 flex-col gap-1 py-5 px-3
+                 bg-white/70 backdrop-blur-xl border-r border-[#e8e4dd] shadow-[2px_0_24px_-18px_rgba(0,0,0,0.25)]"
+      aria-label="Primary"
+    >
+      {railItems.map((it) => (
+        <NavLink
+          key={it.to}
+          to={it.to}
+          className={({ isActive }) =>
+            `relative flex items-center gap-3 h-12 rounded-2xl px-3 overflow-hidden
+             transition-all duration-300
+             ${isActive
+               ? "bg-gradient-to-r " + it.tint + " text-primary shadow-sm ring-1 ring-primary/15"
+               : "text-[#1a1a1a]/75 hover:bg-[#efece6]"}`
+          }
+        >
+          {({ isActive }) => (
+            <>
+              <span className={`shrink-0 h-9 w-9 rounded-xl flex items-center justify-center transition-all
+                                ${isActive ? "bg-white/80 ring-1 ring-white shadow-sm" : "bg-white/60 group-hover/rail:bg-white"}`}>
+                <it.icon className={`h-[19px] w-[19px] ${isActive ? "text-primary" : ""}`} strokeWidth={2.3} />
+              </span>
+              <span className="whitespace-nowrap text-sm font-semibold tracking-tight
+                               opacity-0 -translate-x-1 group-hover/rail:opacity-100 group-hover/rail:translate-x-0
+                               transition-all duration-300">
+                {it.label}
+              </span>
+              {isActive && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-r-full bg-primary" />
+              )}
+            </>
+          )}
+        </NavLink>
+      ))}
+      <div className="mt-auto pt-3 border-t border-[#ece8e0]">
+        <div className="flex items-center gap-3 h-10 px-3 text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70 whitespace-nowrap
+                        opacity-0 group-hover/rail:opacity-100 transition-opacity">
+          Speedo · v1
+        </div>
+      </div>
+    </aside>
   );
 }
 
