@@ -268,6 +268,59 @@ function BottomTab({ to, icon: Icon, label, badge }: { to: string; icon: React.E
   );
 }
 
+/**
+ * Desktop left rail: icon-only by default, expands on hover to reveal labels
+ * with a soft pastel pill background per item. Fixed to viewport so it stays
+ * visible while scrolling.
+ */
+function DesktopRail() {
+  return (
+    <aside
+      className="hidden lg:flex group/rail fixed top-[68px] bottom-0 left-0 z-30 w-[72px] hover:w-56 transition-[width] duration-300 ease-out
+                 flex-col gap-1 py-5 px-3
+                 bg-white/70 backdrop-blur-xl border-r border-[#e8e4dd] shadow-[2px_0_24px_-18px_rgba(0,0,0,0.25)]"
+      aria-label="Primary"
+    >
+      {railItems.map((it) => (
+        <NavLink
+          key={it.to}
+          to={it.to}
+          className={({ isActive }) =>
+            `relative flex items-center gap-3 h-12 rounded-2xl px-3 overflow-hidden
+             transition-all duration-300
+             ${isActive
+               ? "bg-gradient-to-r " + it.tint + " text-primary shadow-sm ring-1 ring-primary/15"
+               : "text-[#1a1a1a]/75 hover:bg-[#efece6]"}`
+          }
+        >
+          {({ isActive }) => (
+            <>
+              <span className={`shrink-0 h-9 w-9 rounded-xl flex items-center justify-center transition-all
+                                ${isActive ? "bg-white/80 ring-1 ring-white shadow-sm" : "bg-white/60 group-hover/rail:bg-white"}`}>
+                <it.icon className={`h-[19px] w-[19px] ${isActive ? "text-primary" : ""}`} strokeWidth={2.3} />
+              </span>
+              <span className="whitespace-nowrap text-sm font-semibold tracking-tight
+                               opacity-0 -translate-x-1 group-hover/rail:opacity-100 group-hover/rail:translate-x-0
+                               transition-all duration-300">
+                {it.label}
+              </span>
+              {isActive && (
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-r-full bg-primary" />
+              )}
+            </>
+          )}
+        </NavLink>
+      ))}
+      <div className="mt-auto pt-3 border-t border-[#ece8e0]">
+        <div className="flex items-center gap-3 h-10 px-3 text-[10px] uppercase tracking-[0.22em] text-muted-foreground/70 whitespace-nowrap
+                        opacity-0 group-hover/rail:opacity-100 transition-opacity">
+          Speedo · v1
+        </div>
+      </div>
+    </aside>
+  );
+}
+
 function MobileMenu() {
   const { user, signOut } = useAuth();
   return (
