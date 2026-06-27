@@ -17,7 +17,7 @@ type Style =
   | "vibrant"
   | "luxury"
   | "social_post";
-type Model = "gemini-3-pro" | "gemini-latest" | "nano-banana" | "gpt-image-2" | "gpt-image-1-mini" | "gpt-2";
+type Model = "gemini-3-pro" | "nano-banana-2" | "gpt-image-2";
 
 interface HistoryItem {
   url: string;
@@ -145,11 +145,8 @@ export function AIImageButton({
 
   const MODELS: { id: Model; label: string; sub: string }[] = [
     { id: "gemini-3-pro", label: "Gemini 3 Pro", sub: "Masterpiece ★" },
-    { id: "gemini-latest", label: "Nano Banana 2", sub: "Fast · Pro quality" },
-    { id: "nano-banana", label: "Nano Banana", sub: "Photoreal" },
+    { id: "nano-banana-2", label: "Nano Banana 2", sub: "Fast · Pro quality" },
     { id: "gpt-image-2", label: "GPT-Image-2", sub: "OpenAI HQ" },
-    { id: "gpt-image-1-mini", label: "GPT-Image-1 Mini", sub: "Fastest" },
-    { id: "gpt-2", label: "GPT 2", sub: "OpenAI · Free" },
   ];
   const ALL_PRESETS: { id: Preset; label: string; sub: string }[] = [
     { id: "square", label: "Square", sub: "1024×1024" },
@@ -200,7 +197,7 @@ export function AIImageButton({
 
             <div>
               <Label className="mb-1.5 block">Model</Label>
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
+              <div className="grid grid-cols-3 gap-1.5">
                 {MODELS.map((m) => (
                   <button
                     key={m.id}

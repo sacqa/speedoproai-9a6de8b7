@@ -17,24 +17,17 @@ const SIZES: Record<string, { w: number; h: number }> = {
 // All quality models route through the Lovable AI Gateway (premium quality).
 // Pollinations.ai is kept ONLY as an emergency fallback if the gateway is down.
 const GATEWAY_MODELS: Record<string, { upstream: string; provider: "openai" | "gemini" }> = {
-  // Flagship / default — highest-quality, ChatGPT-grade outputs.
+  // Curated lineup — only the three best models exposed to admins.
   "gemini-3-pro": { upstream: "google/gemini-3-pro-image", provider: "gemini" },
-  // Other premium options exposed in the UI.
-  "gemini-latest": { upstream: "google/gemini-3.1-flash-image", provider: "gemini" },
-  "nano-banana": { upstream: "google/gemini-2.5-flash-image", provider: "gemini" },
+  "nano-banana-2": { upstream: "google/gemini-3.1-flash-image", provider: "gemini" },
   "gpt-image-2": { upstream: "openai/gpt-image-2", provider: "openai" },
-  "gpt-2": { upstream: "openai/gpt-image-2", provider: "openai" },
-  "gpt-image-1-mini": { upstream: "openai/gpt-image-1-mini", provider: "openai" },
 };
 
 // Pollinations fallback map (only used if the gateway fails for the chosen model).
 const POLLINATIONS_FALLBACK: Record<string, string> = {
   "gpt-image-2": "flux",
-  "gpt-image-1-mini": "turbo",
-  "nano-banana": "flux-realism",
-  "gemini-latest": "flux",
+  "nano-banana-2": "flux",
   "gemini-3-pro": "flux",
-  "gpt-2": "flux",
 };
 
 const unique = (items: string[]) => Array.from(new Set(items.filter(Boolean)));
