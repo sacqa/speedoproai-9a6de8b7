@@ -37,6 +37,15 @@ const navItems = [
   { to: "/profile", label: "Profile", icon: User },
 ];
 
+// Desktop left-rail icon nav. Collapsed by default, expands on hover to reveal labels.
+const railItems: { to: string; label: string; icon: typeof Home; tint: string }[] = [
+  { to: "/speedmart",  label: "SpeedMart", icon: ShoppingBasket,   tint: "from-emerald-400/20 to-emerald-500/10" },
+  { to: "/food",       label: "Food",      icon: UtensilsCrossed,  tint: "from-orange-400/20 to-rose-500/10" },
+  { to: "/pharmacy",   label: "Pharmacy",  icon: Pill,             tint: "from-sky-400/20 to-cyan-500/10" },
+  { to: "/speedsend",  label: "SpeedSend", icon: Package,          tint: "from-violet-400/20 to-fuchsia-500/10" },
+  { to: "/profile",    label: "Profile",   icon: User,             tint: "from-amber-400/20 to-yellow-500/10" },
+];
+
 export function AppShell({ children }: { children: ReactNode }) {
   const cartQty = useCart((s) => s.totalQty());
   const cartSubtotal = useCart((s) => s.subtotal());
