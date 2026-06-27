@@ -71,44 +71,28 @@ export function AppShell({ children }: { children: ReactNode }) {
       <MobilePermissions />
       {/* ===== DESKTOP HEADER — Editorial w/ creative search & profile ===== */}
       <header className="hidden lg:block sticky top-0 z-40 bg-[#fafaf7]/85 backdrop-blur-md border-b border-[#e8e4dd]">
-        <div className="max-w-[1400px] mx-auto px-8 xl:px-12 py-3.5 flex items-center gap-6">
+        <div className="pl-[104px] pr-8 xl:pr-12 py-3.5 flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2.5 shrink-0">
             <SpeedoLogo size={30} />
             <span className="text-2xl font-serif tracking-tight text-primary">Speedo</span>
           </Link>
 
-          <nav className="flex gap-6 text-[11px] uppercase tracking-[0.22em] font-semibold text-[#1a1a1a]/65 shrink-0">
-            {[
-              { to: "/speedmart", label: "Mart" },
-              { to: "/food", label: "Food" },
-              { to: "/pharmacy", label: "Pharmacy" },
-              { to: "/speedsend", label: "Parcels" },
-              { to: "/orders", label: "Orders" },
-            ].map((l) => (
-              <NavLink
-                key={l.to}
-                to={l.to}
-                className={({ isActive }) => `hover:text-primary transition-colors ${isActive ? "text-primary" : ""}`}
-              >
-                {l.label}
-              </NavLink>
-            ))}
-          </nav>
-
-          {/* Creative search bar */}
+          {/* Creative search bar (Almeera-inspired layout) */}
           <Link
             to="/search"
-            className="group flex-1 max-w-xl mx-2 flex items-center gap-3 h-11 px-4 rounded-full bg-white/80 border border-[#e8e4dd] hover:border-primary/40 hover:bg-white shadow-sm transition-all"
+            className="group flex-1 max-w-3xl flex items-center gap-3 h-14 pl-3 pr-2 rounded-full bg-white border border-[#e8e4dd] hover:border-primary/50 shadow-[0_6px_24px_-12px_rgba(0,0,0,0.18)] hover:shadow-[0_10px_28px_-10px_hsl(var(--primary)/0.35)] transition-all"
           >
-            <Search className="h-4 w-4 text-primary shrink-0" strokeWidth={2.5} />
-            <span className="text-sm text-muted-foreground flex-1 truncate">
+            <span className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-primary-dark text-primary-foreground flex items-center justify-center shadow-sm shrink-0">
+              <Search className="h-[18px] w-[18px]" strokeWidth={2.6} />
+            </span>
+            <span className="text-[15px] text-muted-foreground flex-1 truncate font-medium">
               Search groceries, food, medicine…
             </span>
             <div className="hidden xl:flex items-center gap-1 text-[10px] font-bold tracking-wider text-muted-foreground/70 border border-[#e8e4dd] rounded-md px-1.5 py-0.5">
               ⌘K
             </div>
-            <span className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
-              <Mic className="h-3.5 w-3.5 text-primary" />
+            <span className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors shrink-0">
+              <Mic className="h-4 w-4 text-primary" />
             </span>
           </Link>
 
