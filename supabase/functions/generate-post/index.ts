@@ -13,9 +13,9 @@ const SIZES: Record<string, { w: number; h: number }> = {
 };
 
 const MODEL_MAP: Record<string, string> = {
+  "gemini-3-pro": "flux",
+  "nano-banana-2": "flux",
   "gpt-image-2": "flux",
-  "gpt-image-1-mini": "turbo",
-  "nano-banana": "flux-realism",
   flux: "flux",
   turbo: "turbo",
   "flux-realism": "flux-realism",
