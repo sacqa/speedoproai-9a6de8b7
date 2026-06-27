@@ -23,9 +23,9 @@ const PLATFORMS = [
   { id: "facebook", label: "Facebook (16:10)" },
 ] as const;
 const IMAGE_MODELS = [
+  { id: "gemini-3-pro", label: "Gemini 3 Pro ★" },
+  { id: "nano-banana-2", label: "Nano Banana 2" },
   { id: "gpt-image-2", label: "GPT-Image-2" },
-  { id: "gpt-image-1-mini", label: "GPT-Image-1 Mini" },
-  { id: "nano-banana", label: "Nano Banana" },
 ] as const;
 
 type Post = { imageUrl: string; caption: string; hashtags: string[]; headline: string };
