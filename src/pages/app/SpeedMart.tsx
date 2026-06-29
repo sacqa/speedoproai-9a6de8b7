@@ -1,19 +1,27 @@
 import { useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Search as SearchIcon, SquarePen, ShoppingBasket, ImageOff } from "lucide-react";
+import { Search as SearchIcon, SquarePen, ShoppingBasket, ImageOff, ShoppingCart, Plus } from "lucide-react";
 import { ProductGridSkeleton } from "@/components/speedo/Skeletons";
-import { useNavigate } from "react-router-dom";
+import { ProductSheet } from "@/components/speedo/ProductSheet";
+import { useCart } from "@/store/cart";
+import { formatPKR } from "@/lib/format";
 
 export default function SpeedMart() {
   const [params, setParams] = useSearchParams();
   const cat = params.get("cat") || "all";
   const [q, setQ] = useState("");
   const nav = useNavigate();
+  const [openProduct, setOpenProduct] = useState<any | null>(null);
+  const cartItems = useCart((s) => s.items);
+  const cartCount = cartItems.reduce((a, b) => a + b.quantity, 0);
+  const cartSubtotal = cartItems.reduce((a, b) => a + b.quantity * Number(b.price), 0);
 
   const cats = useQuery({
     queryKey: ["cats"],
+    staleTime: 5 * 60_000,
+    gcTime: 24 * 60 * 60_000,
     queryFn: async () => {
       const { data } = await supabase.from("categories").select("*").eq("is_active", true).order("sort_order");
       return data ?? [];
@@ -22,10 +30,12 @@ export default function SpeedMart() {
 
   const products = useQuery({
     queryKey: ["products", "all"],
+    staleTime: 5 * 60_000,
+    gcTime: 24 * 60 * 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("*, categories(id, slug, name, sort_order)")
+        .select("id, name, price, unit, description, image_url, category_id, is_active, created_at, categories(id, slug, name, sort_order)")
         .eq("is_active", true)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -55,7 +65,7 @@ export default function SpeedMart() {
   }, [products.data, cats.data, cat, q]);
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-0 py-3 lg:py-0 space-y-4">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-0 py-3 lg:py-0 space-y-4 pb-28">
       {/* Search bar */}
       <div className="flex items-center gap-2 bg-white rounded-2xl px-4 py-3 border border-border/60 shadow-[0_2px_10px_-6px_rgba(0,0,0,0.08)]">
         <input
@@ -97,11 +107,26 @@ export default function SpeedMart() {
             <section key={g.name}>
               <h2 className="text-lg sm:text-xl font-extrabold text-foreground mb-3 px-0.5">{g.name}</h2>
               <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3 sm:gap-4">
-                {g.items.map((p: any) => <Tile key={p.id} p={p} />)}
+                {g.items.map((p: any) => <Tile key={p.id} p={p} onOpen={() => setOpenProduct(p)} />)}
               </div>
             </section>
           ))}
         </div>
+      )}
+
+      <ProductSheet product={openProduct} open={!!openProduct} onOpenChange={(o) => !o && setOpenProduct(null)} />
+
+      {cartCount > 0 && (
+        <button
+          onClick={() => nav("/cart")}
+          className="fixed left-1/2 -translate-x-1/2 bottom-24 lg:bottom-6 z-40 w-[92%] max-w-md flex items-center justify-between gap-3 bg-primary text-primary-foreground rounded-2xl px-4 py-3 shadow-2xl shadow-primary/30 active:scale-[0.98] transition"
+        >
+          <div className="flex items-center gap-2 text-sm font-bold">
+            <ShoppingCart className="h-5 w-5" />
+            {cartCount} item{cartCount > 1 ? "s" : ""} · {formatPKR(cartSubtotal)}
+          </div>
+          <div className="text-sm font-extrabold">View Cart →</div>
+        </button>
       )}
     </div>
   );
@@ -132,9 +157,9 @@ function Tab({ active, onClick, label, icon, image }: { active: boolean; onClick
   );
 }
 
-function Tile({ p }: { p: any }) {
+function Tile({ p, onOpen }: { p: any; onOpen: () => void }) {
   return (
-    <Link to={`/product/${p.id}`} className="group flex flex-col items-center text-center">
+    <button onClick={onOpen} className="group flex flex-col items-center text-center text-left">
       <div className="w-full aspect-square rounded-2xl bg-[#eaf1fb] flex items-center justify-center overflow-hidden p-2 transition-transform group-hover:-translate-y-0.5 group-active:scale-95">
         {p.image_url ? (
           <img
@@ -149,9 +174,9 @@ function Tile({ p }: { p: any }) {
           <ImageOff className="h-7 w-7 text-muted-foreground/40" />
         )}
       </div>
-      <span className="mt-2 text-[12px] sm:text-sm font-semibold text-foreground leading-tight line-clamp-2 px-0.5">
+      <span className="mt-2 text-[12px] sm:text-sm font-semibold text-foreground leading-tight line-clamp-2 px-0.5 w-full">
         {p.name}
       </span>
-    </Link>
+    </button>
   );
 }
