@@ -8,6 +8,7 @@ import { formatPKR } from "@/lib/format";
 import { ChevronRight, ImageOff, Minus, Plus, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { VariantSelector, type Variant } from "@/components/speedo/VariantSelector";
+import { thumb } from "@/lib/imageUrl";
 
 type Product = {
   id: string;
@@ -99,8 +100,10 @@ export function ProductSheet({
           <div className="relative aspect-square rounded-3xl bg-[#f3e8f0] overflow-hidden flex items-center justify-center">
             {product.image_url ? (
               <img
-                src={product.image_url}
+                src={thumb(product.image_url, 640) || product.image_url}
                 alt={product.name}
+                loading="eager"
+                decoding="async"
                 className="w-4/5 h-4/5 object-contain"
                 onError={(e) => ((e.currentTarget as HTMLImageElement).style.visibility = "hidden")}
               />
