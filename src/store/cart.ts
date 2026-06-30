@@ -14,6 +14,7 @@ export type CartItem = {
 
 type CartState = {
   items: CartItem[];
+  _hydrated: boolean;
   add: (item: Omit<CartItem, "quantity">, qty?: number) => void;
   remove: (id: string) => void;
   setQty: (id: string, qty: number) => void;
@@ -26,6 +27,7 @@ export const useCart = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      _hydrated: false,
       add: (item, qty = 1) =>
         set((s) => {
           const sameLine = (i: CartItem) =>
@@ -49,6 +51,11 @@ export const useCart = create<CartState>()(
       totalQty: () => get().items.reduce((a, b) => a + b.quantity, 0),
       subtotal: () => get().items.reduce((a, b) => a + b.quantity * Number(b.price), 0),
     }),
-    { name: "speedo-cart" }
+    {
+      name: "speedo-cart",
+      onRehydrateStorage: () => (state) => {
+        if (state) state._hydrated = true;
+      },
+    }
   )
 );
