@@ -43,6 +43,36 @@ export function CategoryRowSkeleton({ count = 6 }: { count?: number }) {
   );
 }
 
+export function CategoryTabsSkeleton({ count = 8 }: { count?: number }) {
+  return (
+    <div className="flex gap-1 min-w-max pb-2">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="flex flex-col items-center gap-1.5 px-4 sm:px-5 py-2.5 min-w-[72px]">
+          <Skeleton className="h-6 w-6 rounded-md" />
+          <Skeleton className="h-3 w-12" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function SectionSkeleton({ count = 8 }: { count?: number }) {
+  return (
+    <section>
+      <Skeleton className="h-5 w-32 mb-3" />
+      <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-2.5 sm:gap-3 lg:gap-4">
+        {Array.from({ length: count }).map((_, i) => (
+          <div key={i} className="flex flex-col items-center">
+            <Skeleton className="w-full aspect-square rounded-2xl" />
+            <Skeleton className="mt-2 h-3 w-3/4" />
+            <Skeleton className="mt-1 h-3 w-1/2" />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function GallerySkeleton() {
   return (
     <div className="space-y-3">
