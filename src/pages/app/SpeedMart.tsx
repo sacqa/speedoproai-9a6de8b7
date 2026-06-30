@@ -7,6 +7,7 @@ import { ProductGridSkeleton } from "@/components/speedo/Skeletons";
 import { ProductSheet } from "@/components/speedo/ProductSheet";
 import { useCart } from "@/store/cart";
 import { formatPKR } from "@/lib/format";
+import { thumb } from "@/lib/imageUrl";
 
 export default function SpeedMart() {
   const [params, setParams] = useSearchParams();
@@ -90,7 +91,7 @@ export default function SpeedMart() {
               active={cat === c.slug}
               onClick={() => setParams({ cat: c.slug })}
               label={c.name}
-              image={c.image_url}
+              image={thumb(c.image_url, 96)}
             />
           ))}
         </div>
@@ -106,7 +107,7 @@ export default function SpeedMart() {
           {sections.map((g) => (
             <section key={g.name}>
               <h2 className="text-lg sm:text-xl font-extrabold text-foreground mb-3 px-0.5">{g.name}</h2>
-              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3 sm:gap-4">
+              <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-2.5 sm:gap-3 lg:gap-4">
                 {g.items.map((p: any) => <Tile key={p.id} p={p} onOpen={() => setOpenProduct(p)} />)}
               </div>
             </section>
@@ -163,7 +164,7 @@ function Tile({ p, onOpen }: { p: any; onOpen: () => void }) {
       <div className="w-full aspect-square rounded-2xl bg-[#eaf1fb] flex items-center justify-center overflow-hidden p-2 transition-transform group-hover:-translate-y-0.5 group-active:scale-95">
         {p.image_url ? (
           <img
-            src={p.image_url}
+            src={thumb(p.image_url, 280) || p.image_url}
             alt={p.name}
             loading="lazy"
             decoding="async"
