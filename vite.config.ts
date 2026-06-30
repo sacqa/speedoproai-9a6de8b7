@@ -55,6 +55,33 @@ export default defineConfig(({ mode }) => ({
             options: { cacheName: "html", networkTimeoutSeconds: 3 },
           },
           {
+            // Supabase Storage image-render endpoint (resized thumbnails).
+            urlPattern: ({ url }) =>
+              url.hostname.endsWith(".supabase.co") &&
+              url.pathname.startsWith("/storage/v1/render/image/public/"),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "supabase-thumbs",
+              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxEntries: 600, maxAgeSeconds: 60 * 60 * 24 * 60 },
+            },
+          },
+          {
+            // Supabase PostgREST GETs — catalog data (categories / products /
+            // banners). Stale-while-revalidate so the grid renders instantly
+            // and updates in the background; offline reloads still work.
+            urlPattern: ({ url, request }) =>
+              request.method === "GET" &&
+              url.hostname.endsWith(".supabase.co") &&
+              url.pathname.startsWith("/rest/v1/"),
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "supabase-rest",
+              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 3 },
+            },
+          },
+          {
             // Supabase Storage public objects: product images, banners, category icons,
             // AI-generated assets. Cross-origin so responses are opaque (status 0).
             urlPattern: ({ url }) =>
