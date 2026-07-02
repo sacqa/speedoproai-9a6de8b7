@@ -1130,6 +1130,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_check_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       are_friends: { Args: { _a: string; _b: string }; Returns: boolean }
       claim_admin_if_none: { Args: never; Returns: boolean }
       get_vendor_commission: { Args: { _vendor_id: string }; Returns: number }
