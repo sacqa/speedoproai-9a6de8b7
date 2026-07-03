@@ -3,8 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2, Star, Trash2, Upload, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
-import { AIImageButton } from "@/components/admin/AIImageButton";
-
 type Img = { id: string; image_url: string; sort_order: number; is_primary: boolean };
 
 export function ProductGalleryEditor({ productId }: { productId: string }) {
@@ -74,21 +72,6 @@ export function ProductGalleryEditor({ productId }: { productId: string }) {
     await load();
   };
 
-  const addUrls = async (urls: string[]) => {
-    if (!urls.length) return;
-    const base = images.length;
-    const rows = urls.map((image_url, i) => ({
-      product_id: productId,
-      image_url,
-      sort_order: base + i,
-      is_primary: base === 0 && i === 0,
-    }));
-    const { error } = await supabase.from("product_images").insert(rows);
-    if (error) return toast.error(error.message);
-    toast.success(`${urls.length} AI image${urls.length > 1 ? "s" : ""} added`);
-    await load();
-  };
-
   const setPrimary = async (id: string) => {
     await supabase.from("product_images").update({ is_primary: false }).eq("product_id", productId);
     const { error } = await supabase.from("product_images").update({ is_primary: true }).eq("id", id);
@@ -113,15 +96,6 @@ export function ProductGalleryEditor({ productId }: { productId: string }) {
       <div className="flex justify-between items-center flex-wrap gap-2">
         <span className="text-xs text-muted-foreground">Add multiple images for the swipeable gallery.</span>
         <div className="flex items-center gap-2 flex-wrap">
-          <AIImageButton
-            context="product"
-            preset="square"
-            bucket="products"
-            allowMultiple
-            label="AI Generate"
-            onGenerated={(url) => addUrls([url])}
-            onGeneratedMany={(urls) => addUrls(urls)}
-          />
           <label>
             <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
             <Button asChild size="sm" variant="outline" disabled={uploading}>

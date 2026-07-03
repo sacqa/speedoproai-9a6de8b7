@@ -1,16 +1,13 @@
 import { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { pkPhone } from "@/lib/validators";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import logoAsset from "@/assets/speedo-logo.png.asset.json";
 
 type Mode = "signin" | "signup";
 
-// Convert phone + 4-digit PIN into the internal credentials used by auth.
-// Customers never see these — they only enter phone + PIN.
 const phoneEmail = (phone: string) => `${phone}@phone.speedo.local`;
 const phonePass = (phone: string, pin: string) => `spd-${pin}-${phone.slice(-4)}-pin`;
 
@@ -79,118 +76,129 @@ export default function Login() {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center bg-[#fafaf7] p-6 overflow-hidden">
-      {/* Ambient pastel glass wash */}
-      <div className="pointer-events-none fixed -top-[10%] -left-[10%] w-[45%] h-[45%] bg-rose-200/25 blur-[120px] rounded-full" />
-      <div className="pointer-events-none fixed -bottom-[10%] -right-[10%] w-[45%] h-[45%] bg-blue-100/30 blur-[120px] rounded-full" />
-      <div className="pointer-events-none fixed top-1/3 left-1/2 -translate-x-1/2 w-[60%] h-[30%] bg-amber-100/20 blur-[100px] rounded-full" />
-
-      <div className="relative w-full max-w-md">
-        {/* Editorial brand header */}
-        <header className="mb-8 text-center">
-          <h1 style={{ fontFamily: "'Instrument Serif', serif" }} className="text-6xl text-stone-900 leading-none tracking-tight">
-            Speedo <span className="italic">Pro</span>
-          </h1>
-          <p className="text-stone-400 font-light tracking-[0.25em] uppercase text-[10px] mt-3">
-            {mode === "signup" ? "Create your account" : "Welcome back"}
-          </p>
-        </header>
-
-        {/* Glass card */}
-        <div className="bg-white/50 backdrop-blur-2xl border border-white/70 rounded-[32px] p-7 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] ring-1 ring-black/[0.02]">
-          {/* Tabs */}
-          <div className="flex mb-7 p-1 bg-stone-900/5 rounded-full">
-            {(["signup", "signin"] as const).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setMode(t)}
-                className={`flex-1 py-2.5 text-sm font-medium rounded-full transition-all ${
-                  mode === t ? "bg-white shadow-sm text-stone-900" : "text-stone-500 hover:text-stone-700"
-                }`}
-              >
-                {t === "signup" ? "Sign Up" : "Sign In"}
-              </button>
-            ))}
+    <div className="min-h-screen w-full bg-neutral-50 flex items-center justify-center font-sans p-0 lg:p-6">
+      <div className="w-full h-screen lg:h-auto lg:min-h-[720px] lg:max-w-6xl lg:rounded-3xl lg:shadow-2xl overflow-hidden flex flex-col lg:flex-row bg-white">
+        {/* Brand panel — desktop only */}
+        <div className="hidden lg:flex lg:w-1/2 bg-neutral-900 relative p-14 flex-col justify-between overflow-hidden">
+          <div aria-hidden className="absolute top-0 right-0 w-96 h-96 bg-purple-600/25 rounded-full blur-3xl -mr-20 -mt-20" />
+          <div aria-hidden className="absolute bottom-0 left-0 w-72 h-72 bg-purple-500/15 rounded-full blur-3xl -ml-10 -mb-10" />
+          <div className="relative z-10">
+            <img src={logoAsset.url} alt="Speedo" className="h-12 w-auto brightness-0 invert" draggable={false} />
+            <h2 className="text-4xl xl:text-5xl font-bold text-white mt-14 leading-[1.1] tracking-tight">
+              Experience the next generation of <span className="text-purple-400">velocity</span>.
+            </h2>
+            <p className="text-neutral-400 mt-4 text-base font-normal max-w-md leading-relaxed">
+              Join thousands who accelerate daily grocery, food, pharmacy and parcel deliveries on Speedo.
+            </p>
           </div>
-
-          <form onSubmit={submit} className="space-y-5">
-            {mode === "signup" && (
-              <Field label="Full Name">
-                <input
-                  type="text" value={name} onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter your full name" maxLength={60} required
-                  className="w-full bg-white/60 border border-white/80 rounded-2xl px-5 py-3.5 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:bg-white transition-all shadow-sm"
-                />
-              </Field>
-            )}
-
-            <Field label="Phone Number">
-              <div className="relative">
-                <span className="absolute left-5 top-1/2 -translate-y-1/2 text-stone-900 font-medium border-r border-stone-200 pr-3 text-sm">+92</span>
-                <input
-                  type="tel" inputMode="numeric" value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
-                  placeholder="300 1234567" maxLength={11} required
-                  className="w-full bg-white/60 border border-white/80 rounded-2xl pl-[68px] pr-5 py-3.5 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:bg-white transition-all shadow-sm"
-                />
-              </div>
-            </Field>
-
-            {mode === "signup" && (
-              <Field label="Date of Birth" hint="A surprise gift awaits you on your birthday.">
-                <input
-                  type="date" value={dob} onChange={(e) => setDob(e.target.value)}
-                  max={new Date().toISOString().slice(0, 10)} required
-                  className="w-full bg-white/60 border border-white/80 rounded-2xl px-5 py-3.5 text-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-900/10 focus:bg-white transition-all shadow-sm"
-                />
-              </Field>
-            )}
-
-            <div className="space-y-2.5">
-              <div className="flex justify-between items-end px-1">
-                <label className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">4-Digit PIN</label>
-                {mode === "signin" && (
-                  <Link to="/forgot-pin" className="text-[11px] font-medium text-rose-500 hover:text-rose-600 transition-colors">
-                    Forgot PIN?
-                  </Link>
-                )}
-              </div>
-              <div className="flex justify-between gap-3">
-                {[0, 1, 2, 3].map((i) => (
-                  <input
-                    key={i} ref={pinRefs[i]} type="password" inputMode="numeric" maxLength={1}
-                    value={pin[i] ?? ""}
-                    onChange={(e) => setPinDigit(i, e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Backspace" && !pin[i] && i > 0) pinRefs[i - 1].current?.focus(); }}
-                    className="w-full aspect-square text-center text-xl font-semibold text-stone-900 bg-white/60 border border-white/80 rounded-2xl focus:outline-none focus:ring-2 focus:ring-stone-900 focus:bg-white transition-all shadow-sm"
-                  />
-                ))}
-              </div>
-            </div>
-
-            <Button
-              type="submit" disabled={busy}
-              className="w-full mt-2 bg-stone-900 text-white py-5 h-auto rounded-2xl font-medium tracking-wide shadow-xl shadow-stone-900/20 active:scale-[0.98] transition-all hover:bg-stone-800"
-            >
-              {busy ? "Please wait…" : mode === "signup" ? "Create Account" : "Sign In"}
-            </Button>
-
-            {mode === "signup" && (
-              <p className="text-[11px] text-center text-stone-400 leading-relaxed pt-1">
-                New accounts need admin approval before placing orders.
-              </p>
-            )}
-          </form>
+          <p className="relative z-10 text-neutral-500 text-xs font-normal">© 2026 Speedo. All rights reserved.</p>
         </div>
 
-        {/* Editorial rule */}
-        <div className="mt-10 text-center opacity-50">
-          <span className="inline-block w-8 h-px bg-stone-400 align-middle" />
-          <span style={{ fontFamily: "'Instrument Serif', serif" }} className="mx-4 italic text-stone-900 text-sm">
-            Est. 2024
-          </span>
-          <span className="inline-block w-8 h-px bg-stone-400 align-middle" />
+        {/* Form panel */}
+        <div className="flex-1 flex flex-col p-6 sm:p-10 lg:p-14 overflow-y-auto">
+          <div className="lg:hidden flex justify-center mb-8 pt-4">
+            <img src={logoAsset.url} alt="Speedo" className="h-10 w-auto" draggable={false} />
+          </div>
+
+          <div className="max-w-md w-full mx-auto flex-1 flex flex-col justify-center">
+            {/* Tabs */}
+            <div className="flex border-b border-neutral-100 mb-8">
+              {(["signin", "signup"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setMode(t)}
+                  className={`flex-1 pb-4 text-sm font-bold border-b-2 transition-colors ${
+                    mode === t ? "text-purple-600 border-purple-600" : "text-neutral-400 border-transparent hover:text-neutral-600"
+                  }`}
+                >
+                  {t === "signup" ? "Sign Up" : "Sign In"}
+                </button>
+              ))}
+            </div>
+
+            <header className="mb-6">
+              <h1 className="text-2xl font-bold text-neutral-900 tracking-tight">
+                {mode === "signup" ? "Create an account" : "Welcome back"}
+              </h1>
+              <p className="text-neutral-500 mt-1 text-sm font-normal">
+                {mode === "signup" ? "Get started with your phone number." : "Sign in with your phone and PIN."}
+              </p>
+            </header>
+
+            <form onSubmit={submit} className="space-y-5">
+              {mode === "signup" && (
+                <Field label="Full Name">
+                  <input
+                    type="text" value={name} onChange={(e) => setName(e.target.value)}
+                    placeholder="John Doe" maxLength={60} required autoComplete="name"
+                    className="w-full px-4 py-3.5 bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 transition-all font-normal placeholder:text-neutral-400"
+                  />
+                </Field>
+              )}
+
+              <Field label="Phone Number">
+                <div className="flex">
+                  <span className="inline-flex items-center px-4 rounded-l-xl border border-r-0 border-neutral-200 bg-neutral-100 text-neutral-600 font-bold text-sm">+92</span>
+                  <input
+                    type="tel" inputMode="numeric" autoComplete="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                    placeholder="300 1234567" maxLength={11} required
+                    className="w-full px-4 py-3.5 bg-neutral-50 border border-neutral-200 rounded-r-xl focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 transition-all font-normal placeholder:text-neutral-400"
+                  />
+                </div>
+              </Field>
+
+              {mode === "signup" && (
+                <Field label="Date of Birth" hint="A surprise gift awaits on your birthday.">
+                  <input
+                    type="date" value={dob} onChange={(e) => setDob(e.target.value)}
+                    max={new Date().toISOString().slice(0, 10)} required
+                    className="w-full px-4 py-3.5 bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 transition-all font-normal text-neutral-700"
+                  />
+                </Field>
+              )}
+
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider">
+                    {mode === "signup" ? "Set 4-Digit PIN" : "4-Digit PIN"}
+                  </label>
+                  {mode === "signin" && (
+                    <Link to="/forgot-pin" className="text-xs font-bold text-purple-600 hover:text-purple-700">
+                      Forgot PIN?
+                    </Link>
+                  )}
+                </div>
+                <div className="flex gap-3">
+                  {[0, 1, 2, 3].map((i) => (
+                    <input
+                      key={i} ref={pinRefs[i]} type="password" inputMode="numeric" maxLength={1}
+                      autoComplete="off"
+                      value={pin[i] ?? ""}
+                      onChange={(e) => setPinDigit(i, e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Backspace" && !pin[i] && i > 0) pinRefs[i - 1].current?.focus(); }}
+                      className="w-full h-14 text-center text-xl font-bold bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600 transition-all"
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <Button
+                type="submit" disabled={busy}
+                className="w-full bg-neutral-900 hover:bg-neutral-800 text-white font-bold py-4 h-auto rounded-xl transition-all shadow-lg active:scale-[0.98] mt-2"
+              >
+                {busy ? "Please wait…" : mode === "signup" ? "Create Account" : "Sign In"}
+              </Button>
+
+              {mode === "signup" && (
+                <p className="text-center text-neutral-400 text-xs font-normal">
+                  New accounts need admin approval before placing orders.
+                </p>
+              )}
+            </form>
+          </div>
         </div>
       </div>
     </div>
@@ -200,9 +208,9 @@ export default function Login() {
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider ml-1 block">{label}</label>
+      <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider">{label}</label>
       {children}
-      {hint && <p className="text-[11px] text-stone-400 leading-relaxed px-1 pt-0.5">{hint}</p>}
+      {hint && <p className="text-xs text-neutral-400 leading-relaxed pt-0.5 font-normal">{hint}</p>}
     </div>
   );
 }

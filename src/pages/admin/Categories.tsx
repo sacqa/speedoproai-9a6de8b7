@@ -8,7 +8,6 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Star } from "lucide-react";
-import { AIImageButton } from "@/components/admin/AIImageButton";
 import { supabase as sb } from "@/integrations/supabase/client";
 
 const empty = { name: "", slug: "", icon: "", image_url: "", sort_order: 0, is_active: true, is_popular: false, is_hot_selling: false };
@@ -17,33 +16,6 @@ export default function AdminCategories() {
   const cats = useQuery({ queryKey: ["admin","categories"], queryFn: async () => (await supabase.from("categories").select("*").order("sort_order")).data ?? [] });
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
-  const [bulkBusy, setBulkBusy] = useState(false);
-
-  const bulkGenerateIcons = async () => {
-    const missing = (cats.data ?? []).filter((c: any) => !c.image_url);
-    if (missing.length === 0) return toast.info("All categories already have images.");
-    if (!confirm(`Generate AI images for ${missing.length} categor${missing.length === 1 ? "y" : "ies"} without an image?`)) return;
-    setBulkBusy(true);
-    let ok = 0, fail = 0;
-    for (const c of missing) {
-      try {
-        const { data, error } = await sb.functions.invoke("generate-image", {
-          body: { prompt: c.name, preset: "square", bucket: "products", context: "category" },
-        });
-        if (error || !data?.url) throw new Error(error?.message || data?.error || "failed");
-        const { error: upErr } = await supabase.from("categories").update({ image_url: data.url }).eq("id", c.id);
-        if (upErr) throw upErr;
-        ok++;
-        toast.success(`Generated: ${c.name}`);
-        cats.refetch();
-      } catch (e: any) {
-        fail++;
-        toast.error(`${c.name}: ${e.message}`);
-      }
-    }
-    setBulkBusy(false);
-    toast.success(`Done. ${ok} generated, ${fail} failed.`);
-  };
 
   const save = async () => {
     if (!editing.name?.trim()) return toast.error("Name required");
@@ -77,9 +49,6 @@ export default function AdminCategories() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-extrabold">Categories</h1>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" disabled={bulkBusy} onClick={bulkGenerateIcons}>
-            {bulkBusy ? "Generating…" : "AI: Generate Missing Icons"}
-          </Button>
           <Button onClick={() => { setEditing(empty); setOpen(true); }}><Plus className="h-4 w-4 mr-1" />Add Category</Button>
         </div>
       </div>
@@ -159,13 +128,6 @@ export default function AdminCategories() {
                     const { data } = sb.storage.from("products").getPublicUrl(path);
                     setEditing({ ...editing, image_url: data.publicUrl });
                   }}
-                />
-                <AIImageButton
-                  context="category"
-                  preset="square"
-                  bucket="products"
-                  defaultPrompt={editing.name ?? ""}
-                  onGenerated={(url) => setEditing({ ...editing, image_url: url })}
                 />
                 {editing.image_url && (
                   <Button type="button" size="sm" variant="ghost" onClick={() => setEditing({ ...editing, image_url: "" })}>Remove</Button>

@@ -62,7 +62,6 @@ const AdminReceiptSettings = lazy(() => import("./pages/admin/ReceiptSettings"))
 const AdminFooterSettings = lazy(() => import("./pages/admin/FooterSettings"));
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 const AdminLayoutSettings = lazy(() => import("./pages/admin/LayoutSettings"));
-const AdminAIPosts = lazy(() => import("./pages/admin/AIPosts"));
 const AdminPages = lazy(() => import("./pages/admin/Pages"));
 const AdminAnalyticsSettings = lazy(() => import("./pages/admin/AnalyticsSettings"));
 const AdminLiveMap = lazy(() => import("./pages/admin/LiveMap"));
@@ -137,7 +136,6 @@ const App = () => (
               <Route path="/admin/receipt-settings" element={<AdminPage><AdminReceiptSettings /></AdminPage>} />
               <Route path="/admin/footer-settings" element={<AdminPage><AdminFooterSettings /></AdminPage>} />
               <Route path="/admin/layout-settings" element={<AdminPage><AdminLayoutSettings /></AdminPage>} />
-              <Route path="/admin/ai-posts" element={<AdminPage><AdminAIPosts /></AdminPage>} />
               <Route path="/admin/pages" element={<AdminPage><AdminPages /></AdminPage>} />
               <Route path="/admin/analytics" element={<AdminPage><AdminAnalyticsSettings /></AdminPage>} />
               <Route path="/admin/live-map" element={<AdminPage><AdminLiveMap /></AdminPage>} />

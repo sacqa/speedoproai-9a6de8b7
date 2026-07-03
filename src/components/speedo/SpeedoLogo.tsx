@@ -1,4 +1,5 @@
-import logoImg from "@/assets/speedo-logo.jpg";
+import logoAsset from "@/assets/speedo-logo.png.asset.json";
+const logoImg = logoAsset.url;
 
 type Props = { size?: number; className?: string; variant?: "filled" | "mark" };
 

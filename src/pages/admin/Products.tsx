@@ -11,9 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { formatPKR } from "@/lib/format";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Download, Upload, FileText, Sparkles, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Download, Upload, FileText } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { AIImageButton } from "@/components/admin/AIImageButton";
 import { ProductVariantsEditor } from "@/components/admin/ProductVariantsEditor";
 import { ProductGalleryEditor } from "@/components/admin/ProductGalleryEditor";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -57,8 +56,6 @@ export default function AdminProducts() {
   const [editing, setEditing] = useState<Partial<Product> & { id?: string } | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
-  const [aiBulkBusy, setAiBulkBusy] = useState(false);
-  const [aiProgress, setAiProgress] = useState<{ done: number; total: number } | null>(null);
   const [params, setParams] = useSearchParams();
   const q = params.get("q") ?? "";
   const page = Math.max(1, parseInt(params.get("page") ?? "1", 10) || 1);
@@ -153,47 +150,6 @@ export default function AdminProducts() {
     toast.success(`Updated ${selected.size}`); prods.refetch();
   };
 
-  const bulkGenerateImages = async () => {
-    if (selected.size === 0) return;
-    const targets = (prods.data ?? []).filter((p: any) => selected.has(p.id));
-    if (!confirm(`Generate free AI product images for ${targets.length} selected product(s)? This may take a while.`)) return;
-    setAiBulkBusy(true);
-    setAiProgress({ done: 0, total: targets.length });
-    let ok = 0, fail = 0;
-    for (let i = 0; i < targets.length; i++) {
-      const p: any = targets[i];
-      try {
-        const { data, error } = await supabase.functions.invoke("generate-image", {
-          body: { prompt: p.name, preset: "square", context: "product", bucket: "products" },
-        });
-        if (error || !data?.url) {
-          let msg = error?.message || "no url";
-          const res: Response | undefined = (error as any)?.context;
-          if (res) {
-            try {
-              const body = await res.clone().json();
-              msg = body?.error || body?.message || msg;
-            } catch {}
-          }
-          throw new Error(msg);
-        }
-        const { error: uErr } = await supabase.from("products").update({ image_url: data.url }).eq("id", p.id);
-        if (uErr) throw uErr;
-        ok++;
-      } catch (e: any) {
-        fail++;
-        const msg = String(e?.message ?? "Free generation failed");
-        console.error("bulk product image generation failed", msg);
-      }
-      setAiProgress({ done: i + 1, total: targets.length });
-    }
-    setAiBulkBusy(false);
-    setAiProgress(null);
-    if (ok) toast.success(`Generated ${ok} image(s)${fail ? `, ${fail} failed` : ""}`);
-    else if (fail) toast.error(`All ${fail} generations failed`);
-    prods.refetch();
-  };
-
   const openNew = () => { setEditing(empty); setOpen(true); };
   const openEdit = (p: any) => { setEditing(p); setOpen(true); };
 
@@ -269,11 +225,6 @@ export default function AdminProducts() {
           <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkUpdate({ is_active: false })}>Deactivate</Button>
           <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkUpdate({ is_featured: true })}>Mark Popular</Button>
           <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => bulkUpdate({ is_featured: false })}>Unpopular</Button>
-          <Button size="sm" variant="outline" disabled={aiBulkBusy || bulkBusy} onClick={bulkGenerateImages}>
-            {aiBulkBusy
-              ? <><Loader2 className="h-4 w-4 mr-1 animate-spin" />Generating {aiProgress?.done}/{aiProgress?.total}</>
-              : <><Sparkles className="h-4 w-4 mr-1 text-primary" />AI Generate Images</>}
-          </Button>
           <Button size="sm" variant="destructive" disabled={bulkBusy} onClick={bulkDelete}><Trash2 className="h-4 w-4 mr-1" />Delete</Button>
           <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>Clear</Button>
         </div>
@@ -366,13 +317,6 @@ export default function AdminProducts() {
                 <div className="flex items-center gap-3 flex-wrap">
                   {editing.image_url && <img src={editing.image_url} alt="" className="h-14 w-14 rounded object-cover" />}
                   <Input type="file" accept="image/*" className="flex-1 min-w-[180px]" onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0])} />
-                  <AIImageButton
-                    context="product"
-                    preset="square"
-                    bucket="products"
-                    defaultPrompt={editing.name ?? ""}
-                    onGenerated={(url) => setEditing((s: any) => ({ ...s, image_url: url }))}
-                  />
                 </div>
               </div>
               <div className="flex gap-6 flex-wrap">
