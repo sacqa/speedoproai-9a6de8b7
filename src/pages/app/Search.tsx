@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard } from "@/components/speedo/ProductCard";
 import { Search as SearchIcon, Mic, MicOff, Loader2, TrendingUp } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Search() {
   const [params, setParams] = useSearchParams();
