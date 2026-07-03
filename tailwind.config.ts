@@ -88,9 +88,9 @@ export default {
         pill: "9999px",
       },
       fontFamily: {
-        sans: ['Figtree', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['Outfit', 'Figtree', 'system-ui', 'sans-serif'],
-        serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+        sans: ['Montserrat', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Montserrat', 'system-ui', 'sans-serif'],
+        serif: ['Montserrat', 'Georgia', 'serif'],
       },
       keyframes: {
         "accordion-down": {

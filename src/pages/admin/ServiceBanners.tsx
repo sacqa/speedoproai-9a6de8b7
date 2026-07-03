@@ -8,8 +8,6 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Pencil, Plus, Trash2 } from "lucide-react";
-import { AIImageButton } from "@/components/admin/AIImageButton";
-
 const ICON_CHOICES = [
   "ShoppingBasket", "UtensilsCrossed", "Pill", "Package",
   "Truck", "Sparkles", "Heart", "Coffee", "Gift", "Store",
@@ -167,12 +165,6 @@ export default function AdminServiceBanners() {
                       const { data } = supabase.storage.from("banners").getPublicUrl(path);
                       setEditing((s: any) => ({ ...s, image_url: data.publicUrl }));
                     }}
-                  />
-                  <AIImageButton
-                    context="banner"
-                    bucket="banners"
-                    defaultPrompt={editing.title}
-                    onGenerated={(url) => setEditing((s: any) => ({ ...s, image_url: url }))}
                   />
                 </div>
               </div>
