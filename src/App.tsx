@@ -66,6 +66,7 @@ const AdminPages = lazy(() => import("./pages/admin/Pages"));
 const AdminAnalyticsSettings = lazy(() => import("./pages/admin/AnalyticsSettings"));
 const AdminLiveMap = lazy(() => import("./pages/admin/LiveMap"));
 const AdminServiceBanners = lazy(() => import("./pages/admin/ServiceBanners"));
+const AdminBrandSettings = lazy(() => import("./pages/admin/BrandSettings"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -136,6 +137,7 @@ const App = () => (
               <Route path="/admin/receipt-settings" element={<AdminPage><AdminReceiptSettings /></AdminPage>} />
               <Route path="/admin/footer-settings" element={<AdminPage><AdminFooterSettings /></AdminPage>} />
               <Route path="/admin/layout-settings" element={<AdminPage><AdminLayoutSettings /></AdminPage>} />
+              <Route path="/admin/brand-settings" element={<AdminPage><AdminBrandSettings /></AdminPage>} />
               <Route path="/admin/pages" element={<AdminPage><AdminPages /></AdminPage>} />
               <Route path="/admin/analytics" element={<AdminPage><AdminAnalyticsSettings /></AdminPage>} />
               <Route path="/admin/live-map" element={<AdminPage><AdminLiveMap /></AdminPage>} />
