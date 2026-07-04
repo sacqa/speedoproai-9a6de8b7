@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Package, FolderTree, ShoppingBag, Users, Image as ImageIcon,
-  DollarSign, LogOut, Menu, Megaphone, MessageSquare, Sparkles, UtensilsCrossed, Shield, UserCheck, MessageCircle, Receipt, PanelBottom, Grid3x3, FileText, BarChart3, MapPin, LayoutGrid,
+  DollarSign, LogOut, Menu, Megaphone, MessageSquare, Sparkles, UtensilsCrossed, Shield, UserCheck, MessageCircle, Receipt, PanelBottom, Grid3x3, FileText, BarChart3, MapPin, LayoutGrid, Palette,
 } from "lucide-react";
 import { SpeedoLogo } from "@/components/speedo/SpeedoLogo";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,6 +24,7 @@ const items = [
   { to: "/admin/receipt-settings", label: "Receipt Settings", icon: Receipt },
   { to: "/admin/footer-settings", label: "Footer Settings", icon: PanelBottom },
   { to: "/admin/layout-settings", label: "Layout Settings", icon: Grid3x3 },
+  { to: "/admin/brand-settings", label: "Brand & Display", icon: Palette },
   { to: "/admin/pages", label: "Pages (About, Privacy…)", icon: FileText },
   { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/admin/live-map", label: "Live Customer Map", icon: MapPin },
@@ -57,9 +58,8 @@ export function AdminLayout({ children }: { children: ReactNode }) {
             <SidebarBody pathname={location.pathname} />
           </SheetContent>
         </Sheet>
-        <Link to="/admin" className="flex items-center gap-2">
-          <SpeedoLogo size={28} />
-          <span className="font-extrabold">Speedo <span className="text-primary">Admin</span></span>
+        <Link to="/admin" className="flex items-center gap-2" aria-label="Admin home">
+          <SpeedoLogo size={30} />
         </Link>
         <div className="ml-auto flex items-center gap-2">
           <Link to="/" className="text-xs font-semibold text-primary hover:underline hidden sm:inline">View customer app →</Link>
@@ -81,20 +81,32 @@ export function AdminLayout({ children }: { children: ReactNode }) {
 
 function SidebarBody({ pathname }: { pathname: string }) {
   return (
-    <nav className="p-3 space-y-1">
+    <nav className="p-3 space-y-1.5">
       {items.map((it) => (
         <NavLink
           key={it.to}
           to={it.to}
           end={it.end}
           className={({ isActive }) =>
-            `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
-              isActive ? "bg-primary text-primary-foreground" : "text-foreground/80 hover:bg-muted"
+            `group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              isActive
+                ? "bg-primary text-primary-foreground shadow-[0_8px_24px_-10px_hsl(var(--primary)/0.6)]"
+                : "text-foreground/80 hover:bg-white/70 hover:translate-x-0.5"
             }`
           }
         >
-          <it.icon className="h-4 w-4" />
-          {it.label}
+          {({ isActive }) => (
+            <>
+              <span
+                className={`h-9 w-9 shrink-0 rounded-lg flex items-center justify-center transition-colors ${
+                  isActive ? "bg-white/20 text-white" : "bg-primary/10 text-primary group-hover:bg-primary/15"
+                }`}
+              >
+                <it.icon className="h-[18px] w-[18px]" strokeWidth={2.2} />
+              </span>
+              <span className="truncate">{it.label}</span>
+            </>
+          )}
         </NavLink>
       ))}
     </nav>
