@@ -49,8 +49,7 @@ export function Footer() {
         <div className="p-5 sm:p-7 lg:p-10 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
           <div className="max-w-md">
             <div className="flex items-center gap-2 mb-2">
-              <SpeedoLogo size={32} />
-              <span className="font-extrabold text-lg">Speedo</span>
+              <SpeedoLogo size={36} />
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">{v.brand_tagline}</p>
           </div>
