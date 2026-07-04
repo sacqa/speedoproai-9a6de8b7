@@ -72,9 +72,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* ===== DESKTOP HEADER — Editorial w/ creative search & profile ===== */}
       <header className="hidden lg:block sticky top-0 z-40 bg-[#fafaf7]/85 backdrop-blur-md border-b border-[#e8e4dd]">
         <div className="pl-[104px] pr-8 xl:pr-12 py-3.5 flex items-center gap-6">
-          <Link to="/" className="flex items-center gap-2.5 shrink-0">
-            <SpeedoLogo size={30} />
-            <span className="text-2xl font-serif tracking-tight text-primary">Speedo</span>
+          <Link to="/" className="flex items-center shrink-0" aria-label="Home">
+            <SpeedoLogo size={36} />
           </Link>
 
           {/* Creative search bar (Almeera-inspired layout) */}
