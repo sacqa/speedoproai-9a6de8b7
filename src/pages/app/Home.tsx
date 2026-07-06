@@ -248,6 +248,7 @@ function BannerSlider({ banners }: { banners: any[] }) {
       <div
         ref={ref}
         className="group relative rounded-[28px] overflow-hidden mx-auto max-w-md lg:max-w-5xl border border-white/40 shadow-[0_20px_45px_-22px_hsl(var(--primary)/0.55)] aspect-[2/1] bg-muted"
+        style={{ aspectRatio: "16 / 7" }}
       >
         {/* Full-bleed banner image */}
         <img

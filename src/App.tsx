@@ -7,25 +7,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "./pages/NotFound.tsx";
 import { AuthProvider } from "@/hooks/useAuth";
 import { AppShell } from "@/components/layout/AppShell";
-import { RequireAuth } from "@/components/speedo/RequireAuth";
-import { RequireApproved } from "@/components/speedo/RequireApproved";
 // Home stays eager (it's the landing route); everything else is code-split.
 import Home from "./pages/app/Home";
 const Splash = lazy(() => import("./pages/app/Splash"));
-const Onboarding = lazy(() => import("./pages/app/Onboarding"));
-const Login = lazy(() => import("./pages/app/Login"));
-const ForgotPin = lazy(() => import("./pages/app/ForgotPin"));
-const Waiting = lazy(() => import("./pages/app/Waiting"));
 const Search = lazy(() => import("./pages/app/Search"));
 const SpeedMart = lazy(() => import("./pages/app/SpeedMart"));
 const Cart = lazy(() => import("./pages/app/Cart"));
 const Checkout = lazy(() => import("./pages/app/Checkout"));
 const OrderConfirm = lazy(() => import("./pages/app/OrderConfirm"));
-const OrderDetails = lazy(() => import("./pages/app/OrderDetails"));
-const Orders = lazy(() => import("./pages/app/Orders"));
-const Notifications = lazy(() => import("./pages/app/Notifications"));
-const Profile = lazy(() => import("./pages/app/Profile"));
-const Addresses = lazy(() => import("./pages/app/Addresses"));
 const Help = lazy(() => import("./pages/app/Help"));
 const RequestForm = lazy(() => import("./pages/app/RequestForm"));
 const Food = lazy(() => import("./pages/app/Food"));
@@ -33,8 +22,6 @@ const FoodVendor = lazy(() => import("./pages/app/FoodVendor"));
 const FoodCheckout = lazy(() => import("./pages/app/FoodCheckout"));
 const ProductDetail = lazy(() => import("./pages/app/ProductDetail"));
 const Nearby = lazy(() => import("./pages/app/Nearby"));
-const Friends = lazy(() => import("./pages/app/Friends"));
-const Chat = lazy(() => import("./pages/app/Chat"));
 const CmsPage = lazy(() => import("./pages/app/CmsPage"));
 import { RequireAdmin } from "@/components/admin/RequireAdmin";
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -98,32 +85,32 @@ const App = () => (
             <Suspense fallback={<div className="min-h-[40vh] flex items-center justify-center text-sm text-muted-foreground">Loading…</div>}>
             <Routes>
               <Route path="/splash" element={<Splash />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/forgot-pin" element={<ForgotPin />} />
-              <Route path="/pending" element={<Waiting />} />
+              {/* Legacy auth routes redirect home — the app no longer requires sign-in. */}
+              <Route path="/login" element={<Navigate to="/" replace />} />
+              <Route path="/onboarding" element={<Navigate to="/" replace />} />
+              <Route path="/forgot-pin" element={<Navigate to="/" replace />} />
+              <Route path="/pending" element={<Navigate to="/" replace />} />
+              <Route path="/profile" element={<Navigate to="/" replace />} />
+              <Route path="/addresses" element={<Navigate to="/" replace />} />
+              <Route path="/orders" element={<Navigate to="/" replace />} />
+              <Route path="/notifications" element={<Navigate to="/" replace />} />
+              <Route path="/friends" element={<Navigate to="/" replace />} />
+              <Route path="/chat/:friendId" element={<Navigate to="/" replace />} />
               <Route path="/" element={<Home />} />
               <Route path="/search" element={<Search />} />
               <Route path="/speedmart" element={<SpeedMart />} />
               <Route path="/product/:id" element={<ProductDetail />} />
-              <Route path="/pharmacy" element={<RequireApproved><RequestForm mode="pharmacy" /></RequireApproved>} />
-              <Route path="/speedsend" element={<RequireApproved><RequestForm mode="speedsend" /></RequireApproved>} />
-              <Route path="/custom" element={<RequireApproved><RequestForm mode="custom" /></RequireApproved>} />
-              <Route path="/food" element={<RequireApproved><Food /></RequireApproved>} />
-              <Route path="/food/checkout" element={<RequireApproved><FoodCheckout /></RequireApproved>} />
-              <Route path="/food/:vendorId" element={<RequireApproved><FoodVendor /></RequireApproved>} />
+              <Route path="/pharmacy" element={<RequestForm mode="pharmacy" />} />
+              <Route path="/speedsend" element={<RequestForm mode="speedsend" />} />
+              <Route path="/custom" element={<RequestForm mode="custom" />} />
+              <Route path="/food" element={<Food />} />
+              <Route path="/food/checkout" element={<FoodCheckout />} />
+              <Route path="/food/:vendorId" element={<FoodVendor />} />
               <Route path="/cart" element={<Cart />} />
-              <Route path="/checkout" element={<RequireApproved><Checkout /></RequireApproved>} />
-              <Route path="/orders" element={<RequireApproved><Orders /></RequireApproved>} />
-              <Route path="/orders/:id" element={<RequireApproved><OrderDetails /></RequireApproved>} />
-              <Route path="/orders/:id/confirm" element={<RequireApproved><OrderConfirm /></RequireApproved>} />
-              <Route path="/notifications" element={<RequireApproved><Notifications /></RequireApproved>} />
-              <Route path="/profile" element={<RequireApproved><Profile /></RequireApproved>} />
-              <Route path="/addresses" element={<RequireApproved><Addresses /></RequireApproved>} />
-              <Route path="/help" element={<RequireApproved><Help /></RequireApproved>} />
-              <Route path="/nearby" element={<RequireApproved><Nearby /></RequireApproved>} />
-              <Route path="/friends" element={<RequireApproved><Friends /></RequireApproved>} />
-              <Route path="/chat/:friendId" element={<RequireApproved><Chat /></RequireApproved>} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/order/:id" element={<OrderConfirm />} />
+              <Route path="/help" element={<Help />} />
+              <Route path="/nearby" element={<Nearby />} />
               {/* Public CMS pages (admin-editable) */}
               <Route path="/about" element={<CmsPage slug="about" />} />
               <Route path="/contact" element={<CmsPage slug="contact" />} />

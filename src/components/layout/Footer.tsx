@@ -1,9 +1,26 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SpeedoLogo } from "@/components/speedo/SpeedoLogo";
 import { useIsStandalone } from "@/hooks/useIsStandalone";
+
+const APP_VERSION = "v1.0.0";
+
+function useVersionTapAdmin() {
+  const nav = useNavigate();
+  const taps = useRef(0);
+  const timer = useRef<number | null>(null);
+  return () => {
+    taps.current += 1;
+    if (timer.current) window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => { taps.current = 0; }, 1500);
+    if (taps.current >= 5) {
+      taps.current = 0;
+      nav("/admin/login");
+    }
+  };
+}
 
 type LinkItem = { label: string; url: string };
 export type FooterValue = {
@@ -25,19 +42,30 @@ const DEFAULTS: FooterValue = {
 export function Footer() {
   const [v, setV] = useState<FooterValue>(DEFAULTS);
   const isStandalone = useIsStandalone();
+  const onVersionTap = useVersionTapAdmin();
   useEffect(() => {
     supabase.from("app_settings").select("value").eq("key", "footer").maybeSingle()
       .then(({ data }) => { if (data?.value) setV({ ...DEFAULTS, ...(data.value as FooterValue) }); });
   }, []);
   const company = v.company_links ?? [];
   const legal = v.legal_links ?? [];
+  const versionButton = (
+    <button
+      type="button"
+      onClick={onVersionTap}
+      aria-label="App version"
+      className="opacity-60 hover:opacity-100 focus:opacity-100 transition-opacity underline-offset-2 hover:underline"
+    >
+      {APP_VERSION}
+    </button>
+  );
   // When installed as a PWA on mobile, hide the link/help sections — they're for web visitors,
   // not for users already inside the installed app. Keep only a slim copyright bar.
   if (isStandalone) {
     return (
       <footer className="mt-6 pb-24 lg:pb-6 px-4">
         <div className="text-center text-[11px] text-muted-foreground">
-          {v.copyright} · Made with ♥ in Dipalpur
+          {v.copyright} · Made with ♥ in Dipalpur · {versionButton}
         </div>
       </footer>
     );
@@ -82,7 +110,7 @@ export function Footer() {
 
         {/* Legal bar */}
         <div className="border-t border-white/40 px-4 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-1.5 text-[11px] text-muted-foreground">
-          <span>{v.copyright}</span>
+          <span>{v.copyright} · {versionButton}</span>
           <span className="opacity-70">Made with ♥ in Dipalpur</span>
         </div>
       </div>

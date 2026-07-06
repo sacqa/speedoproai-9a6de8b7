@@ -528,6 +528,63 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_orders: {
+        Row: {
+          area: string
+          created_at: string
+          customer_name: string
+          delivery_fee: number
+          details: string | null
+          id: string
+          items: Json
+          notes: string | null
+          order_number: string
+          payment_method: string
+          phone: string
+          status: string
+          street: string
+          subtotal: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          area: string
+          created_at?: string
+          customer_name: string
+          delivery_fee?: number
+          details?: string | null
+          id?: string
+          items?: Json
+          notes?: string | null
+          order_number?: string
+          payment_method?: string
+          phone: string
+          status?: string
+          street: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          area?: string
+          created_at?: string
+          customer_name?: string
+          delivery_fee?: number
+          details?: string | null
+          id?: string
+          items?: Json
+          notes?: string | null
+          order_number?: string
+          payment_method?: string
+          phone?: string
+          status?: string
+          street?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notification_replies: {
         Row: {
           created_at: string

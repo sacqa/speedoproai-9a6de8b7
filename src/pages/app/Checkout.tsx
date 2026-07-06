@@ -1,125 +1,129 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/store/cart";
 import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { addressSchema } from "@/lib/validators";
+import { Textarea } from "@/components/ui/textarea";
+import { z } from "zod";
+import { pkPhone } from "@/lib/validators";
 import { formatPKR } from "@/lib/format";
 import { toast } from "sonner";
-import { MapPin, Plus } from "lucide-react";
+import { User, Phone, MapPin } from "lucide-react";
+
+const guestSchema = z.object({
+  name: z.string().trim().min(2, "Enter your name").max(60),
+  phone: pkPhone,
+  area: z.string().trim().min(2, "Enter your area").max(60),
+  street: z.string().trim().min(2, "Enter your street / house").max(120),
+  details: z.string().trim().max(200).optional(),
+  notes: z.string().trim().max(500).optional(),
+});
+
+const LS_KEY = "speedo-guest-info";
 
 export default function Checkout() {
-  const { user } = useAuth();
   const { items, subtotal, clear } = useCart();
   const nav = useNavigate();
-  const [addressId, setAddressId] = useState<string>("");
   const [busy, setBusy] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [form, setForm] = useState({ label: "Home", recipient_name: "", phone: "", area: "Dipalpur", street: "", details: "" });
+  const saved = typeof window !== "undefined" ? window.localStorage.getItem(LS_KEY) : null;
+  const initial = saved ? { ...JSON.parse(saved), notes: "" } : { name: "", phone: "", area: "Dipalpur", street: "", details: "", notes: "" };
+  const [form, setForm] = useState<any>(initial);
 
   const sub = subtotal();
   const delivery = sub > 1500 ? 0 : 99;
   const total = sub + delivery;
 
-  const addrs = useQuery({
-    queryKey: ["addresses", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("addresses").select("*").order("is_default", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  useEffect(() => {
-    if (addrs.data && addrs.data.length && !addressId) setAddressId(addrs.data[0].id);
-    if (addrs.data && addrs.data.length === 0) setShowNew(true);
-  }, [addrs.data, addressId]);
-
-  const saveNewAddress = async () => {
-    const r = addressSchema.safeParse(form);
-    if (!r.success) { toast.error(r.error.errors[0].message); return null; }
-    if (!user) return null;
-    const row = { ...(r.data as Required<typeof r.data>), user_id: user.id, is_default: addrs.data?.length === 0, details: r.data.details || null };
-    const { data, error } = await supabase.from("addresses").insert(row as any).select().single();
-    if (error) { toast.error(error.message); return null; }
-    addrs.refetch();
-    return data;
-  };
-
   const placeOrder = async () => {
-    if (!user || items.length === 0) return;
+    if (items.length === 0) return;
+    const parsed = guestSchema.safeParse(form);
+    if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setBusy(true);
-    let useAddrId = addressId;
-    if (showNew) {
-      const a = await saveNewAddress();
-      if (!a) { setBusy(false); return; }
-      useAddrId = a.id;
+    const d = parsed.data;
+    const { data: order, error } = await supabase
+      .from("guest_orders" as any)
+      .insert({
+        customer_name: d.name,
+        phone: d.phone,
+        area: d.area,
+        street: d.street,
+        details: d.details || null,
+        notes: d.notes || null,
+        items: items.map((i) => ({
+          product_id: i.product_id, name: i.name, price: Number(i.price),
+          quantity: i.quantity, unit: i.unit ?? null, image_url: i.image_url ?? null,
+          variant_label: i.variant_label ?? null,
+        })) as any,
+        subtotal: sub, delivery_fee: delivery, total,
+      })
+      .select("id, order_number")
+      .single();
+    if (error || !order) {
+      setBusy(false);
+      toast.error(error?.message ?? "Failed to place order");
+      return;
     }
-    const addr = (addrs.data ?? []).find((a) => a.id === useAddrId) || (await supabase.from("addresses").select("*").eq("id", useAddrId).single()).data;
-    if (!addr) { setBusy(false); toast.error("Pick a delivery address"); return; }
-
-    const { data: order, error } = await supabase.from("orders").insert({
-      user_id: user.id, type: "speedmart" as const, address_id: useAddrId,
-      address_snapshot: addr, payment_method: "cod" as any, payment_status: "pending" as const,
-      subtotal: sub, delivery_fee: delivery, service_charge: 0, total,
-      status: "submitted" as const,
-    }).select().single();
-    if (error || !order) { toast.error(error?.message ?? "Failed"); setBusy(false); return; }
-
-    const orderItems = items.map((i) => ({
-      order_id: order.id, product_id: i.product_id, name: i.name, price: i.price, quantity: i.quantity, unit: i.unit, image_url: i.image_url,
-    }));
-    const { error: e2 } = await supabase.from("order_items").insert(orderItems);
-    if (e2) { toast.error(e2.message); setBusy(false); return; }
+    try { window.localStorage.setItem(LS_KEY, JSON.stringify({ name: d.name, phone: d.phone, area: d.area, street: d.street, details: d.details })); } catch {}
+    // Cache the confirmation payload so the confirm page can render without a DB read.
+    try {
+      const o = order as unknown as { id: string; order_number: string };
+      window.sessionStorage.setItem(
+        `guest-order-${o.id}`,
+        JSON.stringify({ id: o.id, order_number: o.order_number, customer_name: d.name, phone: d.phone, area: d.area, street: d.street, total, items }),
+      );
+    } catch {}
     clear();
-    nav(`/orders/${order.id}/confirm`, { replace: true });
+    nav(`/order/${(order as unknown as { id: string }).id}`, { replace: true });
   };
 
   if (items.length === 0) { nav("/cart", { replace: true }); return null; }
 
   return (
-    <div className="p-4 lg:p-0 space-y-5 max-w-2xl mx-auto">
+    <div className="p-4 lg:p-0 space-y-5 max-w-2xl mx-auto pb-32 lg:pb-4">
       <h1 className="text-2xl font-extrabold">Checkout</h1>
+      <p className="text-sm text-muted-foreground -mt-3">No account needed — just tell us where to deliver.</p>
 
-      <section className="bg-card rounded-xl shadow-card p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="font-bold">Delivery Address</h2>
-          <button onClick={() => setShowNew((x) => !x)} className="text-primary text-sm font-semibold flex items-center gap-1"><Plus className="h-4 w-4" />{showNew ? "Use saved" : "New"}</button>
-        </div>
-        {!showNew ? (
-          <RadioGroup value={addressId} onValueChange={setAddressId} className="space-y-2">
-            {(addrs.data ?? []).map((a: any) => (
-              <label key={a.id} className={`flex gap-3 p-3 rounded-lg border-2 cursor-pointer ${addressId === a.id ? "border-primary bg-primary-tint" : "border-border"}`}>
-                <RadioGroupItem value={a.id} className="mt-1" />
-                <div className="flex-1">
-                  <div className="font-semibold text-sm">{a.label} · {a.recipient_name}</div>
-                  <div className="text-xs text-muted-foreground">{a.street}, {a.area}</div>
-                  <div className="text-xs text-muted-foreground">📞 {a.phone}</div>
-                </div>
-                <MapPin className="h-4 w-4 text-primary" />
-              </label>
-            ))}
-            {(addrs.data ?? []).length === 0 && <p className="text-sm text-muted-foreground">No saved addresses.</p>}
-          </RadioGroup>
-        ) : (
-          <div className="grid grid-cols-2 gap-2">
-            <Input placeholder="Label (Home)" value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} />
-            <Input placeholder="Recipient name" value={form.recipient_name} onChange={(e) => setForm({ ...form, recipient_name: e.target.value })} />
-            <Input placeholder="03xxxxxxxxx" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g,"").slice(0,11) })} />
-            <Input placeholder="Area" value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} />
-            <Input className="col-span-2" placeholder="Street / house no." value={form.street} onChange={(e) => setForm({ ...form, street: e.target.value })} />
-            <Input className="col-span-2" placeholder="Landmark / details (optional)" value={form.details} onChange={(e) => setForm({ ...form, details: e.target.value })} />
+      <section className="bg-card rounded-2xl shadow-card p-4 sm:p-5 space-y-3">
+        <h2 className="font-bold flex items-center gap-2"><User className="h-4 w-4 text-primary" /> Your details</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="name">Full name</Label>
+            <Input id="name" autoComplete="name" placeholder="e.g. Ali Raza" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value.slice(0, 60) })} className="mt-1.5 h-11" />
           </div>
-        )}
+          <div>
+            <Label htmlFor="phone">Mobile number</Label>
+            <div className="mt-1.5 flex">
+              <span className="inline-flex items-center px-3 h-11 rounded-l-md border border-r-0 border-input bg-muted text-xs font-semibold">+92</span>
+              <Input id="phone" inputMode="numeric" autoComplete="tel" placeholder="03xxxxxxxxx" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 11) })} className="h-11 rounded-l-none" maxLength={11} />
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section className="bg-card rounded-xl shadow-card p-4 space-y-2">
+      <section className="bg-card rounded-2xl shadow-card p-4 sm:p-5 space-y-3">
+        <h2 className="font-bold flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" /> Delivery address</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="area">Area</Label>
+            <Input id="area" placeholder="Dipalpur" value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value.slice(0, 60) })} className="mt-1.5 h-11" />
+          </div>
+          <div>
+            <Label htmlFor="street">House / Street</Label>
+            <Input id="street" placeholder="House 12, Main Bazaar Road" value={form.street} onChange={(e) => setForm({ ...form, street: e.target.value.slice(0, 120) })} className="mt-1.5 h-11" />
+          </div>
+          <div className="sm:col-span-2">
+            <Label htmlFor="details">Landmark (optional)</Label>
+            <Input id="details" placeholder="Near HBL, blue gate" value={form.details ?? ""} onChange={(e) => setForm({ ...form, details: e.target.value.slice(0, 200) })} className="mt-1.5 h-11" />
+          </div>
+          <div className="sm:col-span-2">
+            <Label htmlFor="notes">Order notes (optional)</Label>
+            <Textarea id="notes" placeholder="Anything the rider should know?" value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value.slice(0, 500) })} className="mt-1.5 min-h-[70px]" />
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-card rounded-2xl shadow-card p-4 sm:p-5 space-y-2">
         <h2 className="font-bold">Payment Method</h2>
         <div className="flex items-center gap-3 p-3 rounded-lg border-2 border-primary bg-primary-tint">
           <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">₨</div>
@@ -130,7 +134,7 @@ export default function Checkout() {
         </div>
       </section>
 
-      <section className="bg-card rounded-xl shadow-card p-4 space-y-2 text-sm">
+      <section className="bg-card rounded-2xl shadow-card p-4 sm:p-5 space-y-2 text-sm">
         <h2 className="font-bold mb-2">Order Summary ({items.length} items)</h2>
         <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatPKR(sub)}</span></div>
         <div className="flex justify-between"><span className="text-muted-foreground">Delivery</span><span>{delivery === 0 ? "FREE" : formatPKR(delivery)}</span></div>
@@ -138,7 +142,7 @@ export default function Checkout() {
       </section>
 
       <Button className="w-full h-12 rounded-pill text-base" disabled={busy} onClick={placeOrder}>
-        {busy ? "Placing order…" : "Place Order"}
+        {busy ? "Placing order…" : `Place Order · ${formatPKR(total)}`}
       </Button>
     </div>
   );

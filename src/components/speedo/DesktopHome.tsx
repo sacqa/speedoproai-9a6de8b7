@@ -71,8 +71,8 @@ export function DesktopHome() {
         <ServiceBanners />
       </div>
 
-      {/* ===== 2. HERO PROMO ===== */}
-      <section className="relative mb-12 rounded-[36px] overflow-hidden glass-card p-0 h-[420px] group">
+      {/* ===== 2. HERO PROMO (compact) ===== */}
+      <section className="relative mb-10 rounded-[32px] overflow-hidden glass-card p-0 h-[260px] xl:h-[300px] group">
         {hero?.image_url ? (
           <img
             src={hero.image_url}
@@ -85,20 +85,20 @@ export function DesktopHome() {
           <div className="absolute inset-0 gradient-hero" />
         )}
         <div className="absolute inset-0 bg-gradient-to-r from-foreground/55 via-foreground/15 to-transparent" />
-        <div className="relative h-full flex items-center px-10 xl:px-16">
-          <div className="max-w-md p-8 rounded-[28px] bg-white/35 backdrop-blur-2xl border border-white/50 shadow-2xl space-y-5">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary text-primary-foreground text-[10px] font-extrabold tracking-[0.18em] uppercase rounded-full">
+        <div className="relative h-full flex items-center px-6 xl:px-12">
+          <div className="max-w-md p-5 xl:p-6 rounded-[24px] bg-white/40 backdrop-blur-2xl border border-white/50 shadow-xl space-y-3">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary text-primary-foreground text-[10px] font-extrabold tracking-[0.18em] uppercase rounded-full">
               <Sparkles className="h-3 w-3" /> {hero?.cta_label ? "Featured" : "Now Live"}
             </span>
-            <h1 className="text-4xl xl:text-5xl font-black leading-[1.05] text-foreground tracking-tight">
+            <h1 className="text-2xl xl:text-3xl font-black leading-[1.1] text-foreground tracking-tight">
               {hero?.title || "Premium Quality. Express Speed."}
             </h1>
-            <p className="text-foreground/80 leading-relaxed text-sm">
+            <p className="text-foreground/80 leading-snug text-[13px] line-clamp-2">
               {hero?.subtitle || "From groceries to gourmet meals — discover what's trending around you, delivered fast."}
             </p>
             <Link
               to={hero?.cta_link || "/speedmart"}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-foreground text-background rounded-2xl font-bold text-sm hover:scale-[1.03] transition-transform shadow-lg"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-foreground text-background rounded-xl font-bold text-[13px] hover:scale-[1.03] transition-transform shadow-lg"
             >
               {hero?.cta_label || "Shop now"} <ArrowRight className="h-4 w-4" />
             </Link>
