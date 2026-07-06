@@ -67,14 +67,14 @@ export default function Checkout() {
     try { window.localStorage.setItem(LS_KEY, JSON.stringify({ name: d.name, phone: d.phone, area: d.area, street: d.street, details: d.details })); } catch {}
     // Cache the confirmation payload so the confirm page can render without a DB read.
     try {
-      const o = order as { id: string; order_number: string };
+      const o = order as unknown as { id: string; order_number: string };
       window.sessionStorage.setItem(
         `guest-order-${o.id}`,
         JSON.stringify({ id: o.id, order_number: o.order_number, customer_name: d.name, phone: d.phone, area: d.area, street: d.street, total, items }),
       );
     } catch {}
     clear();
-    nav(`/order/${(order as any).id}`, { replace: true });
+    nav(`/order/${(order as unknown as { id: string }).id}`, { replace: true });
   };
 
   if (items.length === 0) { nav("/cart", { replace: true }); return null; }
