@@ -107,7 +107,7 @@ const App = () => (
               <Route path="/food/checkout" element={<FoodCheckout />} />
               <Route path="/food/:vendorId" element={<FoodVendor />} />
               <Route path="/cart" element={<Cart />} />
-              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/checkout" element={<Navigate to="/cart" replace />} />
               <Route path="/order/:id" element={<OrderConfirm />} />
               <Route path="/help" element={<Help />} />
               <Route path="/nearby" element={<Nearby />} />
