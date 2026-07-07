@@ -13,7 +13,7 @@ const Splash = lazy(() => import("./pages/app/Splash"));
 const Search = lazy(() => import("./pages/app/Search"));
 const SpeedMart = lazy(() => import("./pages/app/SpeedMart"));
 const Cart = lazy(() => import("./pages/app/Cart"));
-const Checkout = lazy(() => import("./pages/app/Checkout"));
+// Checkout is merged into the Cart page; /checkout now redirects to /cart.
 const OrderConfirm = lazy(() => import("./pages/app/OrderConfirm"));
 const Help = lazy(() => import("./pages/app/Help"));
 const RequestForm = lazy(() => import("./pages/app/RequestForm"));
