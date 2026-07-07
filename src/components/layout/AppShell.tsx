@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   Home, Search, ShoppingCart, MapPin, ChevronDown, Menu,
@@ -34,6 +34,21 @@ export function AppShell({ children }: { children: ReactNode }) {
   useGridSettings();
   const hideChrome = ["/splash", "/admin"].some((p) => location.pathname.startsWith(p));
   const hideCheckoutBar = ["/cart", "/checkout", "/order", "/product", "/splash"].some((p) => location.pathname.startsWith(p));
+
+  // Bump the cart icon whenever qty increases so users get a clear confirmation
+  // after tapping "Add" from a product card.
+  const [bump, setBump] = useState(false);
+  const prevQty = useRef(cartQty);
+  useEffect(() => {
+    if (cartQty > prevQty.current) {
+      setBump(true);
+      const t = setTimeout(() => setBump(false), 500);
+      prevQty.current = cartQty;
+      return () => clearTimeout(t);
+    }
+    prevQty.current = cartQty;
+  }, [cartQty]);
+  const bumpCls = bump ? "animate-cart-bump" : "";
 
   if (hideChrome) {
     return <main className="min-h-screen bg-background"><AnalyticsLoader /><AnnouncementPopup /><InstallPrompt />{children}</main>;
@@ -98,7 +113,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <span className="font-semibold">Dipalpur</span>
               <ChevronDown className="h-3 w-3" />
             </div>
-            <Link to="/cart" className="p-2 rounded-full hover:bg-[#efece6] transition-colors relative" aria-label="Cart">
+            <Link to="/cart" className={`p-2 rounded-full hover:bg-[#efece6] transition-colors relative ${bumpCls}`} aria-label="Cart">
               <ShoppingCart className="h-[18px] w-[18px]" />
               {cartQty > 0 && (
                 <span className="absolute top-0.5 right-0.5 bg-primary text-primary-foreground text-[9px] font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-1">
@@ -130,7 +145,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="font-bold flex items-center gap-1">Dipalpur <ChevronDown className="h-3 w-3" /></div>
             </div>
           </div>
-          <Link to="/cart" className="p-1.5 -mr-1.5 relative" aria-label="Cart">
+          <Link to="/cart" className={`p-1.5 -mr-1.5 relative ${bumpCls}`} aria-label="Cart">
             <ShoppingCart className="h-5 w-5" />
             {cartQty > 0 && (
               <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] font-bold rounded-full h-4 min-w-4 flex items-center justify-center px-1">
