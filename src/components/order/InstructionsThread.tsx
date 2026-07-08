@@ -17,6 +17,34 @@ interface Msg {
   created_at: string;
 }
 
+// order-images is a private bucket; convert the stored public-style URL back to
+// an object path and issue a short-lived signed URL for display.
+function extractOrderImagePath(url: string): string | null {
+  const marker = "/order-images/";
+  const i = url.indexOf(marker);
+  if (i === -1) return null;
+  return url.substring(i + marker.length).split("?")[0];
+}
+
+function OrderImage({ url }: { url: string }) {
+  const [src, setSrc] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const path = extractOrderImagePath(url);
+    if (!path) { setSrc(url); return; }
+    supabase.storage.from("order-images").createSignedUrl(path, 60 * 60).then(({ data }) => {
+      if (alive) setSrc(data?.signedUrl ?? null);
+    });
+    return () => { alive = false; };
+  }, [url]);
+  if (!src) return null;
+  return (
+    <a href={src} target="_blank" rel="noreferrer" className="block">
+      <img src={src} alt="Attachment" className="rounded-xl max-h-56 object-cover w-full" loading="lazy" />
+    </a>
+  );
+}
+
 interface Props {
   orderId: string;
   asAdmin?: boolean;
@@ -92,7 +120,8 @@ export default function InstructionsThread({ orderId, asAdmin = false, compact =
         toast.error("Image upload failed: " + up.error.message);
         return;
       }
-      image_url = supabase.storage.from("order-images").getPublicUrl(path).data.publicUrl;
+      // Bucket is private — store the object path; readers mint a signed URL on demand.
+      image_url = path;
     }
     const { error } = await supabase.from("order_instructions").insert({
       order_id: orderId,
@@ -147,16 +176,7 @@ export default function InstructionsThread({ orderId, asAdmin = false, compact =
                   )}
                   {" · "}{new Date(m.created_at).toLocaleString()}
                 </div>
-                {m.image_url && (
-                  <a href={m.image_url} target="_blank" rel="noreferrer" className="block">
-                    <img
-                      src={m.image_url}
-                      alt="Attachment"
-                      className="rounded-xl max-h-56 object-cover w-full"
-                      loading="lazy"
-                    />
-                  </a>
-                )}
+                {m.image_url && <OrderImage url={m.image_url} />}
                 {m.message}
               </div>
             </div>
