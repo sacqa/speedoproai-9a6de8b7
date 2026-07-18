@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "update own submitted" ON public.orders;
