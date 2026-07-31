@@ -1,7 +1,6 @@
 import { ImageOff } from "lucide-react";
 import { memo, useState } from "react";
 import { formatPKR } from "@/lib/format";
-import { useRecentlyViewed } from "@/store/recentlyViewed";
 import { useProductCardSettings } from "@/hooks/useBrandSettings";
 import { thumb } from "@/lib/imageUrl";
 
