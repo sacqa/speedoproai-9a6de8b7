@@ -1,8 +1,10 @@
-import { ImageOff } from "lucide-react";
+import { ImageOff, Plus, Minus } from "lucide-react";
 import { memo, useState } from "react";
 import { formatPKR } from "@/lib/format";
 import { useProductCardSettings } from "@/hooks/useBrandSettings";
 import { thumb } from "@/lib/imageUrl";
+import { useCart } from "@/store/cart";
+import { toast } from "@/hooks/use-toast";
 
 type Product = {
   id: string;
@@ -15,15 +17,24 @@ type Product = {
 };
 
 /**
- * Simple product tile: image + name + price. Tapping the tile opens the product
- * detail page — no in-tile cart buttons, quantity steppers, or swipe gestures.
- * Add-to-Cart lives on the product detail screen.
+ * Simple product tile: image + name + price + add-to-cart.
+ * The tile is NOT clickable — there is no product detail page.
  */
 function ProductCardImpl({ p }: { p: Product }) {
   const settings = useProductCardSettings();
   const [imgError, setImgError] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   const src = p.image_url ? (thumb(p.image_url, 320) || p.image_url) : null;
+  const line = useCart((s) => s.items.find((i) => i.product_id === p.id));
+  const add = useCart((s) => s.add);
+  const setQty = useCart((s) => s.setQty);
+  const qty = line?.quantity ?? 0;
+
+  const handleAdd = () => {
+    add({ product_id: p.id, name: p.name, price: Number(p.price), unit: p.unit ?? null, image_url: p.image_url ?? null });
+    window.dispatchEvent(new CustomEvent("cart:added"));
+    toast({ title: "Added to cart", description: p.name });
+  };
 
   return (
     <div
@@ -64,6 +75,41 @@ function ProductCardImpl({ p }: { p: Product }) {
           </span>
         )}
       </div>
+
+      {settings.show_add_button && (
+        <div className="mt-2 px-1 pb-1">
+          {qty === 0 ? (
+            <button
+              type="button"
+              onClick={handleAdd}
+              className="w-full h-9 sm:h-10 rounded-xl bg-primary text-primary-foreground text-[12px] sm:text-sm font-bold inline-flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+            >
+              <Plus className="h-4 w-4" strokeWidth={3} />
+              Add
+            </button>
+          ) : (
+            <div className="w-full h-9 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-between px-1">
+              <button
+                type="button"
+                aria-label="Decrease quantity"
+                onClick={() => setQty(p.id, qty - 1)}
+                className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-white shadow-sm flex items-center justify-center active:scale-90 transition-transform"
+              >
+                <Minus className="h-3.5 w-3.5 text-primary" strokeWidth={3} />
+              </button>
+              <span className="text-sm font-bold tabular-nums text-primary">{qty}</span>
+              <button
+                type="button"
+                aria-label="Increase quantity"
+                onClick={() => setQty(p.id, qty + 1)}
+                className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-white shadow-sm flex items-center justify-center active:scale-90 transition-transform"
+              >
+                <Plus className="h-3.5 w-3.5 text-primary" strokeWidth={3} />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
