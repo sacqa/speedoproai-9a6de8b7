@@ -156,14 +156,12 @@ export default function SpeedMart() {
             <section key={g.name}>
               <h2 className="text-lg sm:text-xl font-extrabold text-foreground mb-3 px-0.5">{g.name}</h2>
               <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-2.5 sm:gap-3 lg:gap-4">
-                {g.items.map((p: any) => <Tile key={p.id} p={p} onOpen={() => setOpenProduct(p)} />)}
+                {g.items.map((p: any) => <ProductCard key={p.id} p={p} />)}
               </div>
             </section>
           ))}
         </div>
       )}
-
-      <ProductSheet product={openProduct} open={!!openProduct} onOpenChange={(o) => !o && setOpenProduct(null)} />
 
       {cartCount > 0 && (
         <button
