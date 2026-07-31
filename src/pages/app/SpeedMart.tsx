@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Search as SearchIcon, SquarePen, ShoppingBasket, ImageOff, ShoppingCart, Plus } from "lucide-react";
 import { CategoryTabsSkeleton, SectionSkeleton } from "@/components/speedo/Skeletons";
-import { ProductSheet } from "@/components/speedo/ProductSheet";
+import { ProductCard } from "@/components/speedo/ProductCard";
 import { useCart } from "@/store/cart";
 import { formatPKR } from "@/lib/format";
 import { thumb } from "@/lib/imageUrl";
