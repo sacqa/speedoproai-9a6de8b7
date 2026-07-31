@@ -15,7 +15,6 @@ export default function SpeedMart() {
   const cat = params.get("cat") || "all";
   const [q, setQ] = useState("");
   const nav = useNavigate();
-  const [openProduct, setOpenProduct] = useState<any | null>(null);
   const cartItems = useCart((s) => s.items);
   const hydrated = useCart((s) => s._hydrated);
   const cartCount = cartItems.reduce((a, b) => a + b.quantity, 0);
