@@ -32,7 +32,6 @@ function ProductCardImpl({ p }: { p: Product }) {
 
   const handleAdd = () => {
     add({ product_id: p.id, name: p.name, price: Number(p.price), unit: p.unit ?? null, image_url: p.image_url ?? null });
-    window.dispatchEvent(new CustomEvent("cart:added"));
     toast({ title: "Added to cart", description: p.name });
   };
 
