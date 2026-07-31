@@ -94,15 +94,15 @@ export default function Cart() {
         <div className="space-y-3 lg:space-y-4 order-1">
           {items.map((i) => (
             <div key={i.product_id} className="group bg-card rounded-2xl border border-border/60 hover:border-border transition-colors p-3 lg:p-4 flex gap-3 lg:gap-5 items-center">
-              <Link to={`/product/${i.product_id}`} className="shrink-0">
+              <div className="shrink-0">
                 <div className="h-16 w-16 lg:h-20 lg:w-20 rounded-xl bg-muted overflow-hidden flex items-center justify-center">
                   <img src={i.image_url ?? "/placeholder.svg"} alt={i.name}
                     onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
                     className="h-full w-full object-contain p-1" />
                 </div>
-              </Link>
+              </div>
               <div className="flex-1 min-w-0">
-                <Link to={`/product/${i.product_id}`} className="font-semibold text-[15px] lg:text-base line-clamp-2 leading-snug hover:text-primary transition-colors">{i.name}</Link>
+                <p className="font-semibold text-[15px] lg:text-base line-clamp-2 leading-snug">{i.name}</p>
                 <div className="text-[11px] lg:text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
                   {i.unit && <span>{i.unit}</span>}
                   {i.unit && <span>·</span>}
