@@ -20,7 +20,6 @@ const RequestForm = lazy(() => import("./pages/app/RequestForm"));
 const Food = lazy(() => import("./pages/app/Food"));
 const FoodVendor = lazy(() => import("./pages/app/FoodVendor"));
 const FoodCheckout = lazy(() => import("./pages/app/FoodCheckout"));
-const ProductDetail = lazy(() => import("./pages/app/ProductDetail"));
 const Nearby = lazy(() => import("./pages/app/Nearby"));
 const CmsPage = lazy(() => import("./pages/app/CmsPage"));
 import { RequireAdmin } from "@/components/admin/RequireAdmin";
@@ -99,7 +98,7 @@ const App = () => (
               <Route path="/" element={<Home />} />
               <Route path="/search" element={<Search />} />
               <Route path="/speedmart" element={<SpeedMart />} />
-              <Route path="/product/:id" element={<ProductDetail />} />
+              <Route path="/product/:id" element={<Navigate to="/speedmart" replace />} />
               <Route path="/pharmacy" element={<RequestForm mode="pharmacy" />} />
               <Route path="/speedsend" element={<RequestForm mode="speedsend" />} />
               <Route path="/custom" element={<RequestForm mode="custom" />} />

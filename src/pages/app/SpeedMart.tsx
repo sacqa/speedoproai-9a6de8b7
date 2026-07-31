@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Search as SearchIcon, SquarePen, ShoppingBasket, ImageOff, ShoppingCart, Plus } from "lucide-react";
 import { CategoryTabsSkeleton, SectionSkeleton } from "@/components/speedo/Skeletons";
-import { ProductSheet } from "@/components/speedo/ProductSheet";
+import { ProductCard } from "@/components/speedo/ProductCard";
 import { useCart } from "@/store/cart";
 import { formatPKR } from "@/lib/format";
 import { thumb } from "@/lib/imageUrl";
@@ -15,7 +15,6 @@ export default function SpeedMart() {
   const cat = params.get("cat") || "all";
   const [q, setQ] = useState("");
   const nav = useNavigate();
-  const [openProduct, setOpenProduct] = useState<any | null>(null);
   const cartItems = useCart((s) => s.items);
   const hydrated = useCart((s) => s._hydrated);
   const cartCount = cartItems.reduce((a, b) => a + b.quantity, 0);
@@ -156,14 +155,12 @@ export default function SpeedMart() {
             <section key={g.name}>
               <h2 className="text-lg sm:text-xl font-extrabold text-foreground mb-3 px-0.5">{g.name}</h2>
               <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-2.5 sm:gap-3 lg:gap-4">
-                {g.items.map((p: any) => <Tile key={p.id} p={p} onOpen={() => setOpenProduct(p)} />)}
+                {g.items.map((p: any) => <ProductCard key={p.id} p={p} />)}
               </div>
             </section>
           ))}
         </div>
       )}
-
-      <ProductSheet product={openProduct} open={!!openProduct} onOpenChange={(o) => !o && setOpenProduct(null)} />
 
       {cartCount > 0 && (
         <button
@@ -202,30 +199,6 @@ function Tab({ active, onClick, label, icon, image }: { active: boolean; onClick
       </div>
       <span className={`text-xs sm:text-sm whitespace-nowrap ${active ? "font-bold" : "font-medium"}`}>{label}</span>
       {active && <span className="absolute -bottom-px left-2 right-2 h-[2.5px] rounded-full bg-foreground" />}
-    </button>
-  );
-}
-
-function Tile({ p, onOpen }: { p: any; onOpen: () => void }) {
-  return (
-    <button onClick={onOpen} className="group flex flex-col items-center text-center text-left">
-      <div className="w-full aspect-square rounded-2xl bg-[#eaf1fb] flex items-center justify-center overflow-hidden p-2 transition-transform group-hover:-translate-y-0.5 group-active:scale-95">
-        {p.image_url ? (
-          <img
-            src={thumb(p.image_url, 280) || p.image_url}
-            alt={p.name}
-            loading="lazy"
-            decoding="async"
-            onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
-            className="w-full h-full object-contain transition-transform group-hover:scale-105"
-          />
-        ) : (
-          <ImageOff className="h-7 w-7 text-muted-foreground/40" />
-        )}
-      </div>
-      <span className="mt-2 text-[12px] sm:text-sm font-semibold text-foreground leading-tight line-clamp-2 px-0.5 w-full">
-        {p.name}
-      </span>
     </button>
   );
 }
