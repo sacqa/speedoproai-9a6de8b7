@@ -203,27 +203,3 @@ function Tab({ active, onClick, label, icon, image }: { active: boolean; onClick
     </button>
   );
 }
-
-function Tile({ p, onOpen }: { p: any; onOpen: () => void }) {
-  return (
-    <button onClick={onOpen} className="group flex flex-col items-center text-center text-left">
-      <div className="w-full aspect-square rounded-2xl bg-[#eaf1fb] flex items-center justify-center overflow-hidden p-2 transition-transform group-hover:-translate-y-0.5 group-active:scale-95">
-        {p.image_url ? (
-          <img
-            src={thumb(p.image_url, 280) || p.image_url}
-            alt={p.name}
-            loading="lazy"
-            decoding="async"
-            onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
-            className="w-full h-full object-contain transition-transform group-hover:scale-105"
-          />
-        ) : (
-          <ImageOff className="h-7 w-7 text-muted-foreground/40" />
-        )}
-      </div>
-      <span className="mt-2 text-[12px] sm:text-sm font-semibold text-foreground leading-tight line-clamp-2 px-0.5 w-full">
-        {p.name}
-      </span>
-    </button>
-  );
-}
