@@ -1,5 +1,4 @@
 import { ImageOff } from "lucide-react";
-import { Link } from "react-router-dom";
 import { memo, useState } from "react";
 import { formatPKR } from "@/lib/format";
 import { useRecentlyViewed } from "@/store/recentlyViewed";
@@ -23,17 +22,14 @@ type Product = {
  */
 function ProductCardImpl({ p }: { p: Product }) {
   const settings = useProductCardSettings();
-  const trackView = useRecentlyViewed((s) => s.push);
   const [imgError, setImgError] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   const src = p.image_url ? (thumb(p.image_url, 320) || p.image_url) : null;
 
   return (
-    <Link
-      to={`/product/${p.id}`}
-      onClick={() => trackView(p.id)}
+    <div
       aria-label={p.name}
-      className="group flex flex-col bg-white rounded-2xl sm:rounded-3xl p-2 sm:p-3 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98] transition-all duration-300 ease-out min-w-0"
+      className="group flex flex-col bg-white rounded-2xl sm:rounded-3xl p-2 sm:p-3 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.08)] transition-all duration-300 ease-out min-w-0"
     >
       <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-slate-50 to-white flex items-center justify-center">
         {src && !imgError ? (
@@ -69,7 +65,7 @@ function ProductCardImpl({ p }: { p: Product }) {
           </span>
         )}
       </div>
-    </Link>
+    </div>
   );
 }
 
