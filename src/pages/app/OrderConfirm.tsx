@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { CheckCircle2, MessageCircle, Pencil, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { buildWhatsAppUrl, formatPKR, WHATSAPP_NUMBER } from "@/lib/format";
+import { OrderSteps, FULFILMENT_STEPS, etaLabel } from "@/components/speedo/OrderSteps";
 
 export default function OrderConfirm() {
   const { id } = useParams();
