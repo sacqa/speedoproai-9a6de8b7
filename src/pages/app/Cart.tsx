@@ -11,6 +11,7 @@ import { z } from "zod";
 import { pkPhone } from "@/lib/validators";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { OrderSteps, CHECKOUT_STEPS, etaLabel } from "@/components/speedo/OrderSteps";
 
 const guestSchema = z.object({
   name: z.string().trim().min(2, "Enter your name").max(60),
@@ -34,6 +35,13 @@ export default function Cart() {
   const [form, setForm] = useState<any>(initial);
   const [discount, setDiscount] = useState("");
   const [busy, setBusy] = useState(false);
+
+  // Checkout progress: basket → details → payment → placed.
+  const detailsDone =
+    String(form.name ?? "").trim().length >= 2 &&
+    String(form.phone ?? "").trim().length >= 10 &&
+    String(form.street ?? "").trim().length >= 2;
+  const step = busy ? 3 : detailsDone ? 2 : 1;
 
   if (items.length === 0) {
     return (
@@ -87,6 +95,10 @@ export default function Cart() {
       <div className="px-4 lg:px-0 pt-2 lg:pt-4 pb-4 lg:pb-8">
         <h1 className="text-3xl lg:text-5xl font-serif font-semibold tracking-tight text-foreground">Your basket</h1>
         <p className="text-sm lg:text-base text-muted-foreground mt-1">Review your items, then share your details and choose how to pay.</p>
+      </div>
+
+      <div className="px-4 lg:px-0 pb-5 lg:pb-8">
+        <OrderSteps steps={CHECKOUT_STEPS} current={step} eta={etaLabel()} title="Checkout progress" />
       </div>
 
       <div className="px-4 lg:px-0 grid grid-cols-1 lg:grid-cols-[1fr_420px] xl:grid-cols-[1fr_460px] gap-6 lg:gap-10 items-start">
