@@ -1,5 +1,7 @@
 import { lazy, Suspense } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -58,12 +60,19 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 60_000,
-      gcTime: 5 * 60_000,
+      gcTime: 24 * 60 * 60_000,
       refetchOnWindowFocus: false,
       retry: 1,
     },
   },
 });
+
+// Persist catalog queries to localStorage so products, categories and banners
+// still render (and can be added to the cart) when the PWA is opened offline.
+const persister =
+  typeof window === "undefined"
+    ? undefined
+    : createSyncStoragePersister({ storage: window.localStorage, key: "speedo-query-cache", throttleTime: 2000 });
 
 const AdminPage = ({ children }: { children: React.ReactNode }) => (
   <RequireAdmin>
@@ -74,7 +83,22 @@ const AdminPage = ({ children }: { children: React.ReactNode }) => (
 );
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
+  <PersistQueryClientProvider
+    client={queryClient}
+    persistOptions={{
+      persister: persister!,
+      maxAge: 24 * 60 * 60_000,
+      dehydrateOptions: {
+        shouldDehydrateQuery: (q) => {
+          const key = String(q.queryKey?.[0] ?? "");
+          return (
+            q.state.status === "success" &&
+            ["products", "cats", "categories", "banners", "service-banners", "home-products", "vendors"].includes(key)
+          );
+        },
+      },
+    }}
+  >
     <AuthProvider>
       <TooltipProvider>
         <Toaster />
@@ -151,7 +175,7 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
-  </QueryClientProvider>
+  </PersistQueryClientProvider>
 );
 
 export default App;

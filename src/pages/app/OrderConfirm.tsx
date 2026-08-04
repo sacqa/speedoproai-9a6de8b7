@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { CheckCircle2, MessageCircle, Pencil, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { buildWhatsAppUrl, formatPKR, WHATSAPP_NUMBER } from "@/lib/format";
+import { OrderSteps, FULFILMENT_STEPS, etaLabel } from "@/components/speedo/OrderSteps";
 
 export default function OrderConfirm() {
   const { id } = useParams();
@@ -80,6 +81,13 @@ export default function OrderConfirm() {
           Order <b className="text-foreground">{order.order_number}</b> has been received. Pay <b>cash on delivery</b> when it arrives.
         </p>
       </div>
+
+      <OrderSteps
+        steps={FULFILMENT_STEPS}
+        current={0}
+        eta={etaLabel()}
+        title={`Order ${order.order_number}`}
+      />
 
       <div className="rounded-2xl bg-success/5 border border-success/20 p-4 space-y-3">
         <a href={buildWhatsAppUrl(supportText)} target="_blank" rel="noopener noreferrer" className="block">

@@ -16,6 +16,9 @@ import {
   Sheet, SheetContent, SheetTrigger,
 } from "@/components/ui/sheet";
 import { useGridSettings } from "@/hooks/useGridSettings";
+import { MiniCart } from "@/components/speedo/MiniCart";
+import { useOnline } from "@/hooks/useOnline";
+import { WifiOff } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Home", icon: Home },
@@ -32,8 +35,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const cartSubtotal = useCart((s) => s.subtotal());
   const location = useLocation();
   useGridSettings();
+  const online = useOnline();
   const hideChrome = ["/splash", "/admin"].some((p) => location.pathname.startsWith(p));
-  const hideCheckoutBar = ["/cart", "/checkout", "/order", "/product", "/splash"].some((p) => location.pathname.startsWith(p));
+  const hideMiniCart = ["/cart", "/checkout", "/order", "/splash"].some((p) => location.pathname.startsWith(p));
 
   // Bump the cart icon whenever qty increases so users get a clear confirmation
   // after tapping "Add" from a product card.
@@ -59,6 +63,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       <AnalyticsLoader />
       <AnnouncementPopup />
       <InstallPrompt />
+      {!online && (
+        <div className="sticky top-0 z-50 bg-foreground text-background text-[11.5px] font-semibold px-4 py-1.5 flex items-center justify-center gap-2">
+          <WifiOff className="h-3.5 w-3.5" />
+          You're offline — browsing saved products. Your basket is saved too.
+        </div>
+      )}
       {/* ===== DESKTOP HEADER — Editorial w/ creative search & cart ===== */}
       <header className="hidden lg:block sticky top-0 z-40 bg-[#fafaf7]/85 backdrop-blur-md border-b border-[#e8e4dd]">
         <div className="max-w-[1400px] mx-auto pl-6 pr-6 xl:pr-12 py-3.5 flex items-center gap-6">
@@ -187,27 +197,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </nav>
 
-      {/* PROCEED TO CHECKOUT STICKY BAR */}
-      {cartQty > 0 && !hideCheckoutBar && (
-        <Link
-          to="/cart"
-          className="fixed left-1/2 -translate-x-1/2 bottom-28 lg:bottom-6 z-50 w-[92%] max-w-md flex items-center justify-between gap-3 btn-glossy px-4 py-3 hover:scale-[1.02] transition-transform"
-        >
-          <div className="flex items-center gap-3">
-            <div className="relative h-9 w-9 rounded-xl bg-white/20 flex items-center justify-center">
-              <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-[10px] font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1">
-                {cartQty}
-              </span>
-            </div>
-            <div className="leading-tight">
-              <div className="text-[11px] opacity-90">{cartQty} item{cartQty > 1 ? "s" : ""} · {formatPKR(cartSubtotal)}</div>
-              <div className="text-sm font-bold">Proceed to Checkout</div>
-            </div>
-          </div>
-          <div className="h-9 w-9 rounded-xl bg-white/20 flex items-center justify-center font-bold">→</div>
-        </Link>
-      )}
+      {/* PERSISTENT MINI-CART */}
+      {!hideMiniCart && <MiniCart bump={bump} />}
     </div>
   );
 }
