@@ -82,6 +82,13 @@ export default function OrderConfirm() {
         </p>
       </div>
 
+      <OrderSteps
+        steps={FULFILMENT_STEPS}
+        current={0}
+        eta={etaLabel()}
+        title={`Order ${order.order_number}`}
+      />
+
       <div className="rounded-2xl bg-success/5 border border-success/20 p-4 space-y-3">
         <a href={buildWhatsAppUrl(supportText)} target="_blank" rel="noopener noreferrer" className="block">
           <Button className="w-full h-12 rounded-pill bg-success hover:bg-success/90 text-white gap-2">
