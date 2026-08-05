@@ -1,0 +1,1 @@
+DELETE FROM public.guest_orders WHERE id = '9723b800-996e-4e7e-9be5-2686cb2e766f';

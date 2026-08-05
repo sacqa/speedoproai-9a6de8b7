@@ -61,19 +61,23 @@ export default function Cart() {
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setBusy(true);
     const d = parsed.data;
-    const { data: order, error } = await supabase
-      .from("guest_orders" as any)
-      .insert({
-        customer_name: d.name, phone: d.phone, area: d.area, street: d.street,
-        details: null, notes: d.notes || null,
-        items: items.map((i) => ({
-          product_id: i.product_id, name: i.name, price: Number(i.price),
-          quantity: i.quantity, unit: i.unit ?? null, image_url: i.image_url ?? null,
-          variant_label: i.variant_label ?? null,
-        })) as any,
-        subtotal: sub, delivery_fee: delivery, total,
-      })
-      .select("id, order_number").single();
+    const { data: rows, error } = await supabase.rpc("place_guest_order" as any, {
+      _customer_name: d.name,
+      _phone: d.phone,
+      _area: d.area,
+      _street: d.street,
+      _items: items.map((i) => ({
+        product_id: i.product_id, name: i.name, price: Number(i.price),
+        quantity: i.quantity, unit: i.unit ?? null, image_url: i.image_url ?? null,
+        variant_label: i.variant_label ?? null,
+      })),
+      _subtotal: sub,
+      _delivery_fee: delivery,
+      _total: total,
+      _details: null,
+      _notes: d.notes || null,
+    } as any);
+    const order = Array.isArray(rows) ? rows[0] : rows;
     if (error || !order) { setBusy(false); toast.error(error?.message ?? "Failed to place order"); return; }
     try { window.localStorage.setItem(LS_KEY, JSON.stringify({ name: d.name, phone: d.phone, area: d.area, street: d.street })); } catch {}
     try {
