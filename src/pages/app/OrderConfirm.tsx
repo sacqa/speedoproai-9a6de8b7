@@ -57,7 +57,7 @@ export default function OrderConfirm() {
         </div>
         <h1 className="text-2xl font-extrabold">Order Placed!</h1>
         <p className="text-muted-foreground text-sm">
-          Order <b className="text-foreground">{order.order_number}</b> has been received. Pay <b>cash on delivery</b> when it arrives.
+          Order <b className="text-foreground">{order.order_number}</b> has been received by our team. Pay <b>cash on delivery</b> when it arrives.
         </p>
       </div>
 
