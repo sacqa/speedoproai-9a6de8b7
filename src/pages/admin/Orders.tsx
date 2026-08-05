@@ -12,6 +12,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
 import { Trash2 } from "lucide-react";
+import GuestOrdersPanel from "@/components/admin/GuestOrdersPanel";
 
 const STATUSES = ["all","submitted","rider_assigned","purchasing_items","out_for_delivery","delivered","cancelled"];
 const PAGE_SIZE = 25;
@@ -116,6 +117,8 @@ export default function AdminOrders() {
         ))}
       </div>
       <Input placeholder="Search by order #…" value={q} onChange={(e) => update({ q: e.target.value || null, page: null })} className="max-w-sm" />
+      <GuestOrdersPanel />
+      <h2 className="text-lg font-extrabold pt-2">Account orders</h2>
       {/* Mobile card list */}
       <div className="md:hidden space-y-2">
         {filtered.map((o: any) => (
