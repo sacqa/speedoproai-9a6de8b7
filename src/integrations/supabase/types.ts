@@ -1204,6 +1204,24 @@ export type Database = {
         }
         Returns: boolean
       }
+      place_guest_order: {
+        Args: {
+          _area: string
+          _customer_name: string
+          _delivery_fee: number
+          _details?: string
+          _items: Json
+          _notes?: string
+          _phone: string
+          _street: string
+          _subtotal: number
+          _total: number
+        }
+        Returns: {
+          id: string
+          order_number: string
+        }[]
+      }
       try_auto_approve_self: { Args: never; Returns: boolean }
     }
     Enums: {
