@@ -155,6 +155,30 @@ export function useAdminOrderAlert(enabled: boolean) {
           duration: 10000,
         });
       })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "guest_orders" }, (payload) => {
+        const o: any = payload.new;
+        if (seen.current.has(o.id)) return;
+        seen.current.add(o.id);
+        playAdminTone();
+        const itemCount = Array.isArray(o.items)
+          ? o.items.reduce((n: number, i: any) => n + Number(i?.quantity ?? 1), 0)
+          : 0;
+        const detail = `${o.customer_name} · ${o.phone} · ${itemCount} item${itemCount === 1 ? "" : "s"} · Rs ${Number(o.total).toFixed(0)} · ${o.area}`;
+        try {
+          if ("Notification" in window && Notification.permission === "granted") {
+            new Notification(`New order ${o.order_number}`, {
+              body: detail,
+              icon: "/icon-192.png",
+              tag: o.id,
+            });
+          }
+        } catch {}
+        toast.success(`New order ${o.order_number}`, {
+          description: detail,
+          action: { label: "Open", onClick: () => navigate(`/admin/orders?q=${o.order_number}`) },
+          duration: 15000,
+        });
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [enabled, navigate]);
