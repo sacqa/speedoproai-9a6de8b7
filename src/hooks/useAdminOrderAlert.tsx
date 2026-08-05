@@ -175,7 +175,7 @@ export function useAdminOrderAlert(enabled: boolean) {
         } catch {}
         toast.success(`New order ${o.order_number}`, {
           description: detail,
-          action: { label: "Open", onClick: () => navigate(`/admin/orders?q=${o.order_number}`) },
+          action: { label: "Open", onClick: () => navigate("/admin/orders") },
           duration: 15000,
         });
       })
