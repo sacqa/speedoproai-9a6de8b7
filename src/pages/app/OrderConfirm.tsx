@@ -18,27 +18,6 @@ export default function OrderConfirm() {
     } catch {}
   }, [id]);
 
-  useEffect(() => {
-    if (!order) return;
-    const lines = [
-      `*Speedo Order ${order.order_number}*`,
-      `Customer: ${order.customer_name} (${order.phone})`,
-      `Address: ${order.street}, ${order.area}`,
-      "Payment: Cash on Delivery",
-      "",
-      "Items:",
-      ...(order.items ?? []).map((i: any) => `• ${i.name} × ${i.quantity} — ${formatPKR(Number(i.price) * i.quantity)}`),
-      "",
-      `Total: ${formatPKR(Number(order.total))}`,
-    ].filter(Boolean).join("\n");
-    const key = `wa-sent-${order.id}`;
-    if (!sessionStorage.getItem(key)) {
-      sessionStorage.setItem(key, "1");
-      const url = buildWhatsAppUrl(lines);
-      setTimeout(() => window.open(url, "_blank", "noopener,noreferrer"), 500);
-    }
-  }, [order]);
-
   if (!order) {
     return (
       <div className="p-10 text-center max-w-md mx-auto space-y-3">
@@ -78,7 +57,7 @@ export default function OrderConfirm() {
         </div>
         <h1 className="text-2xl font-extrabold">Order Placed!</h1>
         <p className="text-muted-foreground text-sm">
-          Order <b className="text-foreground">{order.order_number}</b> has been received. Pay <b>cash on delivery</b> when it arrives.
+          Order <b className="text-foreground">{order.order_number}</b> has been received by our team. Pay <b>cash on delivery</b> when it arrives.
         </p>
       </div>
 
