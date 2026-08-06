@@ -24,6 +24,7 @@ const FoodVendor = lazy(() => import("./pages/app/FoodVendor"));
 const FoodCheckout = lazy(() => import("./pages/app/FoodCheckout"));
 const Nearby = lazy(() => import("./pages/app/Nearby"));
 const CmsPage = lazy(() => import("./pages/app/CmsPage"));
+const TrackOrder = lazy(() => import("./pages/app/TrackOrder"));
 import { RequireAdmin } from "@/components/admin/RequireAdmin";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 
@@ -132,6 +133,7 @@ const App = () => (
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Navigate to="/cart" replace />} />
               <Route path="/order/:id" element={<OrderConfirm />} />
+              <Route path="/track" element={<TrackOrder />} />
               <Route path="/help" element={<Help />} />
               <Route path="/nearby" element={<Nearby />} />
               {/* Public CMS pages (admin-editable) */}
