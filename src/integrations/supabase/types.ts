@@ -531,57 +531,72 @@ export type Database = {
       guest_orders: {
         Row: {
           area: string
+          attachment_url: string | null
           created_at: string
           customer_name: string
           delivery_fee: number
           details: string | null
           id: string
           items: Json
+          meta: Json
           notes: string | null
           order_number: string
           payment_method: string
           phone: string
+          service_type: string
           status: string
           street: string
           subtotal: number
           total: number
           updated_at: string
+          vendor_id: string | null
+          vendor_name: string | null
         }
         Insert: {
           area: string
+          attachment_url?: string | null
           created_at?: string
           customer_name: string
           delivery_fee?: number
           details?: string | null
           id?: string
           items?: Json
+          meta?: Json
           notes?: string | null
           order_number?: string
           payment_method?: string
           phone: string
+          service_type?: string
           status?: string
           street: string
           subtotal?: number
           total?: number
           updated_at?: string
+          vendor_id?: string | null
+          vendor_name?: string | null
         }
         Update: {
           area?: string
+          attachment_url?: string | null
           created_at?: string
           customer_name?: string
           delivery_fee?: number
           details?: string | null
           id?: string
           items?: Json
+          meta?: Json
           notes?: string | null
           order_number?: string
           payment_method?: string
           phone?: string
+          service_type?: string
           status?: string
           street?: string
           subtotal?: number
           total?: number
           updated_at?: string
+          vendor_id?: string | null
+          vendor_name?: string | null
         }
         Relationships: []
       }
@@ -1204,18 +1219,44 @@ export type Database = {
         }
         Returns: boolean
       }
+      lookup_guest_order: {
+        Args: { _order_number: string; _phone: string }
+        Returns: {
+          area: string
+          created_at: string
+          customer_name: string
+          delivery_fee: number
+          details: string
+          id: string
+          items: Json
+          notes: string
+          order_number: string
+          service_type: string
+          status: string
+          street: string
+          subtotal: number
+          total: number
+          updated_at: string
+          vendor_name: string
+        }[]
+      }
       place_guest_order: {
         Args: {
           _area: string
+          _attachment_url?: string
           _customer_name: string
           _delivery_fee: number
           _details?: string
           _items: Json
+          _meta?: Json
           _notes?: string
           _phone: string
+          _service_type?: string
           _street: string
           _subtotal: number
           _total: number
+          _vendor_id?: string
+          _vendor_name?: string
         }
         Returns: {
           id: string
