@@ -9,8 +9,8 @@ import { Plus, Minus, Trash2, ShoppingCart, User, Phone, MapPin, Tag, Wallet, Ch
 import { formatPKR, buildWhatsAppUrl } from "@/lib/format";
 import { z } from "zod";
 import { pkPhone } from "@/lib/validators";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { loadGuestInfo, placeGuestOrder } from "@/lib/guestOrder";
 import { OrderSteps, CHECKOUT_STEPS, etaLabel } from "@/components/speedo/OrderSteps";
 
 const guestSchema = z.object({
@@ -21,8 +21,6 @@ const guestSchema = z.object({
   notes: z.string().trim().max(500).optional(),
 });
 
-const LS_KEY = "speedo-guest-info";
-
 export default function Cart() {
   const { items, setQty, remove, subtotal, clear } = useCart();
   const nav = useNavigate();
@@ -30,9 +28,7 @@ export default function Cart() {
   const delivery = sub === 0 ? 0 : sub > 1500 ? 0 : 99;
   const total = sub + delivery;
 
-  const saved = typeof window !== "undefined" ? window.localStorage.getItem(LS_KEY) : null;
-  const initial = saved ? { ...JSON.parse(saved), notes: "" } : { name: "", phone: "", area: "Dipalpur", street: "", notes: "" };
-  const [form, setForm] = useState<any>(initial);
+  const [form, setForm] = useState<any>(() => ({ ...loadGuestInfo(), notes: "" }));
   const [discount, setDiscount] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -61,31 +57,24 @@ export default function Cart() {
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setBusy(true);
     const d = parsed.data;
-    const { data: rows, error } = await supabase.rpc("place_guest_order" as any, {
-      _customer_name: d.name,
-      _phone: d.phone,
-      _area: d.area,
-      _street: d.street,
-      _items: items.map((i) => ({
-        product_id: i.product_id, name: i.name, price: Number(i.price),
-        quantity: i.quantity, unit: i.unit ?? null, image_url: i.image_url ?? null,
-        variant_label: i.variant_label ?? null,
-      })),
-      _subtotal: sub,
-      _delivery_fee: delivery,
-      _total: total,
-      _details: null,
-      _notes: d.notes || null,
-    } as any);
-    const order = Array.isArray(rows) ? rows[0] : rows;
-    if (error || !order) { setBusy(false); toast.error(error?.message ?? "Failed to place order"); return; }
-    try { window.localStorage.setItem(LS_KEY, JSON.stringify({ name: d.name, phone: d.phone, area: d.area, street: d.street })); } catch {}
     try {
-      const o = order as unknown as { id: string; order_number: string };
-      window.sessionStorage.setItem(`guest-order-${o.id}`, JSON.stringify({ id: o.id, order_number: o.order_number, customer_name: d.name, phone: d.phone, area: d.area, street: d.street, total, items }));
-    } catch {}
-    clear();
-    nav(`/order/${(order as unknown as { id: string }).id}`, { replace: true });
+      const order = await placeGuestOrder({
+        service_type: "speedmart",
+        name: d.name, phone: d.phone, area: d.area, street: d.street,
+        items: items.map((i) => ({
+          product_id: i.product_id, name: i.name, price: Number(i.price),
+          quantity: i.quantity, unit: i.unit ?? null, image_url: i.image_url ?? null,
+          variant_label: i.variant_label ?? null,
+        })),
+        subtotal: sub, delivery_fee: delivery, total,
+        notes: d.notes || null,
+      });
+      clear();
+      nav(`/order/${order.id}`, { replace: true });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to place order");
+      setBusy(false);
+    }
   };
 
   const applyDiscount = () => {
