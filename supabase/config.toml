@@ -1,1 +1,3 @@
 project_id = "tdmjzyvzohmasynneqro"
+[functions.guest-orders]
+verify_jwt = false
