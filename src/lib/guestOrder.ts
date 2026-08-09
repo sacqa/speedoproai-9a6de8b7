@@ -75,28 +75,33 @@ export type PlaceOrderInput = {
   meta?: Record<string, unknown>;
 };
 
-/** Places an order for any Speedo service through the single guest-order RPC. */
+/** Places an order for any Speedo service through the secured guest-order endpoint. */
 export async function placeGuestOrder(input: PlaceOrderInput) {
-  const { data, error } = await supabase.rpc("place_guest_order" as any, {
-    _customer_name: input.name,
-    _phone: input.phone,
-    _area: input.area,
-    _street: input.street,
-    _items: input.items,
-    _subtotal: input.subtotal,
-    _delivery_fee: input.delivery_fee,
-    _total: input.total,
-    _details: input.details ?? null,
-    _notes: input.notes ?? null,
-    _service_type: input.service_type,
-    _vendor_id: input.vendor_id ?? null,
-    _vendor_name: input.vendor_name ?? null,
-    _attachment_url: input.attachment_url ?? null,
-    _meta: input.meta ?? {},
-  } as any);
+  const { data, error } = await supabase.functions.invoke("guest-orders", {
+    body: {
+      action: "place",
+      name: input.name,
+      phone: input.phone,
+      area: input.area,
+      street: input.street,
+      items: input.items,
+      subtotal: input.subtotal,
+      delivery_fee: input.delivery_fee,
+      total: input.total,
+      details: input.details ?? null,
+      notes: input.notes ?? null,
+      service_type: input.service_type,
+      vendor_id: input.vendor_id ?? null,
+      vendor_name: input.vendor_name ?? null,
+      attachment_url: input.attachment_url ?? null,
+      meta: input.meta ?? {},
+    },
+  });
 
-  const row = (Array.isArray(data) ? data[0] : data) as { id: string; order_number: string } | null;
-  if (error || !row) throw new Error(error?.message ?? "Could not place the order. Please try again.");
+  const row = (data as any)?.order as { id: string; order_number: string } | undefined;
+  if (error || !row) {
+    throw new Error((data as any)?.error ?? "Could not place the order. Please try again.");
+  }
 
   saveGuestInfo({ name: input.name, phone: input.phone, area: input.area, street: input.street });
   rememberOrder({
@@ -118,10 +123,9 @@ export async function placeGuestOrder(input: PlaceOrderInput) {
 
 /** Looks an order back up by order number + phone (works for anyone, no sign-in). */
 export async function lookupOrder(orderNumber: string, phone: string) {
-  const { data, error } = await supabase.rpc("lookup_guest_order" as any, {
-    _order_number: orderNumber,
-    _phone: phone,
-  } as any);
-  if (error) throw new Error(error.message);
-  return (Array.isArray(data) ? data[0] : data) ?? null;
+  const { data, error } = await supabase.functions.invoke("guest-orders", {
+    body: { action: "lookup", order_number: orderNumber, phone },
+  });
+  if (error) throw new Error((data as any)?.error ?? "Could not look up that order");
+  return (data as any)?.order ?? null;
 }
