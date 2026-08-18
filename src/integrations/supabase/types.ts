@@ -340,6 +340,57 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_zones: {
+        Row: {
+          area: string
+          closes_at: string | null
+          created_at: string
+          delivery_fee: number
+          eta_max_minutes: number
+          eta_min_minutes: number
+          free_delivery_threshold: number | null
+          id: string
+          is_active: boolean
+          min_order: number
+          opens_at: string | null
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          area: string
+          closes_at?: string | null
+          created_at?: string
+          delivery_fee?: number
+          eta_max_minutes?: number
+          eta_min_minutes?: number
+          free_delivery_threshold?: number | null
+          id?: string
+          is_active?: boolean
+          min_order?: number
+          opens_at?: string | null
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          area?: string
+          closes_at?: string | null
+          created_at?: string
+          delivery_fee?: number
+          eta_max_minutes?: number
+          eta_min_minutes?: number
+          free_delivery_threshold?: number | null
+          id?: string
+          is_active?: boolean
+          min_order?: number
+          opens_at?: string | null
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       food_menu_categories: {
         Row: {
           created_at: string
