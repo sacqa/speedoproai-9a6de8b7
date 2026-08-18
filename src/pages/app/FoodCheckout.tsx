@@ -12,6 +12,8 @@ import { GuestDetailsFields } from "@/components/order/GuestDetailsFields";
 import { guestDetailsSchema } from "@/lib/guestValidation";
 import { loadGuestInfo, placeGuestOrder, type GuestInfo } from "@/lib/guestOrder";
 import { OrderSteps, CHECKOUT_STEPS, etaLabel } from "@/components/speedo/OrderSteps";
+import { useDeliveryZones, quoteDelivery } from "@/lib/deliveryRules";
+import { DeliveryRuleNotice } from "@/components/order/DeliveryRuleNotice";
 
 export default function FoodCheckout() {
   const cart = useFoodCart();
@@ -21,7 +23,9 @@ export default function FoodCheckout() {
   const [guest, setGuest] = useState<GuestInfo>(loadGuestInfo());
 
   const sub = cart.subtotal();
-  const delivery = sub > 1500 ? 0 : 79;
+  const zones = useDeliveryZones();
+  const quote = quoteDelivery({ zones: zones.data, area: guest.area, subtotal: sub, fallbackFee: 79 });
+  const delivery = quote.fee;
   const total = sub + delivery;
 
   useEffect(() => {
@@ -36,6 +40,7 @@ export default function FoodCheckout() {
     const parsed = guestDetailsSchema.safeParse(guest);
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     const d = parsed.data;
+    if (quote.blockedReason) { toast.error(quote.blockedReason); return; }
     setBusy(true);
     try {
       const order = await placeGuestOrder({
@@ -68,7 +73,7 @@ export default function FoodCheckout() {
         )}
       </header>
 
-      <OrderSteps steps={CHECKOUT_STEPS} current={step} eta={etaLabel()} title="Checkout progress" />
+      <OrderSteps steps={CHECKOUT_STEPS} current={step} eta={quote.zone ? quote.etaLabel : etaLabel()} title="Checkout progress" />
 
       <section className="bg-card rounded-2xl border border-border/60 p-4 space-y-2">
         <h2 className="font-serif text-lg font-semibold">Your items</h2>
@@ -91,6 +96,7 @@ export default function FoodCheckout() {
       <section className="bg-card rounded-2xl border border-border/60 p-4 lg:p-5 space-y-4">
         <h2 className="font-serif text-lg font-semibold">Delivery details</h2>
         <GuestDetailsFields value={guest} onChange={setGuest} />
+        <DeliveryRuleNotice quote={quote} />
         <div>
           <Label htmlFor="food-notes" className="text-[13px] font-semibold">Notes for the kitchen (optional)</Label>
           <Textarea id="food-notes" className="mt-1.5 min-h-[64px] resize-none" placeholder="e.g. Less spicy, extra raita"
@@ -105,8 +111,8 @@ export default function FoodCheckout() {
         <div className="pt-3 flex items-center gap-2 text-xs text-muted-foreground"><Wallet className="h-3.5 w-3.5" /> Cash on delivery</div>
       </section>
 
-      <Button className="w-full h-12 rounded-full text-base font-bold" disabled={busy} onClick={placeOrder}>
-        {busy ? "Placing order…" : `Place order · ${formatPKR(total)}`}
+      <Button className="w-full h-12 rounded-full text-base font-bold" disabled={busy || !!quote.blockedReason} onClick={placeOrder}>
+        {busy ? "Placing order…" : quote.blockedReason ? (quote.zone ? (quote.isOpen ? `Add ${formatPKR(quote.shortfall)} to continue` : "Closed right now") : "Select a delivery area") : `Place order · ${formatPKR(total)}`}
       </Button>
     </div>
   );
