@@ -12,6 +12,9 @@ import { pkPhone } from "@/lib/validators";
 import { toast } from "sonner";
 import { loadGuestInfo, placeGuestOrder } from "@/lib/guestOrder";
 import { OrderSteps, CHECKOUT_STEPS, etaLabel } from "@/components/speedo/OrderSteps";
+import { useDeliveryZones, quoteDelivery, slugifyArea } from "@/lib/deliveryRules";
+import { DeliveryRuleNotice } from "@/components/order/DeliveryRuleNotice";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const guestSchema = z.object({
   name: z.string().trim().min(2, "Enter your name").max(60),
@@ -25,12 +28,15 @@ export default function Cart() {
   const { items, setQty, remove, subtotal, clear } = useCart();
   const nav = useNavigate();
   const sub = subtotal();
-  const delivery = sub === 0 ? 0 : sub > 1500 ? 0 : 99;
-  const total = sub + delivery;
-
   const [form, setForm] = useState<any>(() => ({ ...loadGuestInfo(), notes: "" }));
   const [discount, setDiscount] = useState("");
   const [busy, setBusy] = useState(false);
+
+  const zones = useDeliveryZones();
+  const quote = quoteDelivery({ zones: zones.data, area: form.area, subtotal: sub });
+  const delivery = quote.fee;
+  const total = sub + delivery;
+  const canPlace = !quote.blockedReason;
 
   // Checkout progress: basket → details → payment → placed.
   const detailsDone =
@@ -55,6 +61,7 @@ export default function Cart() {
   const placeOrder = async () => {
     const parsed = guestSchema.safeParse(form);
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
+    if (quote.blockedReason) { toast.error(quote.blockedReason); return; }
     setBusy(true);
     const d = parsed.data;
     try {
