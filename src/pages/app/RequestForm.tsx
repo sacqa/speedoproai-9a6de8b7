@@ -207,6 +207,7 @@ export default function RequestForm({ mode }: { mode: Mode }) {
       <section className="bg-card rounded-2xl border border-border/60 p-4 lg:p-5">
         <h2 className="text-lg font-serif font-semibold mb-3">Your details</h2>
         <GuestDetailsFields value={guest} onChange={setGuest} />
+        <DeliveryRuleNotice quote={quote} showMinimum={false} />
       </section>
 
       <p className="text-xs text-muted-foreground">
