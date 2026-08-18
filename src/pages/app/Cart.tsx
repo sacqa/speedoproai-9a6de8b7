@@ -12,6 +12,9 @@ import { pkPhone } from "@/lib/validators";
 import { toast } from "sonner";
 import { loadGuestInfo, placeGuestOrder } from "@/lib/guestOrder";
 import { OrderSteps, CHECKOUT_STEPS, etaLabel } from "@/components/speedo/OrderSteps";
+import { useDeliveryZones, quoteDelivery, slugifyArea } from "@/lib/deliveryRules";
+import { DeliveryRuleNotice } from "@/components/order/DeliveryRuleNotice";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const guestSchema = z.object({
   name: z.string().trim().min(2, "Enter your name").max(60),
@@ -25,12 +28,15 @@ export default function Cart() {
   const { items, setQty, remove, subtotal, clear } = useCart();
   const nav = useNavigate();
   const sub = subtotal();
-  const delivery = sub === 0 ? 0 : sub > 1500 ? 0 : 99;
-  const total = sub + delivery;
-
   const [form, setForm] = useState<any>(() => ({ ...loadGuestInfo(), notes: "" }));
   const [discount, setDiscount] = useState("");
   const [busy, setBusy] = useState(false);
+
+  const zones = useDeliveryZones();
+  const quote = quoteDelivery({ zones: zones.data, area: form.area, subtotal: sub });
+  const delivery = quote.fee;
+  const total = sub + delivery;
+  const canPlace = !quote.blockedReason;
 
   // Checkout progress: basket → details → payment → placed.
   const detailsDone =
@@ -55,6 +61,7 @@ export default function Cart() {
   const placeOrder = async () => {
     const parsed = guestSchema.safeParse(form);
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
+    if (quote.blockedReason) { toast.error(quote.blockedReason); return; }
     setBusy(true);
     const d = parsed.data;
     try {
@@ -91,7 +98,7 @@ export default function Cart() {
       </div>
 
       <div className="px-4 lg:px-0 pb-5 lg:pb-8">
-        <OrderSteps steps={CHECKOUT_STEPS} current={step} eta={etaLabel()} title="Checkout progress" />
+        <OrderSteps steps={CHECKOUT_STEPS} current={step} eta={quote.zone ? quote.etaLabel : etaLabel()} title="Checkout progress" />
       </div>
 
       <div className="px-4 lg:px-0 grid grid-cols-1 lg:grid-cols-[1fr_420px] xl:grid-cols-[1fr_460px] gap-6 lg:gap-10 items-start">
@@ -149,6 +156,7 @@ export default function Cart() {
               <Row label="Subtotal" value={formatPKR(sub)} />
               <Row label="Delivery" value={delivery === 0 ? "FREE" : formatPKR(delivery)} />
             </div>
+            <div className="mt-4"><DeliveryRuleNotice quote={quote} /></div>
             <div className="border-t border-border my-4" />
             <div className="flex items-baseline justify-between">
               <span className="text-xl font-serif font-semibold">Total</span>
@@ -176,6 +184,15 @@ export default function Cart() {
                 </div>
               </Field>
               <Field id="street" label="Delivery address" icon={MapPin}>
+                <div className="mb-3">
+                  <Select value={(zones.data ?? []).some((z) => slugifyArea(z.area) === slugifyArea(form.area ?? "")) ? form.area : ""}
+                    onValueChange={(v) => setForm({ ...form, area: v })}>
+                    <SelectTrigger className="h-11"><SelectValue placeholder="Choose your delivery area" /></SelectTrigger>
+                    <SelectContent>
+                      {(zones.data ?? []).map((z) => <SelectItem key={z.id} value={z.area}>{z.area}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <Textarea id="street" placeholder="House #, street, area, landmark" value={form.street} onChange={(e) => setForm({ ...form, street: e.target.value.slice(0, 200) })} className="min-h-[72px] resize-none" />
               </Field>
               <div>
@@ -198,8 +215,9 @@ export default function Cart() {
               <p className="mt-2 text-[11.5px] text-muted-foreground">More payment methods (RAAST, JazzCash, Bank Transfer) coming soon.</p>
             </div>
 
-            <Button disabled={busy} onClick={placeOrder} className="mt-5 w-full h-12 rounded-full text-base font-bold">
-              {busy ? "Placing order…" : (<span className="flex items-center gap-2">Place order · {formatPKR(total)} <ChevronRight className="h-4 w-4" /></span>)}
+            <Button disabled={busy || !canPlace} onClick={placeOrder} className="mt-5 w-full h-12 rounded-full text-base font-bold">
+              {busy ? "Placing order…" : !canPlace ? (quote.zone ? (quote.isOpen ? `Add ${formatPKR(quote.shortfall)} to continue` : "Closed right now") : "Select a delivery area")
+                : (<span className="flex items-center gap-2">Place order · {formatPKR(total)} <ChevronRight className="h-4 w-4" /></span>)}
             </Button>
           </div>
 

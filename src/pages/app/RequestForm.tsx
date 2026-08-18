@@ -12,6 +12,8 @@ import { GuestDetailsFields } from "@/components/order/GuestDetailsFields";
 import { guestDetailsSchema } from "@/lib/guestValidation";
 import { loadGuestInfo, placeGuestOrder, type GuestInfo } from "@/lib/guestOrder";
 import { Seo } from "@/components/seo/Seo";
+import { useDeliveryZones, quoteDelivery } from "@/lib/deliveryRules";
+import { DeliveryRuleNotice } from "@/components/order/DeliveryRuleNotice";
 
 type Mode = "pharmacy" | "speedsend" | "custom";
 
@@ -41,6 +43,8 @@ export default function RequestForm({ mode }: { mode: Mode }) {
   const [preview, setPreview] = useState<string | null>(null);
   const [budget, setBudget] = useState("");
   const [guest, setGuest] = useState<GuestInfo>(loadGuestInfo());
+  const zones = useDeliveryZones();
+  const quote = quoteDelivery({ zones: zones.data, area: guest.area, subtotal: 0, requiresMinimum: false });
   const [s, setS] = useState({
     sender_name: "", sender_phone: "", recipient_name: "", recipient_phone: "",
     pickup_address: "", drop_address: "", package_type: "Document", weight: "", fragile: false,
@@ -56,6 +60,7 @@ export default function RequestForm({ mode }: { mode: Mode }) {
     const parsed = guestDetailsSchema.safeParse(guest);
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     const d = parsed.data;
+    if (quote.blockedReason) { toast.error(quote.blockedReason); return; }
 
     if (mode === "pharmacy" && !text.trim() && !file) {
       toast.error("List your medicines or upload a prescription"); return;
@@ -202,6 +207,7 @@ export default function RequestForm({ mode }: { mode: Mode }) {
       <section className="bg-card rounded-2xl border border-border/60 p-4 lg:p-5">
         <h2 className="text-lg font-serif font-semibold mb-3">Your details</h2>
         <GuestDetailsFields value={guest} onChange={setGuest} />
+        <DeliveryRuleNotice quote={quote} showMinimum={false} />
       </section>
 
       <p className="text-xs text-muted-foreground">
