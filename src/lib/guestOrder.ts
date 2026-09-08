@@ -101,7 +101,7 @@ export async function placeGuestOrder(input: PlaceOrderInput) {
       vendor_id: input.vendor_id ?? null,
       vendor_name: input.vendor_name ?? null,
       attachment_url: input.attachment_url ?? null,
-      meta: input.meta ?? {},
+      meta: { ...(input.meta ?? {}), ...(input.geo ? { geo: input.geo } : {}) },
     },
   });
 
@@ -110,7 +110,7 @@ export async function placeGuestOrder(input: PlaceOrderInput) {
     throw new Error((data as any)?.error ?? "Could not place the order. Please try again.");
   }
 
-  saveGuestInfo({ name: input.name, phone: input.phone, area: input.area, street: input.street });
+  saveGuestInfo({ name: input.name, phone: input.phone, area: input.area, street: input.street, geo: input.geo ?? null });
   rememberOrder({
     id: row.id,
     order_number: row.order_number,
