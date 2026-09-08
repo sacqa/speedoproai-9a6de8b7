@@ -15,6 +15,7 @@ import { OrderSteps, CHECKOUT_STEPS, etaLabel } from "@/components/speedo/OrderS
 import { useDeliveryZones, quoteDelivery, slugifyArea } from "@/lib/deliveryRules";
 import { DeliveryRuleNotice } from "@/components/order/DeliveryRuleNotice";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LocationButton } from "@/components/order/LocationButton";
 
 const guestSchema = z.object({
   name: z.string().trim().min(2, "Enter your name").max(60),
@@ -31,6 +32,7 @@ export default function Cart() {
   const [form, setForm] = useState<any>(() => ({ ...loadGuestInfo(), notes: "" }));
   const [discount, setDiscount] = useState("");
   const [busy, setBusy] = useState(false);
+  const [manualArea, setManualArea] = useState(false);
 
   const zones = useDeliveryZones();
   const quote = quoteDelivery({ zones: zones.data, area: form.area, subtotal: sub });
@@ -75,6 +77,7 @@ export default function Cart() {
         })),
         subtotal: sub, delivery_fee: delivery, total,
         notes: d.notes || null,
+        geo: form.geo ?? null,
       });
       clear();
       nav(`/order/${order.id}`, { replace: true });
@@ -184,16 +187,30 @@ export default function Cart() {
                 </div>
               </Field>
               <Field id="street" label="Delivery address" icon={MapPin}>
+                <div className="mb-2 flex justify-end">
+                  <button type="button" onClick={() => { setManualArea(!manualArea); setForm({ ...form, area: "" }); }}
+                    className="text-[11.5px] font-semibold text-primary hover:underline">
+                    {manualArea ? "Choose from list" : "My area isn't listed"}
+                  </button>
+                </div>
                 <div className="mb-3">
-                  <Select value={(zones.data ?? []).some((z) => slugifyArea(z.area) === slugifyArea(form.area ?? "")) ? form.area : ""}
-                    onValueChange={(v) => setForm({ ...form, area: v })}>
-                    <SelectTrigger className="h-11"><SelectValue placeholder="Choose your delivery area" /></SelectTrigger>
-                    <SelectContent>
-                      {(zones.data ?? []).map((z) => <SelectItem key={z.id} value={z.area}>{z.area}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  {manualArea ? (
+                    <Input placeholder="Type your area, e.g. Dipalpur" value={form.area ?? ""} className="h-11"
+                      onChange={(e) => setForm({ ...form, area: e.target.value.slice(0, 60) })} />
+                  ) : (
+                    <Select value={(zones.data ?? []).some((z) => slugifyArea(z.area) === slugifyArea(form.area ?? "")) ? form.area : ""}
+                      onValueChange={(v) => setForm({ ...form, area: v })}>
+                      <SelectTrigger className="h-11"><SelectValue placeholder="Choose your delivery area" /></SelectTrigger>
+                      <SelectContent>
+                        {(zones.data ?? []).map((z) => <SelectItem key={z.id} value={z.area}>{z.area}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
                 <Textarea id="street" placeholder="House #, street, area, landmark" value={form.street} onChange={(e) => setForm({ ...form, street: e.target.value.slice(0, 200) })} className="min-h-[72px] resize-none" />
+                <div className="mt-3">
+                  <LocationButton value={form.geo ?? null} onChange={(g) => setForm({ ...form, geo: g })} />
+                </div>
               </Field>
               <div>
                 <Label htmlFor="notes" className="text-[13px] font-semibold">Notes (optional)</Label>
