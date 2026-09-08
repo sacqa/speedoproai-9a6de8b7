@@ -13,7 +13,13 @@ export const SERVICE_LABEL: Record<ServiceType, string> = {
 const INFO_KEY = "speedo-guest-info";
 const ORDERS_KEY = "speedo-my-orders";
 
-export type GuestInfo = { name: string; phone: string; area: string; street: string };
+export type GuestInfo = {
+  name: string;
+  phone: string;
+  area: string;
+  street: string;
+  geo?: { lat: number; lng: number; accuracy?: number | null; at?: string } | null;
+};
 
 export function loadGuestInfo(): GuestInfo {
   try {
@@ -72,6 +78,7 @@ export type PlaceOrderInput = {
   vendor_id?: string | null;
   vendor_name?: string | null;
   attachment_url?: string | null;
+  geo?: { lat: number; lng: number; accuracy?: number | null; at?: string } | null;
   meta?: Record<string, unknown>;
 };
 
