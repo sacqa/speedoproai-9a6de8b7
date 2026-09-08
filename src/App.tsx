@@ -38,6 +38,7 @@ const AdminBanners = lazy(() => import("./pages/admin/Banners"));
 const AdminCustomers = lazy(() => import("./pages/admin/Customers"));
 const AdminCustomerDetail = lazy(() => import("./pages/admin/CustomerDetail"));
 const AdminPricing = lazy(() => import("./pages/admin/Pricing"));
+const AdminDeliveryZones = lazy(() => import("./pages/admin/DeliveryZones"));
 const AdminBroadcast = lazy(() => import("./pages/admin/Broadcast"));
 const AdminReplies = lazy(() => import("./pages/admin/Replies"));
 const AdminAnnouncements = lazy(() => import("./pages/admin/Announcements"));
@@ -160,6 +161,7 @@ const App = () => (
               <Route path="/admin/customers" element={<AdminPage><AdminCustomers /></AdminPage>} />
               <Route path="/admin/customers/:id" element={<AdminPage><AdminCustomerDetail /></AdminPage>} />
               <Route path="/admin/pricing" element={<AdminPage><AdminPricing /></AdminPage>} />
+              <Route path="/admin/delivery-zones" element={<AdminPage><AdminDeliveryZones /></AdminPage>} />
               <Route path="/admin/broadcast" element={<AdminPage><AdminBroadcast /></AdminPage>} />
               <Route path="/admin/announcements" element={<AdminPage><AdminAnnouncements /></AdminPage>} />
               <Route path="/admin/replies" element={<AdminPage><AdminReplies /></AdminPage>} />

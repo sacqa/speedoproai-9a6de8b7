@@ -123,7 +123,8 @@ export function quoteDelivery({
   const isOpen = zoneIsOpen(zone, now);
 
   let blockedReason: string | null = null;
-  if (!zone) blockedReason = area ? "We don't deliver to that area yet — please pick a delivery area." : "Choose your delivery area.";
+  // A typed-in (unlisted) area is allowed — we quote the standard fee and confirm on call.
+  if (!zone && String(area ?? "").trim().length < 2) blockedReason = "Enter or choose your delivery area.";
   else if (!isOpen) blockedReason = `${zone.area} is closed right now. Orders are taken ${zoneHoursLabel(zone)}.`;
   else if (!meetsMinimum) blockedReason = `Minimum order for ${zone.area} is ${money(minOrder)} — add ${money(minOrder - subtotal)} more.`;
 

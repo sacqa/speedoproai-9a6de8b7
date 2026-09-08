@@ -51,6 +51,7 @@ export default function FoodCheckout() {
         })),
         subtotal: sub, delivery_fee: delivery, total,
         notes: notes.trim() || null,
+        geo: guest.geo ?? null,
         vendor_id: cart.vendorId,
         vendor_name: cart.vendorName,
       });
