@@ -50,11 +50,50 @@ Deno.serve(async (req) => {
       if (!items || items.length === 0) return json({ error: "Your cart is empty" }, 400);
       const num = (v: unknown) => (Number.isFinite(Number(v)) ? Number(v) : NaN);
       const subtotal = num(body.subtotal);
-      const delivery_fee = num(body.delivery_fee);
-      const total = num(body.total);
+      let delivery_fee = num(body.delivery_fee);
+      let total = num(body.total);
       if ([subtotal, delivery_fee, total].some((n) => Number.isNaN(n) || n < 0)) {
         return json({ error: "Invalid order amounts" }, 400);
       }
+
+      // --- Delivery rules are re-checked here so they can't be bypassed by a crafted request.
+      const service_type = str(body.service_type, 20);
+      const area = str(body.area, 120);
+      const areaSlug = area.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const { data: zones } = await admin
+        .from("delivery_zones")
+        .select("area, slug, delivery_fee, min_order, free_delivery_threshold, opens_at, closes_at, is_active");
+      const zone = (zones ?? []).find((z: any) => z.slug === areaSlug && z.is_active) ?? null;
+      const chargeable = service_type === "speedmart" || service_type === "food";
+
+      if (zone && chargeable) {
+        const mins = (t: string | null) => {
+          if (!t) return null;
+          const [h, m] = String(t).split(":");
+          return Number(h) * 60 + Number(m ?? 0);
+        };
+        const open = mins(zone.opens_at);
+        const close = mins(zone.closes_at);
+        if (open != null && close != null) {
+          // Pakistan Standard Time (UTC+5) — the app's only delivery region.
+          const now = new Date(Date.now() + 5 * 60 * 60_000);
+          const cur = now.getUTCHours() * 60 + now.getUTCMinutes();
+          const isOpen = close > open ? cur >= open && cur < close : cur >= open || cur < close;
+          if (!isOpen) return json({ error: `${zone.area} is closed right now. Please order during opening hours.` }, 400);
+        }
+        const minOrder = Number(zone.min_order ?? 0);
+        if (subtotal < minOrder) {
+          return json({ error: `Minimum order for ${zone.area} is Rs ${Math.round(minOrder)}.` }, 400);
+        }
+        const freeAt = zone.free_delivery_threshold == null ? null : Number(zone.free_delivery_threshold);
+        delivery_fee = subtotal <= 0 ? 0 : freeAt != null && subtotal >= freeAt ? 0 : Number(zone.delivery_fee ?? 0);
+        total = subtotal + delivery_fee;
+      } else if (chargeable) {
+        // Unlisted area: keep the quoted fee but never trust an arbitrary amount.
+        delivery_fee = Math.min(delivery_fee, 500);
+        total = subtotal + delivery_fee;
+      }
+
       const { data, error } = await admin.rpc("place_guest_order", {
         _customer_name: str(body.name, 120),
         _phone: str(body.phone, 30),
