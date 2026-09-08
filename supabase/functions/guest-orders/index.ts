@@ -109,7 +109,18 @@ Deno.serve(async (req) => {
         _vendor_id: body.vendor_id ?? null,
         _vendor_name: body.vendor_name ? str(body.vendor_name, 160) : null,
         _attachment_url: body.attachment_url ? str(body.attachment_url, 1000) : null,
-        _meta: body.meta && typeof body.meta === "object" ? body.meta : {},
+        _meta: (() => {
+          const m = body.meta && typeof body.meta === "object" ? { ...body.meta } : {};
+          const g = (m as any).geo;
+          if (g && Number.isFinite(Number(g.lat)) && Number.isFinite(Number(g.lng))) {
+            (m as any).geo = {
+              lat: Number(g.lat), lng: Number(g.lng),
+              accuracy: Number.isFinite(Number(g.accuracy)) ? Number(g.accuracy) : null,
+              at: typeof g.at === "string" ? g.at.slice(0, 40) : new Date().toISOString(),
+            };
+          } else delete (m as any).geo;
+          return m;
+        })(),
       });
       if (error) {
         console.error("place_guest_order failed", error.message);
