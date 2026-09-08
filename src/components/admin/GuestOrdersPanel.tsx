@@ -99,6 +99,17 @@ export default function GuestOrdersPanel() {
                       <div className="font-semibold flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> Delivery</div>
                       <div className="text-muted-foreground">{o.street}, {o.area}</div>
                       {o.details && <div className="text-muted-foreground">{o.details}</div>}
+                      {(() => {
+                        const g = (o.meta as any)?.geo;
+                        if (!g?.lat || !g?.lng) return null;
+                        return (
+                          <a href={`https://www.google.com/maps?q=${g.lat},${g.lng}`} target="_blank" rel="noreferrer"
+                             className="inline-flex items-center gap-1 text-primary font-semibold">
+                            <MapPin className="h-3.5 w-3.5" /> Exact pinned location
+                            <span className="text-muted-foreground font-normal">({g.lat}, {g.lng}{g.accuracy ? ` ±${g.accuracy}m` : ""})</span>
+                          </a>
+                        );
+                      })()}
                     </div>
                   </div>
 

@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Package, FolderTree, ShoppingBag, Users, Image as ImageIcon,
-  DollarSign, LogOut, Menu, Megaphone, MessageSquare, Sparkles, UtensilsCrossed, Shield, UserCheck, MessageCircle, Receipt, PanelBottom, Grid3x3, FileText, BarChart3, MapPin, LayoutGrid, Palette,
+  DollarSign, LogOut, Menu, Megaphone, MessageSquare, Sparkles, UtensilsCrossed, Shield, UserCheck, MessageCircle, Receipt, PanelBottom, Grid3x3, FileText, BarChart3, MapPin, LayoutGrid, Palette, Truck,
 } from "lucide-react";
 import { SpeedoLogo } from "@/components/speedo/SpeedoLogo";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,6 +21,7 @@ const items = [
   { to: "/admin/service-banners", label: "Service Tiles", icon: LayoutGrid },
   { to: "/admin/customers", label: "Customers", icon: Users },
   { to: "/admin/pricing", label: "Pricing Rules", icon: DollarSign },
+  { to: "/admin/delivery-zones", label: "Delivery Rules", icon: Truck },
   { to: "/admin/receipt-settings", label: "Receipt Settings", icon: Receipt },
   { to: "/admin/footer-settings", label: "Footer Settings", icon: PanelBottom },
   { to: "/admin/layout-settings", label: "Layout Settings", icon: Grid3x3 },
