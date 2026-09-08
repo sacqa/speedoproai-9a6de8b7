@@ -104,6 +104,7 @@ export default function RequestForm({ mode }: { mode: Mode }) {
         subtotal: 0, delivery_fee: 0, total: 0,
         notes: text.trim() ? text.trim().slice(0, 1000) : null,
         attachment_url,
+        geo: guest.geo ?? null,
         meta,
       });
       toast.success(`Request ${order.order_number} submitted`);
