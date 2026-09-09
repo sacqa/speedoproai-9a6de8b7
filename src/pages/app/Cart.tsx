@@ -11,7 +11,7 @@ import { z } from "zod";
 import { pkPhone } from "@/lib/validators";
 import { toast } from "sonner";
 import { loadGuestInfo, placeGuestOrder } from "@/lib/guestOrder";
-import { OrderSteps, CHECKOUT_STEPS, etaLabel } from "@/components/speedo/OrderSteps";
+import { OrderSteps, CHECKOUT_STEPS } from "@/components/speedo/OrderSteps";
 import { useDeliveryZones, quoteDelivery, slugifyArea } from "@/lib/deliveryRules";
 import { DeliveryRuleNotice } from "@/components/order/DeliveryRuleNotice";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -101,7 +101,7 @@ export default function Cart() {
       </div>
 
       <div className="px-4 lg:px-0 pb-5 lg:pb-8">
-        <OrderSteps steps={CHECKOUT_STEPS} current={step} eta={quote.zone ? quote.etaLabel : etaLabel()} title="Checkout progress" />
+        <OrderSteps steps={CHECKOUT_STEPS} current={step} eta={null} title="Checkout progress" />
       </div>
 
       <div className="px-4 lg:px-0 grid grid-cols-1 lg:grid-cols-[1fr_420px] xl:grid-cols-[1fr_460px] gap-6 lg:gap-10 items-start">
@@ -233,7 +233,7 @@ export default function Cart() {
             </div>
 
             <Button disabled={busy || !canPlace} onClick={placeOrder} className="mt-5 w-full h-12 rounded-full text-base font-bold">
-              {busy ? "Placing order…" : !canPlace ? (quote.zone ? (quote.isOpen ? `Add ${formatPKR(quote.shortfall)} to continue` : "Closed right now") : "Select a delivery area")
+              {busy ? "Placing order…" : !canPlace ? (quote.zone ? `Add ${formatPKR(quote.shortfall)} to continue` : "Select a delivery area")
                 : (<span className="flex items-center gap-2">Place order · {formatPKR(total)} <ChevronRight className="h-4 w-4" /></span>)}
             </Button>
           </div>
