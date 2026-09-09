@@ -11,7 +11,7 @@ import { Seo } from "@/components/seo/Seo";
 import { GuestDetailsFields } from "@/components/order/GuestDetailsFields";
 import { guestDetailsSchema } from "@/lib/guestValidation";
 import { loadGuestInfo, placeGuestOrder, type GuestInfo } from "@/lib/guestOrder";
-import { OrderSteps, CHECKOUT_STEPS, etaLabel } from "@/components/speedo/OrderSteps";
+import { OrderSteps, CHECKOUT_STEPS } from "@/components/speedo/OrderSteps";
 import { useDeliveryZones, quoteDelivery } from "@/lib/deliveryRules";
 import { DeliveryRuleNotice } from "@/components/order/DeliveryRuleNotice";
 
@@ -74,7 +74,7 @@ export default function FoodCheckout() {
         )}
       </header>
 
-      <OrderSteps steps={CHECKOUT_STEPS} current={step} eta={quote.zone ? quote.etaLabel : etaLabel()} title="Checkout progress" />
+      <OrderSteps steps={CHECKOUT_STEPS} current={step} eta={null} title="Checkout progress" />
 
       <section className="bg-card rounded-2xl border border-border/60 p-4 space-y-2">
         <h2 className="font-serif text-lg font-semibold">Your items</h2>
@@ -113,7 +113,7 @@ export default function FoodCheckout() {
       </section>
 
       <Button className="w-full h-12 rounded-full text-base font-bold" disabled={busy || !!quote.blockedReason} onClick={placeOrder}>
-        {busy ? "Placing order…" : quote.blockedReason ? (quote.zone ? (quote.isOpen ? `Add ${formatPKR(quote.shortfall)} to continue` : "Closed right now") : "Select a delivery area") : `Place order · ${formatPKR(total)}`}
+        {busy ? "Placing order…" : quote.blockedReason ? (quote.zone ? `Add ${formatPKR(quote.shortfall)} to continue` : "Select a delivery area") : `Place order · ${formatPKR(total)}`}
       </Button>
     </div>
   );

@@ -16,10 +16,6 @@ export function DeliveryRuleNotice({ quote, showMinimum = true }: { quote: Deliv
               · {quote.fee === 0 ? "Free delivery" : formatPKR(quote.fee)}
             </span>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Clock className="h-3.5 w-3.5 shrink-0" />
-            <span>Arrives {quote.etaLabel} · Open {quote.hoursLabel}</span>
-          </div>
           {showMinimum && quote.minOrder > 0 && (
             <div className="text-muted-foreground">
               Minimum order {formatPKR(quote.minOrder)}

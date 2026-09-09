@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { CheckCircle2, MessageCircle, Pencil, Phone, RefreshCw, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { buildWhatsAppUrl, formatPKR, WHATSAPP_NUMBER } from "@/lib/format";
-import { OrderSteps, FULFILMENT_STEPS, etaLabel } from "@/components/speedo/OrderSteps";
+import { OrderSteps, FULFILMENT_STEPS } from "@/components/speedo/OrderSteps";
 import { lookupOrder, myOrders, SERVICE_LABEL, type ServiceType } from "@/lib/guestOrder";
 import { STATUS_STEP, statusText } from "@/lib/orderStatus";
 import { Seo } from "@/components/seo/Seo";
@@ -89,7 +89,7 @@ export default function OrderConfirm() {
       <OrderSteps
         steps={FULFILMENT_STEPS}
         current={STATUS_STEP[status] ?? 0}
-        eta={status === "delivered" || status === "cancelled" ? null : etaLabel()}
+        eta={null}
         title={`Status · ${statusText(status)}`}
       />
 

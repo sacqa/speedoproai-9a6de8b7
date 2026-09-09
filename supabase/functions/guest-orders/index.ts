@@ -62,25 +62,11 @@ Deno.serve(async (req) => {
       const areaSlug = area.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       const { data: zones } = await admin
         .from("delivery_zones")
-        .select("area, slug, delivery_fee, min_order, free_delivery_threshold, opens_at, closes_at, is_active");
+        .select("area, slug, delivery_fee, min_order, free_delivery_threshold, is_active");
       const zone = (zones ?? []).find((z: any) => z.slug === areaSlug && z.is_active) ?? null;
       const chargeable = service_type === "speedmart" || service_type === "food";
 
       if (zone && chargeable) {
-        const mins = (t: string | null) => {
-          if (!t) return null;
-          const [h, m] = String(t).split(":");
-          return Number(h) * 60 + Number(m ?? 0);
-        };
-        const open = mins(zone.opens_at);
-        const close = mins(zone.closes_at);
-        if (open != null && close != null) {
-          // Pakistan Standard Time (UTC+5) — the app's only delivery region.
-          const now = new Date(Date.now() + 5 * 60 * 60_000);
-          const cur = now.getUTCHours() * 60 + now.getUTCMinutes();
-          const isOpen = close > open ? cur >= open && cur < close : cur >= open || cur < close;
-          if (!isOpen) return json({ error: `${zone.area} is closed right now. Please order during opening hours.` }, 400);
-        }
         const minOrder = Number(zone.min_order ?? 0);
         if (subtotal < minOrder) {
           return json({ error: `Minimum order for ${zone.area} is Rs ${Math.round(minOrder)}.` }, 400);
