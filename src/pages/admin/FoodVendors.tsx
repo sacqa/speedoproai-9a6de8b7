@@ -119,7 +119,7 @@ export default function AdminFoodVendors() {
                 </td>
               </tr>
             ))}
-            {(vendors.data ?? []).length === 0 && <tr><td colSpan={5} className="text-center py-10 text-muted-foreground">No food vendors yet. Add your first restaurant or café.</td></tr>}
+            {(vendors.data ?? []).length === 0 && <tr><td colSpan={5} className="text-center py-10 text-muted-foreground">No food vendors yet. Add your first bakery or café.</td></tr>}
           </tbody>
         </table>
       </div>

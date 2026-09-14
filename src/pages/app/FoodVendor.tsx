@@ -54,7 +54,7 @@ export default function FoodVendor() {
   }, [menu.data]);
 
   if (vendor.isLoading) return <div className="p-10 text-center text-muted-foreground">Loading…</div>;
-  if (!vendor.data) return <div className="p-10 text-center text-muted-foreground">Restaurant not found.</div>;
+  if (!vendor.data) return <div className="p-10 text-center text-muted-foreground">Bakery not found.</div>;
 
   const v = vendor.data;
   const qtyOf = (id: string) => cart.items.find((i) => i.item_id === id)?.quantity ?? 0;
@@ -68,7 +68,7 @@ export default function FoodVendor() {
         image={v.cover_url ?? undefined}
         jsonLd={{
           "@context": "https://schema.org",
-          "@type": "Restaurant",
+          "@type": "Bakery",
           name: v.name,
           image: v.cover_url || v.logo_url || undefined,
           servesCuisine: v.cuisine,

@@ -124,7 +124,6 @@ const App = () => (
               <Route path="/" element={<Home />} />
               <Route path="/search" element={<Search />} />
               <Route path="/speedmart" element={<SpeedMart />} />
-              <Route path="/product/:id" element={<Navigate to="/speedmart" replace />} />
               <Route path="/pharmacy" element={<RequestForm mode="pharmacy" />} />
               <Route path="/speedsend" element={<RequestForm mode="speedsend" />} />
               <Route path="/custom" element={<RequestForm mode="custom" />} />

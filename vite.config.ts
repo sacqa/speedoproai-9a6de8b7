@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => ({
       manifest: {
         name: "Speedo — Groceries, Pharmacy, Food & Parcels",
         short_name: "Speedo",
-        description: "Groceries, pharmacy, restaurant food and parcels delivered fast in Dipalpur.",
+        description: "Groceries, pharmacy, bakery food and parcels delivered fast in Dipalpur.",
         theme_color: "#e84c0a",
         background_color: "#ffffff",
         display: "standalone",
