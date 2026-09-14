@@ -325,7 +325,7 @@ function BannerSlider({ banners }: { banners: any[] }) {
 function ServiceShortcuts() {
   const services = [
     { to: "/speedmart", icon: ShoppingBasket, name: "SpeedMart", desc: "Groceries & Essentials" },
-    { to: "/food", icon: UtensilsCrossed, name: "Food", desc: "Restaurants & Cafés" },
+    { to: "/food", icon: UtensilsCrossed, name: "Food", desc: "Bakeries & Cafés" },
     { to: "/pharmacy", icon: Pill, name: "Pharmacy", desc: "Medicines & Health" },
     { to: "/speedsend", icon: Package, name: "SpeedSend", desc: "Send a Parcel" },
   ];

@@ -24,8 +24,8 @@ export default function Food() {
   return (
     <div className="p-4 lg:p-0 space-y-5">
       <Seo
-        title="Food Delivery — Restaurants & Cafés in Dipalpur | Speedo"
-        description="Order food from your favourite restaurants, cafés and home-kitchens in Dipalpur. Fast delivery via Speedo."
+        title="Food Delivery — Bakeries & Cafés in Dipalpur | Speedo"
+        description="Order food from your favourite bakeries, cafés and home-kitchens in Dipalpur. Fast delivery via Speedo."
         path="/food"
       />
       <header className="flex items-center gap-3">
@@ -34,7 +34,7 @@ export default function Food() {
         </div>
         <div>
           <h1 className="text-2xl font-extrabold leading-none">Food</h1>
-          <p className="text-xs text-muted-foreground mt-1">Restaurants, cafés & vendors near you</p>
+          <p className="text-xs text-muted-foreground mt-1">Bakeries, cafés & vendors near you</p>
         </div>
       </header>
 
@@ -47,7 +47,7 @@ export default function Food() {
       ) : (vendors.data ?? []).length === 0 ? (
         <div className="text-center py-16 text-muted-foreground">
           <UtensilsCrossed className="h-12 w-12 mx-auto mb-3 opacity-40" />
-          <p className="font-semibold">No restaurants yet</p>
+          <p className="font-semibold">No bakeries yet</p>
           <p className="text-sm">Vendors will appear here once the team onboards them.</p>
         </div>
       ) : (
