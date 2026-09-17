@@ -30,7 +30,7 @@ export function DesktopHome() {
   });
   const featured = useQuery({
     queryKey: ["products", "featured-desktop"],
-    queryFn: async () => (await supabase.from("products").select("*").eq("is_active", true).order("created_at", { ascending: false }).limit(8)).data ?? [],
+    queryFn: async () => (await supabase.from("products").select("id, name, price, compare_price, unit, image_url, category_id, is_featured, created_at").eq("is_active", true).order("created_at", { ascending: false }).limit(8)).data ?? [],
   });
   const hotCategory = useQuery({
     queryKey: ["categories", "hot"],
@@ -40,12 +40,12 @@ export function DesktopHome() {
   const hotProducts = useQuery({
     queryKey: ["products", "hot-desktop", hotCategory.data?.id],
     enabled: !!hotCategory.data?.id,
-    queryFn: async () => (await supabase.from("products").select("*").eq("is_active", true).eq("category_id", hotCategory.data!.id).order("created_at", { ascending: false }).limit(8)).data ?? [],
+    queryFn: async () => (await supabase.from("products").select("id, name, price, compare_price, unit, image_url, category_id, is_featured, created_at").eq("is_active", true).eq("category_id", hotCategory.data!.id).order("created_at", { ascending: false }).limit(8)).data ?? [],
   });
   const sale = useQuery({
     queryKey: ["products", "sale-desktop"],
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("*").eq("is_active", true).not("compare_price", "is", null).order("created_at", { ascending: false }).limit(8);
+      const { data } = await supabase.from("products").select("id, name, price, compare_price, unit, image_url, category_id, is_featured, created_at").eq("is_active", true).not("compare_price", "is", null).order("created_at", { ascending: false }).limit(8);
       return (data ?? []).filter((p: any) => Number(p.compare_price) > Number(p.price));
     },
   });

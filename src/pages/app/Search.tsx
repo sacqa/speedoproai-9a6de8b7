@@ -91,7 +91,7 @@ export default function Search() {
     enabled: debounced.length > 1,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("products").select("*")
+        .from("products").select("id, name, price, compare_price, unit, image_url, category_id, is_featured, created_at")
         .ilike("name", `%${debounced}%`).eq("is_active", true).limit(40);
       if (error) throw error;
       return data;
@@ -103,7 +103,7 @@ export default function Search() {
     enabled: debounced.length <= 1,
     queryFn: async () => {
       const { data } = await supabase
-        .from("products").select("*")
+        .from("products").select("id, name, price, compare_price, unit, image_url, category_id, is_featured, created_at")
         .eq("is_active", true)
         .order("is_featured", { ascending: false })
         .order("created_at", { ascending: false })
