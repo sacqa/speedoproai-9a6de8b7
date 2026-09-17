@@ -19,7 +19,7 @@ const isPreviewHost =
   window.location.hostname.includes("lovableproject.com") ||
   window.location.hostname.includes("lovable.app");
 
-if (isInIframe || isPreviewHost) {
+if (isInIframe || isPreviewHost || isNative()) {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => r.unregister()));
   }
