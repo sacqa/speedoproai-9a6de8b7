@@ -46,6 +46,8 @@ export function useIsStandalone() {
 function detect(): boolean {
   if (typeof window === "undefined") return false;
   const nav: any = window.navigator;
+  // Installed native app (Capacitor on Android / iOS) behaves like standalone.
+  if ((window as any).Capacitor?.isNativePlatform?.()) return true;
   if (nav.standalone === true) return true; // iOS
   const dm = (q: string) => window.matchMedia(q).matches;
   if (dm("(display-mode: standalone)") || dm("(display-mode: minimal-ui)") || dm("(display-mode: fullscreen)")) return true;

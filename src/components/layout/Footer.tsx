@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,13 +41,17 @@ const DEFAULTS: FooterValue = {
 };
 
 export function Footer() {
-  const [v, setV] = useState<FooterValue>(DEFAULTS);
   const isStandalone = useIsStandalone();
   const onVersionTap = useVersionTapAdmin();
-  useEffect(() => {
-    supabase.from("app_settings").select("value").eq("key", "footer").maybeSingle()
-      .then(({ data }) => { if (data?.value) setV({ ...DEFAULTS, ...(data.value as FooterValue) }); });
-  }, []);
+  // Cached: the footer mounts on every route change, so this must not refetch each time.
+  const { data: v = DEFAULTS } = useQuery({
+    queryKey: ["app_settings", "footer"],
+    staleTime: 10 * 60_000,
+    queryFn: async () => {
+      const { data } = await supabase.from("app_settings").select("value").eq("key", "footer").maybeSingle();
+      return { ...DEFAULTS, ...((data?.value ?? {}) as FooterValue) } as FooterValue;
+    },
+  });
   const company = v.company_links ?? [];
   const legal = v.legal_links ?? [];
   const versionButton = (

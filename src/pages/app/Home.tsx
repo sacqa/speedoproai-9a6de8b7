@@ -55,7 +55,7 @@ export default function Home() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("*")
+        .select("id, name, price, compare_price, unit, image_url, category_id, is_featured, created_at")
         .eq("is_active", true)
         .not("compare_price", "is", null)
         .order("created_at", { ascending: false })
@@ -87,7 +87,7 @@ export default function Home() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("*")
+        .select("id, name, price, compare_price, unit, image_url, category_id, is_featured, created_at")
         .eq("is_active", true)
         .eq("category_id", hotCategory.data!.id)
         .order("created_at", { ascending: false })

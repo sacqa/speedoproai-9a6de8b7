@@ -81,18 +81,18 @@ function ProductCardImpl({ p }: { p: Product }) {
             <button
               type="button"
               onClick={handleAdd}
-              className="w-full h-9 sm:h-10 rounded-xl bg-primary text-primary-foreground text-[12px] sm:text-sm font-bold inline-flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+              className="w-full h-10 sm:h-11 rounded-xl bg-primary text-primary-foreground text-[12px] sm:text-sm font-bold inline-flex items-center justify-center gap-1.5 active:scale-95 transition-transform touch-manipulation"
             >
               <Plus className="h-4 w-4" strokeWidth={3} />
               Add
             </button>
           ) : (
-            <div className="w-full h-9 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-between px-1">
+            <div className="w-full h-10 sm:h-11 rounded-xl bg-primary/10 flex items-center justify-between px-1 touch-manipulation">
               <button
                 type="button"
                 aria-label="Decrease quantity"
                 onClick={() => setQty(p.id, qty - 1)}
-                className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-white shadow-sm flex items-center justify-center active:scale-90 transition-transform"
+                className="h-9 w-9 rounded-lg bg-white shadow-sm flex items-center justify-center active:scale-90 transition-transform"
               >
                 <Minus className="h-3.5 w-3.5 text-primary" strokeWidth={3} />
               </button>
@@ -101,7 +101,7 @@ function ProductCardImpl({ p }: { p: Product }) {
                 type="button"
                 aria-label="Increase quantity"
                 onClick={() => setQty(p.id, qty + 1)}
-                className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-white shadow-sm flex items-center justify-center active:scale-90 transition-transform"
+                className="h-9 w-9 rounded-lg bg-white shadow-sm flex items-center justify-center active:scale-90 transition-transform"
               >
                 <Plus className="h-3.5 w-3.5 text-primary" strokeWidth={3} />
               </button>
