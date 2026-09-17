@@ -5,6 +5,10 @@ import "@fontsource/montserrat/400.css";
 import "@fontsource/montserrat/700.css";
 import { registerSW } from "virtual:pwa-register";
 import { HelmetProvider } from "react-helmet-async";
+import { initNative, isNative } from "@/lib/native";
+
+// Native shell (Android / iOS): status bar, splash, keyboard, back button.
+void initNative();
 
 // PWA registration guard: never register inside the Lovable preview iframe / preview hosts.
 const isInIframe = (() => {
