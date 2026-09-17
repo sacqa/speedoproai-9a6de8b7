@@ -111,6 +111,27 @@
   html, body, #root {
     @apply min-h-screen;
   }
+
+  /* ===== Native app shell (Android / iOS via Capacitor) ===== */
+  /* Applied only when running inside the installed native app. */
+  html.is-native body {
+    /* no text selection / callout on long-press, like a real native app */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    overscroll-behavior-y: none;
+  }
+  html.is-native input,
+  html.is-native textarea,
+  html.is-native [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  html.is-native * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* iOS notch / Android gesture bar padding for the app frame */
+  html.is-ios body { padding-top: env(safe-area-inset-top); }
 }
 
 @layer utilities {
