@@ -174,7 +174,7 @@ export default function Home() {
         <section>
           <div className="flex items-center justify-between px-4 lg:px-0 mb-3">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-xl gradient-primary flex items-center justify-center text-white text-base">
+              <div className="h-8 w-8 rounded-xl gradient-primary shadow-lg shadow-primary/25 flex items-center justify-center text-white text-base">
                 {hotCategory.data.icon || "🔥"}
               </div>
               <div>
