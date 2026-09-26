@@ -121,7 +121,7 @@ export default function Home() {
       <div className="px-4 lg:px-0 pt-4 lg:pt-0">
         <Link
           to="/search"
-          className="flex items-center gap-3 bg-white/90 backdrop-blur-md rounded-2xl px-4 py-4 shadow-card border border-accent/40 hover:border-primary/40 transition-colors"
+          className="flex items-center gap-3 bg-white/80 backdrop-blur-md rounded-2xl px-4 py-4 shadow-sm border border-white/80 hover:border-primary/30 transition-colors"
         >
           <SearchIcon className="h-5 w-5 text-primary shrink-0" strokeWidth={2.5} />
           <span className="text-muted-foreground text-sm flex-1 truncate font-medium">
@@ -156,8 +156,10 @@ export default function Home() {
                   key={c.id}
                   className="flex-shrink-0 w-[68px] sm:w-20 lg:w-24 text-center group"
                 >
-                  <div className="aspect-square w-full rounded-3xl bg-white border border-accent/40 shadow-card flex items-center justify-center overflow-hidden group-hover:scale-105 group-hover:border-primary/40 transition-all">
-                    <CategoryIcon src={c.image_url} alt={c.name} />
+                  <div className="aspect-square w-full rounded-full bg-white border border-accent/40 shadow-card p-1 flex items-center justify-center overflow-hidden group-hover:scale-105 group-hover:border-primary/40 transition-all">
+                    <div className="w-full h-full rounded-full overflow-hidden">
+                      <CategoryIcon src={c.image_url} alt={c.name} />
+                    </div>
                   </div>
                   <p className="mt-2 text-[11px] sm:text-xs font-semibold leading-tight line-clamp-2 text-primary">{c.name}</p>
                 </Link>
@@ -200,7 +202,7 @@ export default function Home() {
         <section>
           <div className="flex items-center justify-between px-4 lg:px-0 mb-3">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-xl gradient-primary flex items-center justify-center">
+              <div className="h-8 w-8 rounded-xl gradient-primary shadow-lg shadow-primary/25 flex items-center justify-center">
                 <Flame className="h-4 w-4 text-white" />
               </div>
               <div>

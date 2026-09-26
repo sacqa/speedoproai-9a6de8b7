@@ -117,9 +117,9 @@ export function DesktopHome() {
                 to={`/speedmart?cat=${c.slug ?? c.id}`}
                 className="group flex flex-col items-center gap-3 cursor-pointer"
               >
-                <div className="w-full aspect-square rounded-3xl glass-card flex items-center justify-center overflow-hidden group-hover:-translate-y-1 group-hover:shadow-elevated transition-all p-3">
+                <div className="w-full aspect-square rounded-full bg-white border border-accent/40 shadow-card p-1.5 overflow-hidden group-hover:-translate-y-1 group-hover:shadow-elevated transition-all">
                   {c.image_url ? (
-                    <img src={c.image_url} alt={c.name} loading="lazy" decoding="async" className="h-full w-full object-cover rounded-2xl" />
+                    <img src={c.image_url} alt={c.name} loading="lazy" decoding="async" className="h-full w-full object-cover rounded-full" />
                   ) : c.icon ? (
                     <span className="text-4xl">{c.icon}</span>
                   ) : (
