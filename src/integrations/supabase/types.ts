@@ -1248,6 +1248,32 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_users: {
+        Row: {
+          created_at: string
+          user_id: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_users_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "food_vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1291,6 +1317,7 @@ export type Database = {
           vendor_name: string
         }[]
       }
+      my_vendor_id: { Args: never; Returns: string }
       place_guest_order: {
         Args: {
           _area: string
