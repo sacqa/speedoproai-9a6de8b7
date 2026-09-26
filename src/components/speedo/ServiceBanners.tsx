@@ -99,8 +99,7 @@ export function ServiceBanners({ compact = false }: { compact?: boolean }) {
             )}
             <div className="relative h-full flex flex-col justify-between p-2.5 lg:p-5">
               <div
-                className={`h-8 w-8 lg:h-12 lg:w-12 rounded-xl lg:rounded-2xl flex items-center justify-center shadow-lg bg-gradient-to-tr from-primary to-primary-glow ${badgeStyle ? "" : accent?.badge ?? ""}`}
-                style={badgeStyle}
+                className={`h-8 w-8 lg:h-12 lg:w-12 rounded-xl lg:rounded-2xl flex items-center justify-center shadow-lg bg-gradient-to-tr ${accent?.badge ?? "from-primary to-primary-glow"}`}
               >
                 <Icon className="h-4 w-4 lg:h-6 lg:w-6 text-white" strokeWidth={2.2} />
               </div>
