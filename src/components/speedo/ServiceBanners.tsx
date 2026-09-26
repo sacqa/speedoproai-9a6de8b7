@@ -68,10 +68,8 @@ export function ServiceBanners({ compact = false }: { compact?: boolean }) {
       {items.map((s) => {
         const Icon = ICONS[s.icon_name ?? ""] ?? ShoppingBasket;
         const accent = ACCENTS[s.service_key ?? ""];
-        const badgeStyle =
-          s.gradient_from && s.gradient_to
-            ? { backgroundImage: `linear-gradient(135deg, ${s.gradient_from}, ${s.gradient_to})` }
-            : undefined;
+        // Admin gradient colors tint the corner glow; icon badges always use a
+        // vivid per-service gradient so white icons stay legible.
         const glowStyle = s.gradient_from
           ? { backgroundColor: s.gradient_from, opacity: 0.15 }
           : undefined;
