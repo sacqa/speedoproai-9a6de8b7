@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ChevronDown, ChevronUp, Phone, MapPin, Package } from "lucide-react";
+import { ChevronDown, ChevronUp, Phone, MapPin, Package, Paperclip } from "lucide-react";
 
 const GUEST_STATUSES = ["submitted", "confirmed", "packing", "out_for_delivery", "delivered", "cancelled"];
 const nice = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -57,7 +57,7 @@ export default function GuestOrdersPanel({ vendorId, readOnly }: { vendorId?: st
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-lg font-extrabold flex items-center gap-2">
-          <Package className="h-5 w-5 text-primary" /> App orders (guest checkout)
+          <Package className="h-5 w-5 text-primary" /> {vendorId ? "Your orders" : "App orders (guest checkout)"}
         </h2>
         <span className="text-xs text-muted-foreground">{rows.length} shown</span>
       </div>
@@ -81,7 +81,9 @@ export default function GuestOrdersPanel({ vendorId, readOnly }: { vendorId?: st
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-bold text-primary">{o.order_number}</span>
                     <span className="text-[10px] px-2 py-0.5 rounded-pill bg-muted font-semibold">{nice(o.status)}</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-pill bg-primary-tint text-primary font-semibold uppercase">{o.payment_method}</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-pill bg-primary-tint text-primary font-semibold uppercase">{SERVICE[o.service_type] ?? o.service_type}</span>
+                    {o.vendor_name && <span className="text-[10px] px-2 py-0.5 rounded-pill bg-muted font-semibold">{o.vendor_name}</span>}
+                    {o.attachment_url && <span className="text-[10px] px-2 py-0.5 rounded-pill bg-accent/30 font-semibold">📎 File</span>}
                   </div>
                   <div className="text-xs text-muted-foreground mt-1 truncate">
                     {o.customer_name} · {o.phone} · {items.length} item{items.length === 1 ? "" : "s"}
@@ -143,13 +145,19 @@ export default function GuestOrdersPanel({ vendorId, readOnly }: { vendorId?: st
                     <div className="flex justify-between font-bold border-t border-border pt-1"><span>Total</span><span className="text-primary">{formatPKR(Number(o.total))}</span></div>
                   </div>
 
+                  {o.attachment_url && (
+                    <Button size="sm" variant="outline" className="rounded-pill gap-1.5" onClick={() => openAttachment(o.attachment_url)}>
+                      <Paperclip className="h-3.5 w-3.5" /> View attachment
+                    </Button>
+                  )}
+
                   {o.notes && (
                     <div className="text-sm bg-muted/50 rounded-xl p-3">
                       <span className="font-semibold">Notes: </span>{o.notes}
                     </div>
                   )}
 
-                  <div className="flex flex-wrap gap-2">
+                  {!readOnly && <div className="flex flex-wrap gap-2">
                     {GUEST_STATUSES.map((s) => (
                       <Button
                         key={s}
@@ -162,7 +170,7 @@ export default function GuestOrdersPanel({ vendorId, readOnly }: { vendorId?: st
                         {nice(s)}
                       </Button>
                     ))}
-                  </div>
+                  </div>}
                 </div>
               )}
             </div>
