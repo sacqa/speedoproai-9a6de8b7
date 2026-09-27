@@ -219,6 +219,33 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    if (action === "create_vendor_login") {
+      const { vendor_id, full_name, phone, pin } = body;
+      if (!vendor_id || !/^03\d{9}$/.test(phone ?? "") || !/^\d{4}$/.test(pin ?? "")) {
+        return json({ error: "vendor, valid phone and 4-digit PIN required" }, 400);
+      }
+      let uid: string | null = null;
+      const { data: existing } = await admin.from("profiles").select("id").eq("phone", phone).maybeSingle();
+      if (existing?.id) {
+        uid = existing.id;
+        await admin.auth.admin.updateUserById(uid, { password: phonePass(phone, pin) });
+      } else {
+        const { data: created, error } = await admin.auth.admin.createUser({
+          email: phoneEmail(phone), password: phonePass(phone, pin), email_confirm: true,
+          user_metadata: { full_name, phone },
+        });
+        if (error) return json({ error: error.message }, 400);
+        uid = created.user!.id;
+        await admin.from("profiles").upsert({ id: uid, full_name, phone, approval_status: "approved", approved_at: new Date().toISOString() });
+      }
+      await admin.from("user_roles").upsert({ user_id: uid, role: "staff" }, { onConflict: "user_id,role" });
+      await admin.from("vendor_users").delete().eq("user_id", uid);
+      const { error: linkErr } = await admin.from("vendor_users").insert({ user_id: uid, vendor_id });
+      if (linkErr) return json({ error: linkErr.message }, 400);
+      await audit({ action: "create_vendor_login", target_id: uid, target_label: phone, details: { vendor_id } });
+      return json({ ok: true, user_id: uid });
+    }
+
     if (action === "remove_role") {
       const { user_id, role } = body;
       if (!user_id || !role) return json({ error: "user_id, role required" }, 400);

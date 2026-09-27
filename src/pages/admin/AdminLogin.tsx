@@ -22,13 +22,14 @@ export default function AdminLogin() {
     if (!/^03\d{9}$/.test(phone)) { toast.error("Enter a valid mobile number"); return; }
     if (!/^\d{4}$/.test(pin)) { toast.error("PIN must be 4 digits"); return; }
     setBusy(true);
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: phoneEmail(phone), password: phonePass(phone, pin),
     });
+    if (error || !data.user) { setBusy(false); toast.error("Wrong phone or PIN"); return; }
+    const { data: link } = await supabase.from("vendor_users").select("vendor_id").eq("user_id", data.user.id).maybeSingle();
     setBusy(false);
-    if (error) { toast.error("Wrong phone or PIN"); return; }
     toast.success("Signed in");
-    nav("/admin", { replace: true });
+    nav(link ? "/vendor" : "/admin", { replace: true });
   };
 
   return (

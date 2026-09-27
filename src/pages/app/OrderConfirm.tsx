@@ -112,6 +112,25 @@ export default function OrderConfirm() {
         </div>
       )}
 
+      {(() => {
+        const ph = String(order.phone ?? saved?.phone ?? "").replace(/\D/g, "").replace(/^0/, "92");
+        if (ph.length < 10) return null;
+        const msg = `Speedo order confirmed ✅\nOrder: ${order.order_number}\nTotal: ${Number(order.total) ? formatPKR(Number(order.total)) : "to be confirmed"}\nPayment: Cash on delivery\nTrack: ${window.location.origin}/track`;
+        return (
+          <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-2">
+            <p className="text-sm font-semibold">Save your confirmation</p>
+            <div className="grid grid-cols-2 gap-2">
+              <a href={`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" className="w-full rounded-full gap-2"><MessageCircle className="h-4 w-4" /> WhatsApp</Button>
+              </a>
+              <a href={`sms:+${ph}?body=${encodeURIComponent(msg)}`}>
+                <Button variant="outline" className="w-full rounded-full gap-2"><Phone className="h-4 w-4" /> SMS</Button>
+              </a>
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="rounded-2xl bg-success/5 border border-success/20 p-4 space-y-3">
         <a href={buildWhatsAppUrl(supportText)} target="_blank" rel="noopener noreferrer" className="block">
           <Button className="w-full h-12 rounded-full bg-success hover:bg-success/90 text-white gap-2">
