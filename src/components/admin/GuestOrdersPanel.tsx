@@ -9,18 +9,25 @@ import { ChevronDown, ChevronUp, Phone, MapPin, Package } from "lucide-react";
 const GUEST_STATUSES = ["submitted", "confirmed", "packing", "out_for_delivery", "delivered", "cancelled"];
 const nice = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-export default function GuestOrdersPanel() {
+const SERVICE: Record<string, string> = { speedmart: "SpeedMart", food: "Food", pharmacy: "Pharmacy", speedsend: "SpeedSend", custom: "Custom" };
+
+async function openAttachment(path: string) {
+  if (/^https?:\/\//.test(path)) { window.open(path, "_blank"); return; }
+  const { data, error } = await supabase.storage.from("request-uploads").createSignedUrl(path, 600);
+  if (error || !data) { toast.error("Could not open attachment"); return; }
+  window.open(data.signedUrl, "_blank");
+}
+
+export default function GuestOrdersPanel({ vendorId, readOnly }: { vendorId?: string; readOnly?: boolean } = {}) {
   const [open, setOpen] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
 
   const q = useQuery({
-    queryKey: ["admin", "guest_orders"],
+    queryKey: ["admin", "guest_orders", vendorId ?? "all"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("guest_orders")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(100);
+      let query = supabase.from("guest_orders").select("*");
+      if (vendorId) query = query.eq("vendor_id", vendorId);
+      const { data, error } = await query.order("created_at", { ascending: false }).limit(100);
       if (error) throw error;
       return data ?? [];
     },
