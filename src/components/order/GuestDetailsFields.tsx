@@ -3,10 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Phone, User } from "lucide-react";
 import type { GuestInfo } from "@/lib/guestOrder";
-import { useDeliveryZones, slugifyArea } from "@/lib/deliveryRules";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LocationButton } from "@/components/order/LocationButton";
-import { useState } from "react";
 
 type Props = {
   value: GuestInfo;
@@ -16,10 +13,6 @@ type Props = {
 /** Name / phone / area / address block shared by every checkout in the app. */
 export function GuestDetailsFields({ value, onChange }: Props) {
   const set = (patch: Partial<GuestInfo>) => onChange({ ...value, ...patch });
-  const zones = useDeliveryZones();
-  const hasZones = (zones.data?.length ?? 0) > 0;
-  const listed = hasZones && zones.data!.some((z) => slugifyArea(z.area) === slugifyArea(value.area));
-  const [manual, setManual] = useState(!!value.area && hasZones && !listed);
 
   return (
     <div className="space-y-4">
