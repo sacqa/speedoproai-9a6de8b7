@@ -9,7 +9,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, ListOrdered } from "lucide-react";
+import { Plus, Pencil, Trash2, ListOrdered, KeyRound } from "lucide-react";
+
+async function makeVendorLogin(v: any) {
+  const phone = window.prompt(`Vendor login for ${v.name}\nMobile number (03xxxxxxxxx):`)?.trim();
+  if (!phone) return;
+  const pin = window.prompt("4-digit PIN for this vendor:")?.trim();
+  if (!pin) return;
+  const { data, error } = await supabase.functions.invoke("admin-users", {
+    body: { action: "create_vendor_login", vendor_id: v.id, full_name: v.name, phone, pin },
+  });
+  if (error || (data as any)?.error) { toast.error((data as any)?.error ?? "Could not create login"); return; }
+  toast.success(`Login ready — vendor signs in at /admin/login with ${phone}`);
+}
 
 const empty = {
   name: "", slug: "", cuisine: "", description: "", logo_url: "", cover_url: "",
@@ -88,7 +100,8 @@ export default function AdminFoodVendors() {
               <Link to={`/admin/food-vendors/${v.id}/menu`}><Button size="sm" variant="outline" className="w-full"><ListOrdered className="h-3.5 w-3.5" /></Button></Link>
               <div className="flex">
                 <Button size="icon" variant="ghost" onClick={() => { setEditing(v); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
-                <Button size="icon" variant="ghost" onClick={() => remove(v)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                <Button size="icon" variant="ghost" title="Vendor login" onClick={() => makeVendorLogin(v)}><KeyRound className="h-4 w-4" /></Button>
+<Button size="icon" variant="ghost" onClick={() => remove(v)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
               </div>
             </div>
           </div>
@@ -115,7 +128,8 @@ export default function AdminFoodVendors() {
                 <td className="p-3 text-right whitespace-nowrap">
                   <Link to={`/admin/food-vendors/${v.id}/menu`}><Button size="sm" variant="outline" className="mr-1"><ListOrdered className="h-3.5 w-3.5 mr-1" />Menu</Button></Link>
                   <Button size="icon" variant="ghost" onClick={() => { setEditing(v); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => remove(v)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  <Button size="icon" variant="ghost" title="Vendor login" onClick={() => makeVendorLogin(v)}><KeyRound className="h-4 w-4" /></Button>
+<Button size="icon" variant="ghost" onClick={() => remove(v)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                 </td>
               </tr>
             ))}

@@ -50,6 +50,7 @@ const AdminChats = lazy(() => import("./pages/admin/Chats"));
 const AdminReceipt = lazy(() => import("./pages/admin/Receipt"));
 const AdminReceiptSettings = lazy(() => import("./pages/admin/ReceiptSettings"));
 const AdminFooterSettings = lazy(() => import("./pages/admin/FooterSettings"));
+const VendorOrders = lazy(() => import("./pages/vendor/VendorOrders"));
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 const AdminLayoutSettings = lazy(() => import("./pages/admin/LayoutSettings"));
 const AdminPages = lazy(() => import("./pages/admin/Pages"));
@@ -170,6 +171,7 @@ const App = () => (
               <Route path="/admin/approvals" element={<AdminPage><AdminApprovals /></AdminPage>} />
               <Route path="/admin/chats" element={<AdminPage><AdminChats /></AdminPage>} />
               <Route path="/admin/birthdays" element={<Navigate to="/admin/customers?tab=birthdays" replace />} />
+              <Route path="/vendor" element={<Suspense fallback={null}><VendorOrders /></Suspense>} />
               <Route path="/admin/login" element={<Suspense fallback={null}><AdminLogin /></Suspense>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
