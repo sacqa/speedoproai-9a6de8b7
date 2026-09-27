@@ -187,25 +187,9 @@ export default function Cart() {
                 </div>
               </Field>
               <Field id="street" label="Delivery address" icon={MapPin}>
-                <div className="mb-2 flex justify-end">
-                  <button type="button" onClick={() => { setManualArea(!manualArea); setForm({ ...form, area: "" }); }}
-                    className="text-[11.5px] font-semibold text-primary hover:underline">
-                    {manualArea ? "Choose from list" : "My area isn't listed"}
-                  </button>
-                </div>
                 <div className="mb-3">
-                  {manualArea ? (
-                    <Input placeholder="Type your area, e.g. Dipalpur" value={form.area ?? ""} className="h-11"
-                      onChange={(e) => setForm({ ...form, area: e.target.value.slice(0, 60) })} />
-                  ) : (
-                    <Select value={(zones.data ?? []).some((z) => slugifyArea(z.area) === slugifyArea(form.area ?? "")) ? form.area : ""}
-                      onValueChange={(v) => setForm({ ...form, area: v })}>
-                      <SelectTrigger className="h-11"><SelectValue placeholder="Choose your delivery area" /></SelectTrigger>
-                      <SelectContent>
-                        {(zones.data ?? []).map((z) => <SelectItem key={z.id} value={z.area}>{z.area}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  )}
+                  <Input placeholder="Area / town, e.g. Dipalpur" value={form.area ?? ""} className="h-11"
+                    onChange={(e) => setForm({ ...form, area: e.target.value.slice(0, 60) })} />
                 </div>
                 <Textarea id="street" placeholder="House #, street, area, landmark" value={form.street} onChange={(e) => setForm({ ...form, street: e.target.value.slice(0, 200) })} className="min-h-[72px] resize-none" />
                 <div className="mt-3">
