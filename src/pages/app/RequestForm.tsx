@@ -4,9 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Upload, X, Pill, Package, Sparkles } from "lucide-react";
+import { Upload, X, Pill, Package, Sparkles, User } from "lucide-react";
 import { compressImage } from "@/lib/imageCompress";
 import { GuestDetailsFields } from "@/components/order/GuestDetailsFields";
 import { guestDetailsSchema } from "@/lib/guestValidation";
@@ -18,39 +17,44 @@ import { DeliveryRuleNotice } from "@/components/order/DeliveryRuleNotice";
 type Mode = "pharmacy" | "speedsend" | "custom";
 
 const META: Record<Mode, {
-  title: string; blurb: string; path: string;
-  badge: string; label: string; glow: string; icon: typeof Pill;
+  title: string; blurb: string; path: string; formTitle: string;
+  bar: string; iconColor: string; softBox: string; icon: typeof Pill;
 }> = {
   pharmacy: {
     title: "Pharmacy Order",
     blurb: "List your medicines or upload a prescription. We'll confirm availability and price before delivering.",
     path: "/pharmacy",
-    badge: "from-emerald-500 to-teal-400",
-    label: "text-emerald-600",
-    glow: "bg-emerald-500/10",
+    formTitle: "What do you need?",
+    bar: "bg-emerald-500",
+    iconColor: "text-emerald-500",
+    softBox: "bg-emerald-50 border-emerald-100 text-emerald-900",
     icon: Pill,
   },
   speedsend: {
     title: "SpeedSend Parcel",
     blurb: "Send a parcel across town. Share the pickup and drop-off details and we'll quote the fare.",
     path: "/speedsend",
-    badge: "from-amber-500 to-yellow-400",
-    label: "text-amber-600",
-    glow: "bg-amber-500/10",
+    formTitle: "Parcel details",
+    bar: "bg-amber-500",
+    iconColor: "text-amber-500",
+    softBox: "bg-amber-50 border-amber-100 text-amber-900",
     icon: Package,
   },
   custom: {
     title: "Custom Order",
     blurb: "Need something we don't stock? Describe it and we'll source it from the bazaar for you.",
     path: "/custom",
-    badge: "from-primary to-primary-glow",
-    label: "text-primary",
-    glow: "bg-primary/10",
+    formTitle: "Your request",
+    bar: "bg-primary",
+    iconColor: "text-primary",
+    softBox: "bg-primary/5 border-primary/10 text-foreground",
     icon: Sparkles,
   },
 };
 
-const CARD = "relative overflow-hidden bg-white/60 backdrop-blur-sm rounded-2xl lg:rounded-[28px] border border-white shadow-[0_8px_20px_-6px_rgba(0,0,0,0.05)] p-4 lg:p-7";
+const FIELD_LABEL = "text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1 block";
+const FIELD = "h-12 rounded-xl bg-muted/60 border-transparent focus-visible:ring-primary/20";
+const AREA = "rounded-xl bg-muted/60 border-transparent focus-visible:ring-primary/20 resize-none";
 
 export default function RequestForm({ mode }: { mode: Mode }) {
   const nav = useNavigate();
@@ -136,136 +140,123 @@ export default function RequestForm({ mode }: { mode: Mode }) {
   const m = META[mode];
   const Icon = m.icon;
 
-  const requestCard = (
-    <section className={CARD}>
-      <div className={`pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full blur-3xl ${m.glow}`} />
-      <h2 className="relative text-lg font-serif font-semibold mb-4">
-        {mode === "pharmacy" ? "What do you need?" : mode === "speedsend" ? "Parcel details" : "Your request"}
-      </h2>
-      <div className="relative space-y-4">
-        {mode === "pharmacy" && (
-          <>
-            <div>
-              <Label htmlFor="meds">List medicines</Label>
-              <Textarea id="meds" className="mt-1.5 bg-white/70" value={text} onChange={(e) => setText(e.target.value)} rows={4} maxLength={1000}
-                placeholder="Panadol Extra × 2, Augmentin 625mg × 1 strip, …" />
-            </div>
-            <div>
-              <Label>Prescription image (optional)</Label>
-              {preview ? (
-                <div className="mt-1.5 relative rounded-xl overflow-hidden border border-border">
-                  <img src={preview} alt="Prescription preview" className="w-full max-h-56 object-contain bg-muted" />
-                  <button type="button" onClick={() => pickFile(null)} aria-label="Remove image"
-                    className="absolute top-2 right-2 h-8 w-8 rounded-full bg-background/90 border border-border flex items-center justify-center">
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              ) : (
-                <label className="mt-1.5 flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl p-6 cursor-pointer bg-white/50 hover:border-primary/40 transition-colors">
-                  <Upload className="h-6 w-6 text-primary mb-2" />
-                  <span className="text-sm font-semibold">Tap to upload</span>
-                  <span className="text-xs text-muted-foreground mt-0.5">Max 5MB · JPG / PNG</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => pickFile(e.target.files?.[0] ?? null)} />
-                </label>
-              )}
-            </div>
-          </>
-        )}
-
-        {mode === "speedsend" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <Input placeholder="Sender name" value={s.sender_name} onChange={(e) => setS({ ...s, sender_name: e.target.value })} />
-            <Input placeholder="Sender phone" inputMode="numeric" value={s.sender_phone} onChange={(e) => setS({ ...s, sender_phone: e.target.value.replace(/\D/g, "").slice(0, 11) })} />
-            <Input placeholder="Recipient name" value={s.recipient_name} onChange={(e) => setS({ ...s, recipient_name: e.target.value })} />
-            <Input placeholder="Recipient phone" inputMode="numeric" value={s.recipient_phone} onChange={(e) => setS({ ...s, recipient_phone: e.target.value.replace(/\D/g, "").slice(0, 11) })} />
-            <Input className="sm:col-span-2" placeholder="Pickup address" value={s.pickup_address} onChange={(e) => setS({ ...s, pickup_address: e.target.value })} />
-            <Input className="sm:col-span-2" placeholder="Drop-off address" value={s.drop_address} onChange={(e) => setS({ ...s, drop_address: e.target.value })} />
-            <Input placeholder="Package type" value={s.package_type} onChange={(e) => setS({ ...s, package_type: e.target.value })} />
-            <Input placeholder="Weight (kg)" inputMode="decimal" value={s.weight} onChange={(e) => setS({ ...s, weight: e.target.value })} />
-            <label className="sm:col-span-2 flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={s.fragile} onChange={(e) => setS({ ...s, fragile: e.target.checked })} /> Fragile — handle with care
-            </label>
-            <Textarea className="sm:col-span-2" placeholder="Extra instructions" value={text} onChange={(e) => setText(e.target.value)} rows={3} maxLength={1000} />
-          </div>
-        )}
-
-        {mode === "custom" && (
-          <>
-            <div>
-              <Label htmlFor="desc">What do you need?</Label>
-              <Textarea id="desc" className="mt-1.5 bg-white/70" rows={5} maxLength={1000} value={text} onChange={(e) => setText(e.target.value)}
-                placeholder="Describe the items, where to source them, and any details we should know…" />
-            </div>
-            <div>
-              <Label htmlFor="budget">Budget (PKR, optional)</Label>
-              <Input id="budget" className="mt-1.5" inputMode="numeric" value={budget} onChange={(e) => setBudget(e.target.value.replace(/\D/g, "").slice(0, 7))} />
-            </div>
-            <div>
-              <Label>Reference photo (optional)</Label>
-              {preview ? (
-                <div className="mt-1.5 relative rounded-xl overflow-hidden border border-border">
-                  <img src={preview} alt="Reference preview" className="w-full max-h-56 object-contain bg-muted" />
-                  <button type="button" onClick={() => pickFile(null)} aria-label="Remove image"
-                    className="absolute top-2 right-2 h-8 w-8 rounded-full bg-background/90 border border-border flex items-center justify-center">
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              ) : (
-                <label className="mt-1.5 flex items-center justify-center gap-2 border-2 border-dashed border-border rounded-xl p-4 cursor-pointer bg-white/50 hover:border-primary/40 transition-colors text-sm font-semibold">
-                  <Upload className="h-4 w-4 text-primary" /> Attach a photo
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => pickFile(e.target.files?.[0] ?? null)} />
-                </label>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-    </section>
-  );
-
-  const detailsCard = (
-    <section className={CARD}>
-      <div className={`pointer-events-none absolute -bottom-12 -left-12 h-40 w-40 rounded-full blur-3xl ${m.glow}`} />
-      <h2 className="relative text-lg font-serif font-semibold mb-4">Your details</h2>
-      <div className="relative">
-        <GuestDetailsFields value={guest} onChange={setGuest} />
-        <DeliveryRuleNotice quote={quote} showMinimum={false} />
-      </div>
-    </section>
-  );
-
-  const submitBlock = (
-    <>
-      <p className="text-xs text-muted-foreground">
-        No account needed. We'll call you on the number above to confirm the price before delivering. Payment is cash on delivery.
-      </p>
-      <Button className="w-full h-12 rounded-full text-base font-bold shadow-lg shadow-primary/25" disabled={busy} onClick={submit}>
-        {busy ? "Submitting…" : "Submit request"}
-      </Button>
-    </>
+  const uploadBox = (label: string, tall: boolean) => (
+    <div>
+      <span className={FIELD_LABEL}>{label}</span>
+      {preview ? (
+        <div className="mt-1 relative rounded-xl overflow-hidden border border-border">
+          <img src={preview} alt="Upload preview" className="w-full max-h-56 object-contain bg-muted" />
+          <button type="button" onClick={() => pickFile(null)} aria-label="Remove image"
+            className="absolute top-2 right-2 h-8 w-8 rounded-full bg-background/90 border border-border flex items-center justify-center">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ) : (
+        <label className={`mt-1 flex ${tall ? "flex-col p-6" : "flex-row gap-2 p-4"} items-center justify-center border-2 border-dashed border-border rounded-xl cursor-pointer bg-muted/30 hover:border-primary/40 transition-colors`}>
+          <Upload className={`${tall ? "h-6 w-6 mb-2" : "h-4 w-4"} text-primary`} />
+          <span className="text-sm font-semibold">{tall ? "Tap to upload" : "Attach a photo"}</span>
+          {tall && <span className="text-xs text-muted-foreground mt-0.5">Max 5MB · JPG / PNG</span>}
+          <input type="file" accept="image/*" className="hidden" onChange={(e) => pickFile(e.target.files?.[0] ?? null)} />
+        </label>
+      )}
+    </div>
   );
 
   return (
-    <div className="p-4 lg:p-0 pb-28 max-w-xl lg:max-w-5xl mx-auto">
+    <div className="p-4 lg:p-0 pb-28 max-w-xl lg:max-w-6xl mx-auto">
       <Seo title={`${m.title} | Speedo`} description={m.blurb} path={m.path} />
 
-      <header className="flex items-center gap-4 pt-1 mb-5 lg:mb-8">
-        <div className={`h-12 w-12 lg:h-14 lg:w-14 rounded-2xl flex items-center justify-center shadow-lg bg-gradient-to-tr ${m.badge} shrink-0`}>
-          <Icon className="h-6 w-6 lg:h-7 lg:w-7 text-white" />
-        </div>
-        <div className="space-y-0.5">
-          <p className={`text-[10px] lg:text-[11px] font-semibold uppercase tracking-wider ${m.label}`}>Speedo {mode === "speedsend" ? "SpeedSend" : mode}</p>
-          <h1 className="text-3xl lg:text-4xl font-serif font-semibold tracking-tight leading-none">{m.title}</h1>
-          <p className="text-sm text-muted-foreground">{m.blurb}</p>
-        </div>
+      <header className="pt-1 mb-5 lg:mb-10 text-center lg:text-left">
+        <h1 className="text-3xl lg:text-4xl font-bold tracking-tight mb-1.5">{m.title}</h1>
+        <p className="text-sm lg:text-base text-muted-foreground">{m.blurb}</p>
       </header>
 
-      {/* Mobile: stacked. Desktop: two columns — request left, details + submit right */}
-      <div className="space-y-5 lg:space-y-0 lg:grid lg:grid-cols-5 lg:gap-8 lg:items-start">
-        <div className="lg:col-span-3">{requestCard}</div>
-        <div className="lg:col-span-2 space-y-5 lg:sticky lg:top-24">
-          {detailsCard}
-          {submitBlock}
+      <div className="space-y-5 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start">
+        {/* Left: service-specific form */}
+        <section className="lg:col-span-7 relative overflow-hidden bg-card rounded-2xl lg:rounded-3xl border border-border/60 shadow-sm p-4 lg:p-8">
+          <div className={`absolute top-0 left-0 w-1.5 h-full ${m.bar}`} />
+          <h2 className="text-lg lg:text-xl font-semibold mb-4 lg:mb-6 flex items-center gap-2">
+            <Icon className={`h-5 w-5 ${m.iconColor}`} />
+            {m.formTitle}
+          </h2>
+
+          {mode === "pharmacy" && (
+            <div className="space-y-5">
+              <div>
+                <label htmlFor="meds" className={FIELD_LABEL}>List medicines</label>
+                <Textarea id="meds" className={`mt-1 ${AREA}`} value={text} onChange={(e) => setText(e.target.value)} rows={4} maxLength={1000}
+                  placeholder="Panadol Extra × 2, Augmentin 625mg × 1 strip, …" />
+              </div>
+              {uploadBox("Prescription image (optional)", true)}
+            </div>
+          )}
+
+          {mode === "speedsend" && (
+            <div className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div><span className={FIELD_LABEL}>Sender name</span>
+                  <Input className={FIELD} placeholder="Sender name" value={s.sender_name} onChange={(e) => setS({ ...s, sender_name: e.target.value })} /></div>
+                <div><span className={FIELD_LABEL}>Sender phone</span>
+                  <Input className={FIELD} placeholder="Sender phone" inputMode="numeric" value={s.sender_phone} onChange={(e) => setS({ ...s, sender_phone: e.target.value.replace(/\D/g, "").slice(0, 11) })} /></div>
+                <div><span className={FIELD_LABEL}>Recipient name</span>
+                  <Input className={FIELD} placeholder="Recipient name" value={s.recipient_name} onChange={(e) => setS({ ...s, recipient_name: e.target.value })} /></div>
+                <div><span className={FIELD_LABEL}>Recipient phone</span>
+                  <Input className={FIELD} placeholder="Recipient phone" inputMode="numeric" value={s.recipient_phone} onChange={(e) => setS({ ...s, recipient_phone: e.target.value.replace(/\D/g, "").slice(0, 11) })} /></div>
+              </div>
+              <div><span className={FIELD_LABEL}>Pickup address</span>
+                <Input className={FIELD} placeholder="Pickup address" value={s.pickup_address} onChange={(e) => setS({ ...s, pickup_address: e.target.value })} /></div>
+              <div><span className={FIELD_LABEL}>Drop-off address</span>
+                <Input className={FIELD} placeholder="Drop-off address" value={s.drop_address} onChange={(e) => setS({ ...s, drop_address: e.target.value })} /></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div><span className={FIELD_LABEL}>Package type</span>
+                  <Input className={FIELD} placeholder="e.g. Document, Electronics" value={s.package_type} onChange={(e) => setS({ ...s, package_type: e.target.value })} /></div>
+                <div><span className={FIELD_LABEL}>Weight (kg)</span>
+                  <Input className={FIELD} placeholder="Weight (kg)" inputMode="decimal" value={s.weight} onChange={(e) => setS({ ...s, weight: e.target.value })} /></div>
+              </div>
+              <label className={`flex items-center gap-3 p-4 rounded-2xl border ${m.softBox} cursor-pointer`}>
+                <input type="checkbox" className="h-5 w-5 rounded" checked={s.fragile} onChange={(e) => setS({ ...s, fragile: e.target.checked })} />
+                <span className="font-medium text-sm">Fragile — handle with care</span>
+              </label>
+              <div><span className={FIELD_LABEL}>Extra instructions</span>
+                <Textarea className={`mt-1 ${AREA}`} placeholder="Any specific instructions for the rider?" value={text} onChange={(e) => setText(e.target.value)} rows={3} maxLength={1000} /></div>
+            </div>
+          )}
+
+          {mode === "custom" && (
+            <div className="space-y-5">
+              <div>
+                <label htmlFor="desc" className={FIELD_LABEL}>What do you need?</label>
+                <Textarea id="desc" className={`mt-1 ${AREA}`} rows={5} maxLength={1000} value={text} onChange={(e) => setText(e.target.value)}
+                  placeholder="Describe the items, where to source them, and any details we should know…" />
+              </div>
+              <div>
+                <label htmlFor="budget" className={FIELD_LABEL}>Budget (PKR, optional)</label>
+                <Input id="budget" className={`mt-1 ${FIELD}`} inputMode="numeric" value={budget} onChange={(e) => setBudget(e.target.value.replace(/\D/g, "").slice(0, 7))} />
+              </div>
+              {uploadBox("Reference photo (optional)", false)}
+            </div>
+          )}
+        </section>
+
+        {/* Right: details + submit (sticky on desktop) */}
+        <div className="lg:col-span-5 space-y-5 lg:sticky lg:top-8">
+          <section className="bg-card rounded-2xl lg:rounded-3xl border border-border/60 shadow-lg shadow-primary/5 p-4 lg:p-8">
+            <h2 className="text-lg lg:text-xl font-semibold mb-4 lg:mb-6 flex items-center gap-2">
+              <User className="h-5 w-5 text-primary" />
+              Your details
+            </h2>
+            <GuestDetailsFields value={guest} onChange={setGuest} />
+            <DeliveryRuleNotice quote={quote} showMinimum={false} />
+
+            <div className="mt-6 lg:mt-8">
+              <Button className="w-full h-12 lg:h-14 rounded-2xl text-base lg:text-lg font-bold shadow-lg shadow-primary/30 hover:-translate-y-0.5 transition-all" disabled={busy} onClick={submit}>
+                {busy ? "Submitting…" : "Submit request"}
+              </Button>
+              <p className="text-[11px] text-muted-foreground text-center mt-4 leading-relaxed">
+                No account needed. We'll call you to confirm the price before delivering. Payment is cash on delivery.
+              </p>
+            </div>
+          </section>
         </div>
       </div>
     </div>
