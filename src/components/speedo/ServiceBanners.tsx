@@ -61,7 +61,7 @@ export function ServiceBanners({ compact = false }: { compact?: boolean }) {
 
   return (
     <section
-      className={`grid grid-cols-4 ${
+      className={`grid grid-cols-4 lg:max-w-5xl lg:mx-auto ${
         compact ? "gap-3" : "gap-3 sm:gap-4 lg:gap-5"
       }`}
     >
