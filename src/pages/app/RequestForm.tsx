@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Pill, Package, Sparkles } from "lucide-react";
 import { compressImage } from "@/lib/imageCompress";
 import { GuestDetailsFields } from "@/components/order/GuestDetailsFields";
 import { guestDetailsSchema } from "@/lib/guestValidation";
@@ -17,23 +17,40 @@ import { DeliveryRuleNotice } from "@/components/order/DeliveryRuleNotice";
 
 type Mode = "pharmacy" | "speedsend" | "custom";
 
-const META: Record<Mode, { title: string; blurb: string; path: string }> = {
+const META: Record<Mode, {
+  title: string; blurb: string; path: string;
+  badge: string; label: string; glow: string; icon: typeof Pill;
+}> = {
   pharmacy: {
     title: "Pharmacy Order",
     blurb: "List your medicines or upload a prescription. We'll confirm availability and price before delivering.",
     path: "/pharmacy",
+    badge: "from-emerald-500 to-teal-400",
+    label: "text-emerald-600",
+    glow: "bg-emerald-500/10",
+    icon: Pill,
   },
   speedsend: {
     title: "SpeedSend Parcel",
     blurb: "Send a parcel across town. Share the pickup and drop-off details and we'll quote the fare.",
     path: "/speedsend",
+    badge: "from-amber-500 to-yellow-400",
+    label: "text-amber-600",
+    glow: "bg-amber-500/10",
+    icon: Package,
   },
   custom: {
     title: "Custom Order",
     blurb: "Need something we don't stock? Describe it and we'll source it from the bazaar for you.",
     path: "/custom",
+    badge: "from-primary to-primary-glow",
+    label: "text-primary",
+    glow: "bg-primary/10",
+    icon: Sparkles,
   },
 };
+
+const CARD = "relative overflow-hidden bg-white/60 backdrop-blur-sm rounded-2xl lg:rounded-[28px] border border-white shadow-[0_8px_20px_-6px_rgba(0,0,0,0.05)] p-4 lg:p-7";
 
 export default function RequestForm({ mode }: { mode: Mode }) {
   const nav = useNavigate();
@@ -117,21 +134,20 @@ export default function RequestForm({ mode }: { mode: Mode }) {
   };
 
   const m = META[mode];
+  const Icon = m.icon;
 
-  return (
-    <div className="p-4 lg:p-0 pb-28 space-y-5 max-w-xl mx-auto">
-      <Seo title={`${m.title} | Speedo`} description={m.blurb} path={m.path} />
-      <header className="space-y-1 pt-1">
-        <h1 className="text-3xl lg:text-4xl font-serif font-semibold tracking-tight">{m.title}</h1>
-        <p className="text-sm text-muted-foreground">{m.blurb}</p>
-      </header>
-
-      <section className="bg-card rounded-2xl border border-border/60 p-4 lg:p-5 space-y-4">
+  const requestCard = (
+    <section className={CARD}>
+      <div className={`pointer-events-none absolute -top-12 -right-12 h-40 w-40 rounded-full blur-3xl ${m.glow}`} />
+      <h2 className="relative text-lg font-serif font-semibold mb-4">
+        {mode === "pharmacy" ? "What do you need?" : mode === "speedsend" ? "Parcel details" : "Your request"}
+      </h2>
+      <div className="relative space-y-4">
         {mode === "pharmacy" && (
           <>
             <div>
               <Label htmlFor="meds">List medicines</Label>
-              <Textarea id="meds" className="mt-1.5" value={text} onChange={(e) => setText(e.target.value)} rows={4} maxLength={1000}
+              <Textarea id="meds" className="mt-1.5 bg-white/70" value={text} onChange={(e) => setText(e.target.value)} rows={4} maxLength={1000}
                 placeholder="Panadol Extra × 2, Augmentin 625mg × 1 strip, …" />
             </div>
             <div>
@@ -145,7 +161,7 @@ export default function RequestForm({ mode }: { mode: Mode }) {
                   </button>
                 </div>
               ) : (
-                <label className="mt-1.5 flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl p-6 cursor-pointer bg-muted/30">
+                <label className="mt-1.5 flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl p-6 cursor-pointer bg-white/50 hover:border-primary/40 transition-colors">
                   <Upload className="h-6 w-6 text-primary mb-2" />
                   <span className="text-sm font-semibold">Tap to upload</span>
                   <span className="text-xs text-muted-foreground mt-0.5">Max 5MB · JPG / PNG</span>
@@ -177,7 +193,7 @@ export default function RequestForm({ mode }: { mode: Mode }) {
           <>
             <div>
               <Label htmlFor="desc">What do you need?</Label>
-              <Textarea id="desc" className="mt-1.5" rows={5} maxLength={1000} value={text} onChange={(e) => setText(e.target.value)}
+              <Textarea id="desc" className="mt-1.5 bg-white/70" rows={5} maxLength={1000} value={text} onChange={(e) => setText(e.target.value)}
                 placeholder="Describe the items, where to source them, and any details we should know…" />
             </div>
             <div>
@@ -195,7 +211,7 @@ export default function RequestForm({ mode }: { mode: Mode }) {
                   </button>
                 </div>
               ) : (
-                <label className="mt-1.5 flex items-center justify-center gap-2 border-2 border-dashed border-border rounded-xl p-4 cursor-pointer bg-muted/30 text-sm font-semibold">
+                <label className="mt-1.5 flex items-center justify-center gap-2 border-2 border-dashed border-border rounded-xl p-4 cursor-pointer bg-white/50 hover:border-primary/40 transition-colors text-sm font-semibold">
                   <Upload className="h-4 w-4 text-primary" /> Attach a photo
                   <input type="file" accept="image/*" className="hidden" onChange={(e) => pickFile(e.target.files?.[0] ?? null)} />
                 </label>
@@ -203,21 +219,55 @@ export default function RequestForm({ mode }: { mode: Mode }) {
             </div>
           </>
         )}
-      </section>
+      </div>
+    </section>
+  );
 
-      <section className="bg-card rounded-2xl border border-border/60 p-4 lg:p-5">
-        <h2 className="text-lg font-serif font-semibold mb-3">Your details</h2>
+  const detailsCard = (
+    <section className={CARD}>
+      <div className={`pointer-events-none absolute -bottom-12 -left-12 h-40 w-40 rounded-full blur-3xl ${m.glow}`} />
+      <h2 className="relative text-lg font-serif font-semibold mb-4">Your details</h2>
+      <div className="relative">
         <GuestDetailsFields value={guest} onChange={setGuest} />
         <DeliveryRuleNotice quote={quote} showMinimum={false} />
-      </section>
+      </div>
+    </section>
+  );
 
+  const submitBlock = (
+    <>
       <p className="text-xs text-muted-foreground">
         No account needed. We'll call you on the number above to confirm the price before delivering. Payment is cash on delivery.
       </p>
-
-      <Button className="w-full h-12 rounded-full text-base font-bold" disabled={busy} onClick={submit}>
+      <Button className="w-full h-12 rounded-full text-base font-bold shadow-lg shadow-primary/25" disabled={busy} onClick={submit}>
         {busy ? "Submitting…" : "Submit request"}
       </Button>
+    </>
+  );
+
+  return (
+    <div className="p-4 lg:p-0 pb-28 max-w-xl lg:max-w-5xl mx-auto">
+      <Seo title={`${m.title} | Speedo`} description={m.blurb} path={m.path} />
+
+      <header className="flex items-center gap-4 pt-1 mb-5 lg:mb-8">
+        <div className={`h-12 w-12 lg:h-14 lg:w-14 rounded-2xl flex items-center justify-center shadow-lg bg-gradient-to-tr ${m.badge} shrink-0`}>
+          <Icon className="h-6 w-6 lg:h-7 lg:w-7 text-white" />
+        </div>
+        <div className="space-y-0.5">
+          <p className={`text-[10px] lg:text-[11px] font-semibold uppercase tracking-wider ${m.label}`}>Speedo {mode === "speedsend" ? "SpeedSend" : mode}</p>
+          <h1 className="text-3xl lg:text-4xl font-serif font-semibold tracking-tight leading-none">{m.title}</h1>
+          <p className="text-sm text-muted-foreground">{m.blurb}</p>
+        </div>
+      </header>
+
+      {/* Mobile: stacked. Desktop: two columns — request left, details + submit right */}
+      <div className="space-y-5 lg:space-y-0 lg:grid lg:grid-cols-5 lg:gap-8 lg:items-start">
+        <div className="lg:col-span-3">{requestCard}</div>
+        <div className="lg:col-span-2 space-y-5 lg:sticky lg:top-24">
+          {detailsCard}
+          {submitBlock}
+        </div>
+      </div>
     </div>
   );
 }
