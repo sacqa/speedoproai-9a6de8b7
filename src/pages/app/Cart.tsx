@@ -12,9 +12,8 @@ import { pkPhone } from "@/lib/validators";
 import { toast } from "sonner";
 import { loadGuestInfo, placeGuestOrder } from "@/lib/guestOrder";
 import { OrderSteps, CHECKOUT_STEPS } from "@/components/speedo/OrderSteps";
-import { useDeliveryZones, quoteDelivery, slugifyArea } from "@/lib/deliveryRules";
+import { useDeliveryZones, quoteDelivery } from "@/lib/deliveryRules";
 import { DeliveryRuleNotice } from "@/components/order/DeliveryRuleNotice";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LocationButton } from "@/components/order/LocationButton";
 
 const guestSchema = z.object({
@@ -32,8 +31,6 @@ export default function Cart() {
   const [form, setForm] = useState<any>(() => ({ ...loadGuestInfo(), notes: "" }));
   const [discount, setDiscount] = useState("");
   const [busy, setBusy] = useState(false);
-  const [manualArea, setManualArea] = useState(false);
-
   const zones = useDeliveryZones();
   const quote = quoteDelivery({ zones: zones.data, area: form.area, subtotal: sub });
   const delivery = quote.fee;
@@ -93,7 +90,7 @@ export default function Cart() {
   };
 
   return (
-    <div className="pb-32 lg:pb-8">
+    <div className="pb-[calc(8rem+env(safe-area-inset-bottom))] lg:pb-8">
       {/* Page header */}
       <div className="px-4 lg:px-0 pt-2 lg:pt-4 pb-4 lg:pb-8">
         <h1 className="text-3xl lg:text-5xl font-serif font-semibold tracking-tight text-foreground">Your basket</h1>
@@ -108,34 +105,34 @@ export default function Cart() {
         {/* LEFT — items */}
         <div className="space-y-3 lg:space-y-4 order-1">
           {items.map((i) => (
-            <div key={i.product_id} className="group bg-card rounded-2xl border border-border/60 hover:border-border transition-colors p-3 lg:p-4 flex gap-3 lg:gap-5 items-center">
+            <div key={`${i.product_id}-${i.variant_id ?? ""}`} className="group bg-card rounded-2xl border border-border/60 hover:border-border transition-colors p-3 lg:p-4 grid grid-cols-[3.5rem_minmax(0,1fr)_2.25rem] sm:grid-cols-[4rem_minmax(0,1fr)_auto_2.25rem] lg:grid-cols-[5rem_minmax(0,1fr)_auto_2.25rem] gap-x-3 gap-y-2 lg:gap-x-5 items-center">
               <div className="shrink-0">
-                <div className="h-16 w-16 lg:h-20 lg:w-20 rounded-xl bg-muted overflow-hidden flex items-center justify-center">
+                <div className="h-14 w-14 sm:h-16 sm:w-16 lg:h-20 lg:w-20 rounded-xl bg-muted overflow-hidden flex items-center justify-center">
                   <img src={i.image_url ?? "/placeholder.svg"} alt={i.name}
                     onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
                     className="h-full w-full object-contain p-1" />
                 </div>
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="min-w-0 self-start sm:self-center">
                 <p className="font-semibold text-[15px] lg:text-base line-clamp-2 leading-snug">{i.name}</p>
-                <div className="text-[11px] lg:text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                <div className="text-[11px] lg:text-xs text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
                   {i.unit && <span>{i.unit}</span>}
                   {i.unit && <span>·</span>}
                   <span>{formatPKR(i.price)}</span>
                   {i.variant_label && (<><span>·</span><span className="text-accent-foreground">{i.variant_label}</span></>)}
                 </div>
               </div>
-              <div className="flex items-center gap-2 lg:gap-3 shrink-0">
-                <div className="flex items-center gap-1 border border-border rounded-full h-9 px-1">
-                  <button onClick={() => setQty(i.product_id, i.quantity - 1)} aria-label="Decrease" className="h-7 w-7 rounded-full flex items-center justify-center text-foreground/70 hover:bg-muted"><Minus className="h-3.5 w-3.5" /></button>
+              <div className="col-start-2 col-span-2 sm:col-start-3 sm:col-span-1 flex items-center justify-between sm:justify-end gap-2 lg:gap-3 min-w-0">
+                <div className="flex items-center gap-1 border border-border rounded-full h-10 px-1 shrink-0">
+                  <button onClick={() => setQty(i.product_id, i.quantity - 1)} aria-label="Decrease" className="h-8 w-8 rounded-full flex items-center justify-center text-foreground/70 hover:bg-muted"><Minus className="h-3.5 w-3.5" /></button>
                   <span className="text-sm font-bold tabular-nums min-w-[1.75ch] text-center">{i.quantity}</span>
-                  <button onClick={() => setQty(i.product_id, i.quantity + 1)} aria-label="Increase" className="h-7 w-7 rounded-full flex items-center justify-center text-primary hover:bg-primary/10"><Plus className="h-3.5 w-3.5" /></button>
+                  <button onClick={() => setQty(i.product_id, i.quantity + 1)} aria-label="Increase" className="h-8 w-8 rounded-full flex items-center justify-center text-primary hover:bg-primary/10"><Plus className="h-3.5 w-3.5" /></button>
                 </div>
-                <div className="hidden sm:block text-right min-w-[70px]">
+                <div className="text-right min-w-0 sm:min-w-[70px]">
                   <div className="font-bold tabular-nums text-[15px]">{formatPKR(i.price * i.quantity)}</div>
                 </div>
-                <button onClick={() => remove(i.product_id)} aria-label="Remove" className="h-9 w-9 rounded-full text-destructive/70 hover:text-destructive hover:bg-destructive/10 flex items-center justify-center transition-colors"><Trash2 className="h-4 w-4" /></button>
               </div>
+              <button onClick={() => remove(i.product_id)} aria-label="Remove" className="col-start-3 row-start-1 sm:col-start-4 sm:row-start-auto h-9 w-9 rounded-full text-destructive/70 hover:text-destructive hover:bg-destructive/10 flex items-center justify-center transition-colors"><Trash2 className="h-4 w-4" /></button>
             </div>
           ))}
 

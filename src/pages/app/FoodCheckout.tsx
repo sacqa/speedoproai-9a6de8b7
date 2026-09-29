@@ -65,7 +65,7 @@ export default function FoodCheckout() {
   };
 
   return (
-    <div className="p-4 lg:p-0 pb-28 space-y-5 max-w-2xl mx-auto">
+    <div className="p-4 lg:p-0 pb-[calc(7rem+env(safe-area-inset-bottom))] space-y-5 max-w-2xl mx-auto">
       <Seo title="Food Checkout | Speedo" description="Confirm your food order from Speedo." path="/food/checkout" />
       <header className="pt-1">
         <h1 className="text-3xl lg:text-4xl font-serif font-semibold tracking-tight">Food checkout</h1>
