@@ -15,6 +15,13 @@
       "when": 1790678157591,
       "tag": "0001_tighten_public_read_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790678177342,
+      "tag": "0002_app_settings_public_analytics",
+      "breakpoints": true
     }
   ]
 }
