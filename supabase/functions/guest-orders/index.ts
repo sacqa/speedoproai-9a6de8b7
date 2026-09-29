@@ -117,6 +117,35 @@ Deno.serve(async (req) => {
       return json({ order: row });
     }
 
+    if (action === "upload") {
+      // Server-side upload proxy so the storage bucket needs no public insert policy.
+      const service = str(body.service, 20);
+      if (!["pharmacy", "speedsend", "custom"].includes(service)) {
+        return json({ error: "Invalid upload type" }, 400);
+      }
+      const contentType = str(body.content_type, 60).toLowerCase();
+      const allowed: Record<string, string> = {
+        "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp",
+      };
+      const ext = allowed[contentType];
+      if (!ext) return json({ error: "Only JPG, PNG or WebP images are allowed" }, 400);
+      const b64 = typeof body.data === "string" ? body.data : "";
+      if (!b64 || b64.length > 7_500_000) return json({ error: "Image must be under 5MB" }, 400);
+      let bytes: Uint8Array;
+      try { bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)); }
+      catch { return json({ error: "Invalid image data" }, 400); }
+      if (bytes.length > 5 * 1024 * 1024) return json({ error: "Image must be under 5MB" }, 400);
+      const path = `${service}/${Date.now()}-${crypto.randomUUID()}${ext}`;
+      const { error } = await admin.storage.from("request-uploads").upload(path, bytes, {
+        cacheControl: "3600", upsert: false, contentType,
+      });
+      if (error) {
+        console.error("upload failed", error.message);
+        return json({ error: "Could not upload the image. Please try again." }, 400);
+      }
+      return json({ path });
+    }
+
     return json({ error: "Unknown action" }, 400);
   } catch (e) {
     console.error("guest-orders error", e);
