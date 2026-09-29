@@ -8,6 +8,13 @@
       "when": 1790420545177,
       "tag": "0000_vendor_logins",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790678157591,
+      "tag": "0001_tighten_public_read_policies",
+      "breakpoints": true
     }
   ]
 }
