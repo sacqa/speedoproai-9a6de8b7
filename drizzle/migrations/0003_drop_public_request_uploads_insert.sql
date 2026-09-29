@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "request uploads guest insert" ON storage.objects;
