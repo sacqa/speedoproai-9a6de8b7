@@ -62,7 +62,7 @@ export function ServiceBanners({ compact = false }: { compact?: boolean }) {
   return (
     <section
       className={`grid grid-cols-4 lg:max-w-5xl lg:mx-auto ${
-        compact ? "gap-3" : "gap-3 sm:gap-4 lg:gap-5"
+        compact ? "gap-2 min-[375px]:gap-3" : "gap-2 min-[375px]:gap-3 sm:gap-4 lg:gap-5"
       }`}
     >
       {items.map((s) => {
@@ -97,14 +97,14 @@ export function ServiceBanners({ compact = false }: { compact?: boolean }) {
                 className="absolute -right-2 -bottom-2 h-12 w-12 lg:h-16 lg:w-16 object-contain opacity-90 group-hover:scale-110 transition-transform duration-500"
               />
             )}
-            <div className="relative h-full flex flex-col justify-between p-2.5 lg:p-5">
+            <div className="relative h-full flex flex-col justify-between p-2 min-[375px]:p-2.5 lg:p-5">
               <div
                 className={`h-8 w-8 lg:h-12 lg:w-12 rounded-xl lg:rounded-2xl flex items-center justify-center shadow-lg bg-gradient-to-tr ${accent?.badge ?? "from-primary to-primary-glow"}`}
               >
                 <Icon className="h-4 w-4 lg:h-6 lg:w-6 text-white" strokeWidth={2.2} />
               </div>
               <div className="min-w-0">
-                <h3 className="font-bold text-[11px] lg:text-[15px] text-foreground tracking-tight leading-tight line-clamp-2">{s.title}</h3>
+                <h3 className="font-bold text-[10px] min-[375px]:text-[11px] lg:text-[15px] text-foreground tracking-normal leading-tight break-words line-clamp-2">{s.title}</h3>
                 {s.subtitle && (
                   <p className={`hidden lg:block text-[10px] lg:text-[11px] font-semibold uppercase tracking-wider mt-1 leading-tight line-clamp-1 ${accent?.label ?? "text-primary"}`}>
                     {s.subtitle}

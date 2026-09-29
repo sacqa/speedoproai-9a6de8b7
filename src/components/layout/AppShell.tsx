@@ -25,7 +25,7 @@ const navItems = [
   { to: "/speedmart", label: "SpeedMart", icon: ShoppingBasket },
   { to: "/pharmacy", label: "Pharmacy", icon: Pill },
   { to: "/speedsend", label: "SpeedSend", icon: Package },
-  { to: "/food", label: "Food", icon: UtensilsCrossed },
+  { to: "/food", label: "Bakery", icon: UtensilsCrossed },
   { to: "/cart", label: "Cart", icon: ShoppingCart },
   { to: "/help", label: "Help", icon: MoreHorizontal },
 ];
@@ -59,7 +59,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-page-gradient lg:bg-[#fafaf7]">
+    <div className="min-h-screen overflow-x-clip bg-page-gradient lg:bg-[#fafaf7]">
       <AnalyticsLoader />
       <AnnouncementPopup />
       <InstallPrompt />
@@ -80,7 +80,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <nav className="flex items-center gap-1 shrink-0">
             {[
               { to: "/speedmart", label: "SpeedMart" },
-              { to: "/food", label: "Food" },
+              { to: "/food", label: "Bakery" },
               { to: "/pharmacy", label: "Pharmacy" },
               { to: "/speedsend", label: "SpeedSend" },
             ].map((n) => (
@@ -166,7 +166,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
         <div className="bg-primary px-4 py-1.5 text-[11px] text-primary-foreground font-semibold overflow-hidden whitespace-nowrap flex items-center gap-2">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-          Open now · <span className="text-accent">Free delivery</span> on orders over Rs 1500
+          Fast local delivery · <span className="text-accent">Free delivery</span> on eligible orders
         </div>
       </header>
 
