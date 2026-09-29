@@ -98,13 +98,21 @@ export default function RequestForm({ mode }: { mode: Mode }) {
     if (file) {
       let toUpload = file;
       try { toUpload = await compressImage(file, { maxDimension: 1600, quality: 0.8 }); } catch {}
-      const safeName = toUpload.name.replace(/[^\w.-]/g, "_");
-      const path = `${mode}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safeName}`;
-      const up = await supabase.storage.from("request-uploads").upload(path, toUpload, {
-        cacheControl: "3600", upsert: false, contentType: toUpload.type,
-      });
-      if (up.error) { toast.error("Could not upload the image. Please try again."); setBusy(false); return; }
-      attachment_url = path;
+      try {
+        const buf = await toUpload.arrayBuffer();
+        let bin = "";
+        const bytes = new Uint8Array(buf);
+        for (let i = 0; i < bytes.length; i += 0x8000) {
+          bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+        }
+        const { data, error } = await supabase.functions.invoke("guest-orders", {
+          body: { action: "upload", service: mode, content_type: toUpload.type, data: btoa(bin) },
+        });
+        if (error || !data?.path) throw new Error(data?.error ?? "upload failed");
+        attachment_url = data.path;
+      } catch {
+        toast.error("Could not upload the image. Please try again."); setBusy(false); return;
+      }
     }
 
     const summary =
