@@ -35,7 +35,7 @@ export default function Home() {
     queryKey: ["banners"],
     staleTime: 5 * 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase.from("banners").select("*").eq("is_active", true).order("sort_order");
+      const { data, error } = await supabase.from("banners").select("id, title, subtitle, cta_label, cta_link, image_url, sort_order").eq("is_active", true).order("sort_order");
       if (error) throw error;
       return data;
     },
@@ -44,7 +44,7 @@ export default function Home() {
     queryKey: ["categories", "popular"],
     staleTime: 5 * 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase.from("categories").select("*").eq("is_active", true).eq("is_popular", true).order("sort_order");
+      const { data, error } = await supabase.from("categories").select("id, name, slug, image_url, sort_order").eq("is_active", true).eq("is_popular", true).order("sort_order");
       if (error) throw error;
       return data;
     },
@@ -70,7 +70,7 @@ export default function Home() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("*")
+        .select("id, name, slug, icon")
         .eq("is_active", true)
         .eq("is_hot_selling", true)
         .order("sort_order")
@@ -256,7 +256,9 @@ function BannerSlider({ banners }: { banners: any[] }) {
         <img
           src={b.image_url}
           alt={b.title}
-          loading="lazy"
+          loading={i === 0 ? "eager" : "lazy"}
+          fetchPriority={i === 0 ? "high" : "auto"}
+          decoding="async"
           onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
           className="absolute inset-0 w-full h-full object-cover"
         />
