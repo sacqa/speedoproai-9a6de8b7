@@ -62,7 +62,7 @@ const AdminBrandSettings = lazy(() => import("./pages/admin/BrandSettings"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60_000,
+      staleTime: 5 * 60_000,
       gcTime: 24 * 60 * 60_000,
       refetchOnWindowFocus: false,
       retry: 1,

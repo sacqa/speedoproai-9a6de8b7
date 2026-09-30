@@ -292,3 +292,15 @@ input, textarea, select { font-size: 16px; } /* prevents iOS focus zoom */
   100% { transform: scale(1); }
 }
 .animate-heart-pop { animation: heart-pop 0.35s ease-out; }
+
+/* Performance: heavy glass blur causes scroll lag on phones — use a light blur there. */
+@media (max-width: 1023px) {
+  .glass, .glass-dark, .glass-card, .floating-nav, .glass-sheet,
+  [class*="backdrop-blur"] {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
