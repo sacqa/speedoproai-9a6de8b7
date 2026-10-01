@@ -84,6 +84,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               { to: "/food", label: "Bakery" },
               { to: "/pharmacy", label: "Pharmacy" },
               { to: "/sabzi-fruit", label: "Sabzi & Fruit" },
+              { to: "/services", label: "Services" },
             ].map((n) => (
               <NavLink
                 key={n.to}
