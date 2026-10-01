@@ -58,6 +58,8 @@ const AdminAnalyticsSettings = lazy(() => import("./pages/admin/AnalyticsSetting
 const AdminLiveMap = lazy(() => import("./pages/admin/LiveMap"));
 const AdminServiceBanners = lazy(() => import("./pages/admin/ServiceBanners"));
 const AdminBrandSettings = lazy(() => import("./pages/admin/BrandSettings"));
+const ServicesRequest = lazy(() => import("./pages/app/ServicesRequest"));
+const AdminServiceRequests = lazy(() => import("./pages/admin/ServiceRequests"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -126,6 +128,7 @@ const App = () => (
               <Route path="/search" element={<Search />} />
               <Route path="/speedmart" element={<SpeedMart />} />
               <Route path="/pharmacy" element={<RequestForm mode="pharmacy" />} />
+              <Route path="/services" element={<ServicesRequest />} />
               <Route path="/speedsend" element={<Navigate to="/speedmart?cat=sabzi-fruit" replace />} />
               <Route path="/sabzi-fruit" element={<Navigate to="/speedmart?cat=sabzi-fruit" replace />} />
               <Route path="/custom" element={<RequestForm mode="custom" />} />
@@ -163,6 +166,7 @@ const App = () => (
               <Route path="/admin/customers/:id" element={<AdminPage><AdminCustomerDetail /></AdminPage>} />
               <Route path="/admin/pricing" element={<AdminPage><AdminPricing /></AdminPage>} />
               <Route path="/admin/delivery-zones" element={<AdminPage><AdminDeliveryZones /></AdminPage>} />
+              <Route path="/admin/service-requests" element={<AdminPage><AdminServiceRequests /></AdminPage>} />
               <Route path="/admin/broadcast" element={<AdminPage><AdminBroadcast /></AdminPage>} />
               <Route path="/admin/announcements" element={<AdminPage><AdminAnnouncements /></AdminPage>} />
               <Route path="/admin/replies" element={<AdminPage><AdminReplies /></AdminPage>} />
