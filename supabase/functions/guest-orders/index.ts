@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
     if (action === "upload") {
       // Server-side upload proxy so the storage bucket needs no public insert policy.
       const service = str(body.service, 20);
-      if (!["pharmacy", "speedsend", "custom"].includes(service)) {
+      if (!["pharmacy", "speedsend", "custom", "services"].includes(service)) {
         return json({ error: "Invalid upload type" }, 400);
       }
       const contentType = str(body.content_type, 60).toLowerCase();

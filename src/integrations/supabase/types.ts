@@ -1206,6 +1206,69 @@ export type Database = {
         }
         Relationships: []
       }
+      service_requests: {
+        Row: {
+          address: string
+          admin_notes: string | null
+          area: string
+          attachment_url: string | null
+          category: string
+          created_at: string
+          customer_name: string
+          description: string
+          geo: Json | null
+          id: string
+          phone: string
+          preferred_at: string | null
+          provider_name: string | null
+          provider_phone: string | null
+          request_number: string
+          status: string
+          updated_at: string
+          urgency: string
+        }
+        Insert: {
+          address: string
+          admin_notes?: string | null
+          area: string
+          attachment_url?: string | null
+          category: string
+          created_at?: string
+          customer_name: string
+          description: string
+          geo?: Json | null
+          id?: string
+          phone: string
+          preferred_at?: string | null
+          provider_name?: string | null
+          provider_phone?: string | null
+          request_number: string
+          status?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Update: {
+          address?: string
+          admin_notes?: string | null
+          area?: string
+          attachment_url?: string | null
+          category?: string
+          created_at?: string
+          customer_name?: string
+          description?: string
+          geo?: Json | null
+          id?: string
+          phone?: string
+          preferred_at?: string | null
+          provider_name?: string | null
+          provider_phone?: string | null
+          request_number?: string
+          status?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Relationships: []
+      }
       user_locations: {
         Row: {
           lat: number
