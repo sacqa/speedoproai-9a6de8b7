@@ -126,7 +126,8 @@ const App = () => (
               <Route path="/search" element={<Search />} />
               <Route path="/speedmart" element={<SpeedMart />} />
               <Route path="/pharmacy" element={<RequestForm mode="pharmacy" />} />
-              <Route path="/speedsend" element={<RequestForm mode="speedsend" />} />
+              <Route path="/speedsend" element={<Navigate to="/speedmart?cat=sabzi-fruit" replace />} />
+              <Route path="/sabzi-fruit" element={<Navigate to="/speedmart?cat=sabzi-fruit" replace />} />
               <Route path="/custom" element={<RequestForm mode="custom" />} />
               <Route path="/food" element={<Food />} />
               <Route path="/food/checkout" element={<FoodCheckout />} />

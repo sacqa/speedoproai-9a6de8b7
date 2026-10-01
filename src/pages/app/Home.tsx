@@ -331,7 +331,7 @@ function ServiceShortcuts() {
     { to: "/speedmart", icon: ShoppingBasket, name: "SpeedMart", desc: "Groceries & Essentials" },
     { to: "/food", icon: UtensilsCrossed, name: "Food", desc: "Bakeries & Cafés" },
     { to: "/pharmacy", icon: Pill, name: "Pharmacy", desc: "Medicines & Health" },
-    { to: "/speedsend", icon: Package, name: "SpeedSend", desc: "Send a Parcel" },
+    { to: "/sabzi-fruit", icon: Package, name: "Sabzi & Fruit", desc: "Fresh Veggies" },
   ];
   return (
     <div className="px-4 lg:px-0">
