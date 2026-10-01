@@ -24,7 +24,7 @@ const navItems = [
   { to: "/", label: "Home", icon: Home },
   { to: "/speedmart", label: "SpeedMart", icon: ShoppingBasket },
   { to: "/pharmacy", label: "Pharmacy", icon: Pill },
-  { to: "/speedsend", label: "SpeedSend", icon: Package },
+  { to: "/sabzi-fruit", label: "Sabzi & Fruit", icon: Package },
   { to: "/food", label: "Bakery", icon: UtensilsCrossed },
   { to: "/cart", label: "Cart", icon: ShoppingCart },
   { to: "/help", label: "Help", icon: MoreHorizontal },
@@ -82,7 +82,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               { to: "/speedmart", label: "SpeedMart" },
               { to: "/food", label: "Bakery" },
               { to: "/pharmacy", label: "Pharmacy" },
-              { to: "/speedsend", label: "SpeedSend" },
+              { to: "/sabzi-fruit", label: "Sabzi & Fruit" },
             ].map((n) => (
               <NavLink
                 key={n.to}
