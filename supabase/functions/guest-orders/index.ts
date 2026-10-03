@@ -18,6 +18,37 @@ const str = (v: unknown, max: number) => {
   return s.length > max ? s.slice(0, max) : s;
 };
 
+const WA_URL = "https://connector-gateway.lovable.dev/whatsapp/messages";
+const rs = (n: number) => `Rs ${Math.round(n)}`;
+const clean = (s: string, max = 900) => s.replace(/[\n\t\r]+/g, " ").replace(/ {4,}/g, "   ").trim().slice(0, max) || "-";
+
+async function sendTemplate(to: string, name: string, params: string[]) {
+  const res = await fetch(WA_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
+      "X-Connection-Api-Key": Deno.env.get("WHATSAPP_API_KEY")!,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messaging_product: "whatsapp", to, type: "template",
+      template: { name, language: { code: "en_US" }, components: [{ type: "body", parameters: params.map((text) => ({ type: "text", text: clean(text) })) }] },
+    }),
+  });
+  const t = await res.text();
+  if (!res.ok) console.error(`WhatsApp ${name} failed [${res.status}]: ${t}`);
+}
+
+async function sendOrderWhatsApp(o: { phone: string; name: string; orderNo: string; items: any[]; address: string; subtotal: number; delivery_fee: number; total: number }) {
+  if (!Deno.env.get("WHATSAPP_API_KEY") || !Deno.env.get("LOVABLE_API_KEY")) return;
+  let d = o.phone.replace(/\D/g, "");
+  if (d.startsWith("0")) d = "92" + d.slice(1);
+  if (!/^923\d{9}$/.test(d)) return; // only valid Pakistani mobile numbers
+  const items = o.items.slice(0, 40).map((i: any) => `${String(i?.name ?? "Item").slice(0, 60)}${i?.variant_label ? ` (${i.variant_label})` : ""} x${Number(i?.quantity) || 1}`).join(", ");
+  await sendTemplate(d, "speedo_order_details", [o.name, o.orderNo, items, o.address, rs(o.subtotal), rs(o.delivery_fee), rs(o.total)]);
+  await sendTemplate(d, "speedo_order_confirmed", [o.orderNo]);
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -114,6 +145,13 @@ Deno.serve(async (req) => {
       }
       const row = (Array.isArray(data) ? data[0] : data) ?? null;
       if (!row) return json({ error: "Could not place the order. Please try again." }, 400);
+      // Sent once per newly created order (this branch runs exactly once per insert).
+      try {
+        await sendOrderWhatsApp({
+          phone: str(body.phone, 30), name: str(body.name, 60), orderNo: row.order_number,
+          items, address: `${str(body.street, 200)}, ${area}`, subtotal, delivery_fee, total,
+        });
+      } catch (e) { console.error("whatsapp send failed", e); }
       return json({ order: row });
     }
 
