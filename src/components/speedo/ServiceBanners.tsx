@@ -3,12 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ShoppingBasket, UtensilsCrossed, Pill, Package,
-  Truck, Sparkles, Heart, Coffee, Gift, Store, type LucideIcon,
+  Truck, Sparkles, Heart, Coffee, Gift, Store, Wrench, type LucideIcon,
 } from "lucide-react";
 
 const ICONS: Record<string, LucideIcon> = {
   ShoppingBasket, UtensilsCrossed, Pill, Package,
-  Truck, Sparkles, Heart, Coffee, Gift, Store,
+  Truck, Sparkles, Heart, Coffee, Gift, Store, Wrench,
 };
 
 const SERVICE_ACCENTS: Record<string, string> = {
@@ -16,6 +16,7 @@ const SERVICE_ACCENTS: Record<string, string> = {
   food: "service-accent-food",
   pharmacy: "service-accent-pharmacy",
   speedsend: "service-accent-speedsend",
+  services: "service-accent-services",
 };
 
 type ServiceBanner = {
@@ -52,13 +53,15 @@ export function ServiceBanners({ compact = false }: { compact?: boolean }) {
 
   return (
     <section
-      className={`grid grid-cols-2 md:grid-cols-4 lg:max-w-4xl lg:mx-auto ${
+      className={`grid grid-cols-2 md:grid-cols-5 lg:max-w-5xl lg:mx-auto ${
         compact ? "gap-1.5 min-[375px]:gap-2" : "gap-1.5 min-[375px]:gap-2 md:gap-3 lg:gap-4"
       }`}
     >
-      {items.map((s) => {
+      {items.map((s, i) => {
         const Icon = ICONS[s.icon_name ?? ""] ?? ShoppingBasket;
         const accentClass = SERVICE_ACCENTS[s.service_key ?? ""] ?? "service-accent-default";
+        // Odd tile count: the last tile fills the phone-width row so no empty slot is left.
+        const spanLast = i === items.length - 1 && items.length % 2 === 1 ? "col-span-2 md:col-span-1" : "";
         // Admin-selected gradient still tints the corner only; badges stay legible.
         const glowStyle = s.gradient_from
           ? { backgroundColor: s.gradient_from, opacity: 0.15 }
@@ -67,7 +70,7 @@ export function ServiceBanners({ compact = false }: { compact?: boolean }) {
           <Link
             key={s.id}
             to={s.link || "/"}
-            className={`group relative flex min-w-0 items-center gap-2 lg:gap-3 overflow-hidden rounded-lg bg-card border border-border/70 shadow-card hover:shadow-elevated hover:-translate-y-0.5 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring p-2 md:p-3 min-h-[68px] ${accentClass}`}
+            className={`group relative flex min-w-0 items-center gap-2 lg:gap-3 overflow-hidden rounded-lg bg-card border border-border/70 shadow-card hover:shadow-elevated hover:-translate-y-0.5 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring p-2 md:p-3 min-h-[68px] ${accentClass} ${spanLast}`}
           >
             {/* Tinted corner glow */}
             <div
