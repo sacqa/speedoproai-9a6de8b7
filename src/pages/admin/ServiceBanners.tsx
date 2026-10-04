@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 const ICON_CHOICES = [
   "ShoppingBasket", "UtensilsCrossed", "Pill", "Package",
-  "Truck", "Sparkles", "Heart", "Coffee", "Gift", "Store",
+  "Truck", "Sparkles", "Heart", "Coffee", "Gift", "Store", "Wrench",
 ];
 
 const empty = {
