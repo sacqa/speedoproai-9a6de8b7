@@ -52,7 +52,7 @@ export function ServiceBanners({ compact = false }: { compact?: boolean }) {
 
   return (
     <section
-      className={`grid grid-cols-4 lg:max-w-4xl lg:mx-auto ${
+      className={`grid grid-cols-2 md:grid-cols-4 lg:max-w-4xl lg:mx-auto ${
         compact ? "gap-1.5 min-[375px]:gap-2" : "gap-1.5 min-[375px]:gap-2 md:gap-3 lg:gap-4"
       }`}
     >
@@ -67,7 +67,7 @@ export function ServiceBanners({ compact = false }: { compact?: boolean }) {
           <Link
             key={s.id}
             to={s.link || "/"}
-            className={`group relative flex min-w-0 items-center justify-center md:justify-start gap-2 lg:gap-3 overflow-hidden rounded-lg bg-card border border-border/70 shadow-card hover:shadow-elevated hover:-translate-y-0.5 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring p-1.5 min-[375px]:p-2 md:p-3 min-h-[72px] md:min-h-[68px] ${accentClass}`}
+            className={`group relative flex min-w-0 items-center gap-2 lg:gap-3 overflow-hidden rounded-lg bg-card border border-border/70 shadow-card hover:shadow-elevated hover:-translate-y-0.5 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring p-2 md:p-3 min-h-[68px] ${accentClass}`}
           >
             {/* Tinted corner glow */}
             <div
@@ -85,12 +85,12 @@ export function ServiceBanners({ compact = false }: { compact?: boolean }) {
                 className="absolute -right-1 -bottom-1 h-7 w-7 object-contain opacity-25 pointer-events-none"
               />
             )}
-            <div className="relative flex min-w-0 flex-col items-center gap-1 md:flex-row md:gap-3 lg:gap-3 w-full md:w-auto">
-              <div className="flex shrink-0 h-8 w-8 md:h-11 md:w-11 lg:h-12 lg:w-12 items-center justify-center rounded-lg service-icon-badge transition-transform duration-300 group-hover:scale-105">
-                <Icon className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6" strokeWidth={2.2} />
+            <div className="relative flex min-w-0 items-center gap-2 lg:gap-3 w-full">
+              <div className="flex shrink-0 h-9 w-9 lg:h-12 lg:w-12 items-center justify-center rounded-lg service-icon-badge transition-transform duration-300 group-hover:scale-105">
+                <Icon className="h-4 w-4 lg:h-6 lg:w-6" strokeWidth={2.2} />
               </div>
-              <div className="min-w-0 text-center md:text-left">
-                <h3 className="font-display font-semibold text-[10px] min-[375px]:text-[11px] md:text-sm text-foreground leading-tight break-words">{s.title}</h3>
+              <div className="min-w-0 text-left">
+                <h3 className="font-display font-semibold text-[11px] md:text-sm text-foreground leading-tight break-words">{s.title}</h3>
                 {s.subtitle && <p className="hidden md:block text-[10px] font-medium uppercase leading-tight mt-0.5 service-accent-label line-clamp-1">{s.subtitle}</p>}
               </div>
             </div>

@@ -213,10 +213,10 @@
   .service-accent-speedmart { --service-accent: 253 74% 63%; --service-icon-foreground: 0 0% 100%; }
   .service-accent-food { --service-accent: 8 100% 65%; --service-icon-foreground: 0 0% 100%; }
   .service-accent-pharmacy { --service-accent: 167 73% 42%; --service-icon-foreground: 0 0% 100%; }
-  .service-accent-speedsend { --service-accent: 44 94% 55%; --service-icon-foreground: 0 0% 10%; }
+  .service-accent-speedsend { --service-accent: 44 94% 55%; --service-icon-foreground: 0 0% 10%; --service-label: 38 86% 32%; }
   .service-accent-default { --service-accent: var(--primary); --service-icon-foreground: var(--primary-foreground); }
   .service-icon-badge { background: hsl(var(--service-accent)); color: hsl(var(--service-icon-foreground)); }
-  .service-accent-label { color: hsl(var(--service-accent)); }
+  .service-accent-label { color: hsl(var(--service-label, var(--service-accent))); }
   .service-corner-glow { background: hsl(var(--service-accent) / 0.08); }
 }
 
