@@ -10,6 +10,19 @@ import { initNative, isNative } from "@/lib/native";
 // Native shell (Android / iOS): status bar, splash, keyboard, back button.
 void initNative();
 
+// Recover from stale page chunks after an update: reload once instead of a blank screen.
+const reloadOnce = () => {
+  const k = "speedo-chunk-reload";
+  if (sessionStorage.getItem(k)) return;
+  sessionStorage.setItem(k, "1");
+  window.location.reload();
+};
+window.addEventListener("vite:preloadError", (e) => { e.preventDefault(); reloadOnce(); });
+const isChunkErr = (m: unknown) => /dynamically imported module|Importing a module script failed|Loading chunk/i.test(String(m));
+window.addEventListener("error", (e) => { if (isChunkErr(e.message)) reloadOnce(); });
+window.addEventListener("unhandledrejection", (e) => { if (isChunkErr((e.reason as Error)?.message ?? e.reason)) reloadOnce(); });
+window.addEventListener("load", () => setTimeout(() => sessionStorage.removeItem("speedo-chunk-reload"), 10000));
+
 // PWA registration guard: never register inside the Lovable preview iframe / preview hosts.
 const isInIframe = (() => {
   try { return window.self !== window.top; } catch { return true; }
