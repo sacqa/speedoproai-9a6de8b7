@@ -25,6 +25,16 @@ const FoodCheckout = lazy(() => import("./pages/app/FoodCheckout"));
 const Nearby = lazy(() => import("./pages/app/Nearby"));
 const CmsPage = lazy(() => import("./pages/app/CmsPage"));
 const TrackOrder = lazy(() => import("./pages/app/TrackOrder"));
+// Scroll to the top on every route change — otherwise footer links appear to "do nothing"
+// because the new page renders while the view stays scrolled at the bottom.
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
+  }, [pathname]);
+  return null;
+}
+
 import { RequireAdmin } from "@/components/admin/RequireAdmin";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 
