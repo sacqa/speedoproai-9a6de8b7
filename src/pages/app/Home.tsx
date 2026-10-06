@@ -149,21 +149,26 @@ export default function Home() {
         <section>
           <SectionHeader title="Popular Categories" viewAllTo="/speedmart" />
           <div className="overflow-x-auto no-scrollbar">
-            <div className="flex gap-3 sm:gap-4 lg:gap-5 px-4 lg:px-0 pb-2">
-              {(popularCats.data ?? []).map((c: any) => (
-                <Link
-                  to={`/speedmart?cat=${c.slug}`}
-                  key={c.id}
-                  className="flex-shrink-0 w-[68px] sm:w-20 lg:w-24 text-center group"
-                >
-                  <div className="aspect-square w-full rounded-full bg-white border border-accent/40 shadow-card p-1 flex items-center justify-center overflow-hidden group-hover:scale-105 group-hover:border-primary/40 transition-all">
-                    <div className="w-full h-full rounded-full overflow-hidden">
-                      <CategoryIcon src={c.image_url} alt={c.name} />
+            <div className="flex gap-4 sm:gap-5 lg:gap-6 px-4 lg:px-0 pb-2 snap-x">
+              {(popularCats.data ?? []).map((c: any, i: number) => {
+                const g = CATEGORY_GRADIENTS[i % CATEGORY_GRADIENTS.length];
+                return (
+                  <Link
+                    to={`/speedmart?cat=${c.slug}`}
+                    key={c.id}
+                    className="flex-shrink-0 w-[72px] sm:w-20 lg:w-24 snap-start flex flex-col items-center gap-2.5 group"
+                  >
+                    <div className={`relative w-full aspect-square rounded-full p-0.5 bg-gradient-to-tr transition-all duration-300 ${g.ring}`}>
+                      <div className="w-full h-full rounded-full overflow-hidden border-2 border-white shadow-sm bg-muted">
+                        <div className="w-full h-full group-hover:scale-110 transition-transform duration-500">
+                          <CategoryIcon src={c.image_url} alt={c.name} />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <p className="mt-2 text-[11px] sm:text-xs font-semibold leading-tight line-clamp-2 text-primary">{c.name}</p>
-                </Link>
-              ))}
+                    <p className={`text-[10px] sm:text-[11px] font-bold uppercase tracking-widest leading-tight line-clamp-2 text-center text-muted-foreground transition-colors ${g.label}`}>{c.name}</p>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </section>
