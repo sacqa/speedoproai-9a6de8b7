@@ -111,24 +111,31 @@ export function DesktopHome() {
         <section className="mb-12">
           <SectionTitle title="Shop by Category" subtitle="Everything you need, organized" viewAll="/speedmart" />
           <div className="grid grid-cols-4 md:grid-cols-6 xl:grid-cols-8 gap-4">
-            {(allCats.data ?? []).slice(0, 16).map((c: any) => (
-              <Link
-                key={c.id}
-                to={`/speedmart?cat=${c.slug ?? c.id}`}
-                className="group flex flex-col items-center gap-3 cursor-pointer"
-              >
-                <div className="w-full aspect-square rounded-full bg-white border border-accent/40 shadow-card p-1.5 overflow-hidden group-hover:-translate-y-1 group-hover:shadow-elevated transition-all">
-                  {c.image_url ? (
-                    <img src={c.image_url} alt={c.name} loading="lazy" decoding="async" className="h-full w-full object-cover rounded-full" />
-                  ) : c.icon ? (
-                    <span className="text-4xl">{c.icon}</span>
-                  ) : (
-                    <Tag className="h-7 w-7 text-primary/70" />
-                  )}
-                </div>
-                <span className="text-xs font-bold text-foreground/80 text-center leading-tight line-clamp-1">{c.name}</span>
-              </Link>
-            ))}
+            {(allCats.data ?? []).slice(0, 16).map((c: any, i: number) => {
+              const g = CATEGORY_GRADIENTS[i % CATEGORY_GRADIENTS.length];
+              return (
+                <Link
+                  key={c.id}
+                  to={`/speedmart?cat=${c.slug ?? c.id}`}
+                  className="group flex flex-col items-center gap-3 cursor-pointer"
+                >
+                  <div className={`relative w-full aspect-square rounded-full p-0.5 bg-gradient-to-tr transition-all duration-300 ${g.ring}`}>
+                    <div className="w-full h-full rounded-full overflow-hidden border-2 border-white shadow-sm bg-muted flex items-center justify-center">
+                      <div className="w-full h-full group-hover:scale-110 transition-transform duration-500 flex items-center justify-center">
+                        {c.image_url ? (
+                          <img src={c.image_url} alt={c.name} loading="lazy" decoding="async" className="h-full w-full object-cover rounded-full" />
+                        ) : c.icon ? (
+                          <span className="text-4xl">{c.icon}</span>
+                        ) : (
+                          <Tag className="h-7 w-7 text-primary/70" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <span className={`text-[11px] font-bold uppercase tracking-widest text-muted-foreground text-center leading-tight line-clamp-2 transition-colors ${g.label}`}>{c.name}</span>
+                </Link>
+              );
+            })}
           </div>
         </section>
       )}
