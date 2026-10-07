@@ -19,6 +19,16 @@ import { ServiceBanners } from "@/components/speedo/ServiceBanners";
  * Calm-premium-neutral glassmorphism — frosted surfaces, soft purple aurora.
  */
 
+// Per-category gradient ring + label tint, cycled by position (matches mobile Popular Categories).
+const CATEGORY_GRADIENTS = [
+  { ring: "from-emerald-100 to-green-50 group-hover:from-emerald-400 group-hover:to-green-300", label: "group-hover:text-emerald-700" },
+  { ring: "from-rose-100 to-orange-50 group-hover:from-rose-400 group-hover:to-orange-300", label: "group-hover:text-rose-700" },
+  { ring: "from-blue-100 to-sky-50 group-hover:from-blue-400 group-hover:to-sky-300", label: "group-hover:text-blue-700" },
+  { ring: "from-amber-100 to-yellow-50 group-hover:from-amber-400 group-hover:to-yellow-300", label: "group-hover:text-amber-700" },
+  { ring: "from-cyan-100 to-indigo-50 group-hover:from-cyan-400 group-hover:to-indigo-300", label: "group-hover:text-indigo-700" },
+  { ring: "from-violet-100 to-purple-50 group-hover:from-violet-400 group-hover:to-purple-300", label: "group-hover:text-violet-700" },
+];
+
 export function DesktopHome() {
   const banners = useQuery({
     queryKey: ["banners"],
