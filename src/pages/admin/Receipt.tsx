@@ -14,11 +14,16 @@ export default function AdminReceipt() {
   useEffect(() => {
     (async () => {
       const [{ data: o }, { data: it }, { data: cfg }] = await Promise.all([
-        supabase.from("orders").select("*").eq("id", id).single(),
+        supabase.from("orders").select("*").eq("id", id).maybeSingle(),
         supabase.from("order_items").select("*").eq("order_id", id),
         supabase.from("app_settings").select("value").eq("key", "receipt").maybeSingle(),
       ]);
-      setOrder(o); setItems(it ?? []); setS(cfg?.value ?? {});
+      setS(cfg?.value ?? {});
+      if (o) { setOrder(o); setItems(it ?? []); return; }
+      const { data: g } = await supabase.from("guest_orders").select("*").eq("id", id).maybeSingle();
+      if (!g) return;
+      setOrder({ ...g, service_charge: 0, address_snapshot: { recipient_name: g.customer_name, phone: g.phone, address: [g.street, g.area].filter(Boolean).join(", ") }, guest: true });
+      setItems((Array.isArray(g.items) ? g.items : []).map((i: any, n: number) => ({ id: n, name: i.name, price: i.price, quantity: i.quantity, unit: i.unit })));
     })();
   }, [id]);
 
