@@ -1349,6 +1349,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      admin_delete_orders: { Args: { _ids: string[] }; Returns: number }
       are_friends: { Args: { _a: string; _b: string }; Returns: boolean }
       claim_admin_if_none: { Args: never; Returns: boolean }
       get_vendor_commission: { Args: { _vendor_id: string }; Returns: number }
