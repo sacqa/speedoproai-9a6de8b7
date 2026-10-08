@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ChevronDown, ChevronUp, Phone, MapPin, Package, Paperclip } from "lucide-react";
+import { ChevronDown, ChevronUp, Phone, MapPin, Package, Paperclip, Trash2 } from "lucide-react";
 
 const GUEST_STATUSES = ["submitted", "confirmed", "packing", "out_for_delivery", "delivered", "cancelled"];
 const nice = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -51,7 +51,24 @@ export default function GuestOrdersPanel({ vendorId, readOnly }: { vendorId?: st
     q.refetch();
   };
 
-  const rows = q.data ?? [];
+  const [sel, setSel] = useState<string[]>([]);
+  const [search, setSearch] = useState("");
+  const del = async (ids: string[]) => {
+    if (!ids.length) return;
+    if (!window.confirm(`Delete ${ids.length} order${ids.length > 1 ? "s" : ""} permanently? This cannot be undone.`)) return;
+    const { error } = await supabase.rpc("admin_delete_orders", { _ids: ids });
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Deleted ${ids.length} order${ids.length > 1 ? "s" : ""}`);
+    setSel([]); q.refetch();
+  };
+  const exportCsv = () => {
+    const head = ["order_number","status","service","customer","phone","area","street","total","created_at"];
+    const lines = rows.map((o: any) => [o.order_number,o.status,o.service_type,o.customer_name,o.phone,o.area,o.street,o.total,o.created_at].map((v) => `"${String(v ?? "").replace(/"/g,'""')}"`).join(","));
+    const url = URL.createObjectURL(new Blob([[head.join(","), ...lines].join("\n")], { type: "text/csv" }));
+    const a = document.createElement("a"); a.href = url; a.download = "orders.csv"; a.click(); URL.revokeObjectURL(url);
+  };
+  const t = search.trim().toLowerCase();
+  const rows = (q.data ?? []).filter((o: any) => !t || [o.order_number, o.customer_name, o.phone, o.area].some((v) => String(v ?? "").toLowerCase().includes(t)));
 
   return (
     <section className="space-y-3">
@@ -60,6 +77,14 @@ export default function GuestOrdersPanel({ vendorId, readOnly }: { vendorId?: st
           <Package className="h-5 w-5 text-primary" /> {vendorId ? "Your orders" : "App orders (guest checkout)"}
         </h2>
         <span className="text-xs text-muted-foreground">{rows.length} shown</span>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search order #, name, phone, area…" className="h-9 flex-1 min-w-[180px] rounded-lg border border-border bg-card px-3 text-sm" />
+        <Button size="sm" variant="outline" className="rounded-pill" onClick={exportCsv}>Export CSV</Button>
+        {!readOnly && <>
+          <Button size="sm" variant="outline" className="rounded-pill" onClick={() => setSel(sel.length === rows.length ? [] : rows.map((o: any) => o.id))}>{sel.length === rows.length && rows.length ? "Clear" : "Select all"}</Button>
+          <Button size="sm" variant="destructive" className="rounded-pill gap-1" disabled={!sel.length} onClick={() => del(sel)}><Trash2 className="h-3.5 w-3.5" /> Delete ({sel.length})</Button>
+        </>}
       </div>
 
       {q.isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
@@ -72,7 +97,9 @@ export default function GuestOrdersPanel({ vendorId, readOnly }: { vendorId?: st
           const items: any[] = Array.isArray(o.items) ? o.items : [];
           const isOpen = open === o.id;
           return (
-            <div key={o.id} className="bg-card rounded-2xl shadow-card overflow-hidden">
+            <div key={o.id} className="bg-card rounded-2xl shadow-card overflow-hidden flex items-start">
+              {!readOnly && <input type="checkbox" aria-label="Select order" className="mt-5 ml-3 h-4 w-4 shrink-0" checked={sel.includes(o.id)} onChange={(e) => setSel(e.target.checked ? [...sel, o.id] : sel.filter((x) => x !== o.id))} />}
+              <div className="flex-1 min-w-0">
               <button
                 onClick={() => setOpen(isOpen ? null : o.id)}
                 className="w-full text-left p-3 sm:p-4 flex items-start gap-3"
@@ -170,9 +197,11 @@ export default function GuestOrdersPanel({ vendorId, readOnly }: { vendorId?: st
                         {nice(s)}
                       </Button>
                     ))}
+                    <Button size="sm" variant="destructive" className="rounded-pill text-xs gap-1" onClick={() => del([o.id])}><Trash2 className="h-3.5 w-3.5" /> Delete</Button>
                   </div>}
                 </div>
               )}
+              </div>
             </div>
           );
         })}

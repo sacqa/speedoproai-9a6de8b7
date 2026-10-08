@@ -54,6 +54,13 @@ export default function AdminOrders() {
   const total = orders.data?.count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
+  const [sel, setSel] = useState<string[]>([]);
+  const delOrders = async (ids: string[]) => {
+    if (!ids.length || !window.confirm(`Delete ${ids.length} order${ids.length > 1 ? "s" : ""} permanently? This cannot be undone.`)) return;
+    const { error } = await supabase.rpc("admin_delete_orders", { _ids: ids });
+    if (error) { toast({ title: "Delete failed", description: error.message, variant: "destructive" }); return; }
+    toast({ title: `Deleted ${ids.length} order(s)` }); setSel([]); orders.refetch();
+  };
   const handleReset = async () => {
     setResetting(true);
     try {
@@ -118,14 +125,21 @@ export default function AdminOrders() {
       </div>
       <Input placeholder="Search by order #…" value={q} onChange={(e) => update({ q: e.target.value || null, page: null })} className="max-w-sm" />
       <GuestOrdersPanel />
-      <h2 className="text-lg font-extrabold pt-2">Account orders</h2>
+      <div className="flex items-center justify-between gap-2 pt-2">
+        <h2 className="text-lg font-extrabold">Account orders</h2>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => setSel(sel.length === filtered.length ? [] : filtered.map((o: any) => o.id))}>{sel.length && sel.length === filtered.length ? "Clear" : "Select all"}</Button>
+          <Button size="sm" variant="destructive" disabled={!sel.length} onClick={() => delOrders(sel)}><Trash2 className="h-4 w-4 mr-1" />Delete ({sel.length})</Button>
+        </div>
+      </div>
       {/* Mobile card list */}
       <div className="md:hidden space-y-2">
         {filtered.map((o: any) => (
+          <div key={o.id} className="flex items-center gap-2">
+          <input type="checkbox" aria-label="Select order" className="h-4 w-4" checked={sel.includes(o.id)} onClick={(e) => e.stopPropagation()} onChange={(e) => setSel(e.target.checked ? [...sel, o.id] : sel.filter((x) => x !== o.id))} />
           <Link
-            key={o.id}
             to={`/admin/orders/${o.id}`}
-            className="block bg-card rounded-2xl shadow-card p-3 active:scale-[0.99] transition-transform"
+            className="flex-1 min-w-0 block bg-card rounded-2xl shadow-card p-3 active:scale-[0.99] transition-transform"
           >
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
@@ -145,6 +159,7 @@ export default function AdminOrders() {
               <span className="text-[10px] px-2 py-0.5 rounded-pill bg-muted font-semibold">{statusLabel(o.status)}</span>
             </div>
           </Link>
+          </div>
         ))}
         {filtered.length === 0 && <p className="text-center text-muted-foreground py-10">No orders</p>}
       </div>
@@ -153,20 +168,21 @@ export default function AdminOrders() {
       <div className="hidden md:block bg-card rounded-xl shadow-card overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-xs text-muted-foreground border-b border-border">
-            <tr><th className="text-left p-3">Order</th><th className="text-left">Type</th><th className="text-left">Customer</th><th className="text-left">Status</th><th className="text-right">Total</th><th className="text-right p-3">Date</th></tr>
+            <tr><th className="text-left p-3">Order</th><th className="text-left">Type</th><th className="text-left">Customer</th><th className="text-left">Status</th><th className="text-right">Total</th><th className="text-right p-3">Date</th><th></th></tr>
           </thead>
           <tbody>
             {filtered.map((o: any) => (
               <tr key={o.id} className="border-b border-border last:border-0 hover:bg-muted/50">
-                <td className="p-3"><Link to={`/admin/orders/${o.id}`} className="font-semibold text-primary">{o.order_number}</Link></td>
+                <td className="p-3 flex items-center gap-2"><input type="checkbox" aria-label="Select order" className="h-4 w-4" checked={sel.includes(o.id)} onClick={(e) => e.stopPropagation()} onChange={(e) => setSel(e.target.checked ? [...sel, o.id] : sel.filter((x) => x !== o.id))} /><Link to={`/admin/orders/${o.id}`} className="font-semibold text-primary">{o.order_number}</Link></td>
                 <td><span className="text-xs px-2 py-0.5 rounded-pill bg-primary-tint text-primary">{statusLabel(o.type)}</span></td>
                 <td>{o.address_snapshot?.recipient_name ?? "—"}<div className="text-xs text-muted-foreground">{o.address_snapshot?.phone ?? ""}</div></td>
                 <td><span className="text-xs px-2 py-0.5 rounded-pill bg-muted">{statusLabel(o.status)}</span></td>
                 <td className="text-right font-semibold">{formatPKR(Number(o.total))}</td>
                 <td className="text-right p-3 text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</td>
+                <td className="pr-3"><Button size="icon" variant="ghost" aria-label="Delete order" onClick={() => delOrders([o.id])}><Trash2 className="h-4 w-4 text-destructive" /></Button></td>
               </tr>
             ))}
-            {filtered.length === 0 && <tr><td colSpan={6} className="text-center py-10 text-muted-foreground">No orders</td></tr>}
+            {filtered.length === 0 && <tr><td colSpan={7} className="text-center py-10 text-muted-foreground">No orders</td></tr>}
           </tbody>
         </table>
       </div>
