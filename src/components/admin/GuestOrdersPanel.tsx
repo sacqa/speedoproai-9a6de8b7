@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ChevronDown, ChevronUp, Phone, MapPin, Package, Paperclip, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Phone, MapPin, Package, Paperclip, Trash2, Printer } from "lucide-react";
 
 const GUEST_STATUSES = ["submitted", "confirmed", "packing", "out_for_delivery", "delivered", "cancelled"];
 const nice = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -197,6 +198,7 @@ export default function GuestOrdersPanel({ vendorId, readOnly }: { vendorId?: st
                         {nice(s)}
                       </Button>
                     ))}
+                    <Link to={`/admin/orders/${o.id}/receipt`} className="inline-flex items-center gap-1 rounded-pill border px-3 h-8 text-xs font-semibold text-primary"><Printer className="h-3.5 w-3.5" /> Print receipt</Link>
                     <Button size="sm" variant="destructive" className="rounded-pill text-xs gap-1" onClick={() => del([o.id])}><Trash2 className="h-3.5 w-3.5" /> Delete</Button>
                   </div>}
                 </div>
