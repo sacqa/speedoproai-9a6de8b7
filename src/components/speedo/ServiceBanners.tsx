@@ -53,8 +53,8 @@ export function ServiceBanners({ compact = false }: { compact?: boolean }) {
 
   return (
     <section
-      className={`grid grid-cols-2 md:grid-cols-5 lg:max-w-5xl lg:mx-auto ${
-        compact ? "gap-1.5 min-[375px]:gap-2" : "gap-1.5 min-[375px]:gap-2 md:gap-3 lg:gap-4"
+      className={`grid w-full grid-cols-2 md:grid-cols-5 ${
+        compact ? "gap-1.5 min-[375px]:gap-2" : "gap-1.5 min-[375px]:gap-2 md:gap-3"
       }`}
     >
       {items.map((s, i) => {

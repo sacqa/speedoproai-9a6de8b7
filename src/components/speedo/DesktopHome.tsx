@@ -65,7 +65,7 @@ export function DesktopHome() {
   const hero = banners.data?.[0];
 
   return (
-    <div className="-mx-8 xl:-mx-12 -my-6 px-8 xl:px-12 py-10 min-h-screen relative">
+    <div className="-mx-8 xl:-mx-12 -my-6 px-8 xl:px-12 py-4 min-h-screen relative">
       {/* Aurora background wash */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[1200px] h-[700px] rounded-full opacity-50"
@@ -77,7 +77,7 @@ export function DesktopHome() {
       </div>
 
       {/* ===== 1. SERVICE BANNERS — 4 equal ===== */}
-      <div className="mb-10">
+      <div className="mb-4">
         <ServiceBanners />
       </div>
 
