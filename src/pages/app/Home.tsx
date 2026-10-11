@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { AiPicks } from "@/components/speedo/AiPicks";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -148,6 +149,7 @@ export default function Home() {
 
       {/* Hero banner */}
       <BannerSlider banners={banners.data ?? []} />
+      <AiPicks className="px-4 mt-5" limit={6} />
 
       {/* Popular Categories (admin-curated) */}
       {popularCats.isLoading ? (

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { AiPicks } from "@/components/speedo/AiPicks";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -115,6 +116,8 @@ export function DesktopHome() {
           </div>
         </div>
       </section>
+
+      <AiPicks className="mb-12" limit={8} />
 
       {/* ===== 3. CATEGORIES GRID ===== */}
       {(allCats.data ?? []).length > 0 && (
