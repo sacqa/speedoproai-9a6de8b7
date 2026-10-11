@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import { AiPicks } from "@/components/speedo/AiPicks";
 import { useState } from "react";
 import { useCart } from "@/store/cart";
 import { Button } from "@/components/ui/button";
@@ -135,6 +136,8 @@ export default function Cart() {
               <button onClick={() => remove(i.product_id)} aria-label="Remove" className="col-start-3 row-start-1 sm:col-start-4 sm:row-start-auto h-9 w-9 rounded-full text-destructive/70 hover:text-destructive hover:bg-destructive/10 flex items-center justify-center transition-colors"><Trash2 className="h-4 w-4" /></button>
             </div>
           ))}
+
+          <AiPicks className="pt-4" limit={4} />
 
           {/* Request an item card */}
           <a

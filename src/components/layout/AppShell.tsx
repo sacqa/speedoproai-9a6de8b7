@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
+import { AiAssistant } from "@/components/speedo/AiAssistant";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   Home, Search, ShoppingCart, MapPin, ChevronDown, Menu,
@@ -201,6 +202,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* PERSISTENT MINI-CART */}
       {!hideMiniCart && <MiniCart bump={bump} />}
+      {!location.pathname.startsWith("/admin") && !location.pathname.startsWith("/vendor") && <AiAssistant />}
     </div>
   );
 }

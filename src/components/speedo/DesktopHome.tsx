@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { AiPicks } from "@/components/speedo/AiPicks";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -118,6 +119,7 @@ export function DesktopHome() {
 
       {/* ===== 3. CATEGORIES GRID ===== */}
       {(allCats.data ?? []).length > 0 && (
+        <AiPicks className="mb-12" limit={8} />
         <section className="mb-12">
           <SectionTitle title="Shop by Category" subtitle="Everything you need, organized" viewAll="/speedmart" />
           <div className="grid grid-cols-4 md:grid-cols-6 xl:grid-cols-8 gap-4">
