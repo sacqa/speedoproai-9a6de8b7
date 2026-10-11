@@ -117,9 +117,10 @@ export function DesktopHome() {
         </div>
       </section>
 
+      <AiPicks className="mb-12" limit={8} />
+
       {/* ===== 3. CATEGORIES GRID ===== */}
       {(allCats.data ?? []).length > 0 && (
-        <AiPicks className="mb-12" limit={8} />
         <section className="mb-12">
           <SectionTitle title="Shop by Category" subtitle="Everything you need, organized" viewAll="/speedmart" />
           <div className="grid grid-cols-4 md:grid-cols-6 xl:grid-cols-8 gap-4">
