@@ -1,16 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, type UIMessage } from "ai";
+import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { MessageCircleHeart, X, Send, Square, RotateCcw, Plus } from "lucide-react";
+import { MessageCircleHeart, X, Send, RotateCcw, Plus } from "lucide-react";
 import { useCart } from "@/store/cart";
 import { formatPKR } from "@/lib/format";
 import { toast } from "sonner";
+import { useCatalog, answer } from "@/lib/shopAssistant";
 
-const KEY = "speedo-ai-chat";
-const loadMsgs = (): UIMessage[] => {
+const KEY = "speedo-assistant-chat";
+type Msg = { id: string; role: "user" | "assistant"; text: string; products?: Prod[] };
+const loadMsgs = (): Msg[] => {
   if (typeof window === "undefined") return [];
-  try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch { return []; }
+  try { const v = JSON.parse(localStorage.getItem(KEY) || "[]"); return Array.isArray(v) ? v.filter((m) => typeof m?.text === "string") : []; } catch { return []; }
 };
 
 type Prod = { id: string; name: string; price: number; unit: string | null; image_url: string | null; stock: number };
@@ -40,43 +40,30 @@ export function AiAssistant() {
   const [input, setInput] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
-  const initial = useMemo(loadMsgs, []);
+  const [messages, setMessages] = useState<Msg[]>(loadMsgs);
+  const [typing, setTyping] = useState(false);
+  const { data: catalog } = useCatalog();
+  const busy = typing;
 
-  const transport = useMemo(() => new DefaultChatTransport({
-    api: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-shop`,
-    headers: {
-      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-    },
-    body: () => ({ mode: "chat", cart: useCart.getState().items.map((i) => i.product_id) }),
-  }), []);
-
-  const { messages, sendMessage, status, stop, setMessages, error } = useChat({
-    id: "speedo-assistant",
-    messages: initial,
-    transport,
-    onError: (e) => {
-      let msg = e.message;
-      try { msg = JSON.parse(msg).error ?? msg; } catch { /* plain text */ }
-      toast.error(msg || "Assistant unavailable, please try again.");
-    },
-  });
-  const busy = status === "submitted" || status === "streaming";
-
-  useEffect(() => {
-    if (status === "ready" || status === "error") localStorage.setItem(KEY, JSON.stringify(messages.slice(-40)));
-  }, [messages, status]);
-  useEffect(() => { endRef.current?.scrollIntoView({ block: "end" }); }, [messages, status, open]);
+  useEffect(() => { localStorage.setItem(KEY, JSON.stringify(messages.slice(-40))); }, [messages]);
+  useEffect(() => { endRef.current?.scrollIntoView({ block: "end" }); }, [messages, typing, open]);
   useEffect(() => { if (open && !busy) inputRef.current?.focus(); }, [open, busy]);
 
   const send = (text: string) => {
     const t = text.trim();
     if (!t || busy) return;
-    sendMessage({ text: t });
+    const uid = `${Date.now()}`;
+    setMessages((m) => [...m, { id: uid, role: "user", text: t }]);
     setInput("");
+    setTyping(true);
+    setTimeout(() => {
+      const r = answer(t, catalog ?? [], useCart.getState().items.map((i) => i.product_id));
+      setMessages((m) => [...m, { id: uid + "a", role: "assistant", text: r.text, products: r.products }]);
+      setTyping(false);
+    }, 350);
   };
 
-  const suggestions = ["Breakfast ke liye kya lun?", "Suggest snacks for guests", "Healthy fruits under Rs 300"];
+  const suggestions = ["Breakfast ke liye kya lun?", "Suggest snacks for guests", "Fruits under Rs 300", "What goes with my basket?", "Delivery charges?", "How do I pay?"];
 
   return (
     <>
@@ -92,10 +79,10 @@ export function AiAssistant() {
             <span className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center"><MessageCircleHeart className="h-5 w-5" /></span>
             <div className="flex-1 min-w-0">
               <div className="font-semibold leading-tight">Speedo Assistant</div>
-              <div className="text-[11px] text-muted-foreground">AI-powered shopping help</div>
+              <div className="text-[11px] text-muted-foreground">Smart shopping help</div>
             </div>
             {messages.length > 0 && (
-              <button type="button" aria-label="New conversation" onClick={() => { stop(); setMessages([]); localStorage.removeItem(KEY); }}
+              <button type="button" aria-label="New conversation" onClick={() => { setMessages([]); localStorage.removeItem(KEY); }}
                 className="h-9 w-9 rounded-full hover:bg-muted flex items-center justify-center"><RotateCcw className="h-4 w-4" /></button>
             )}
             <button type="button" aria-label="Close" onClick={() => setOpen(false)} className="h-9 w-9 rounded-full hover:bg-muted flex items-center justify-center"><X className="h-5 w-5" /></button>
@@ -114,27 +101,19 @@ export function AiAssistant() {
             )}
             {messages.map((m) => (
               <div key={m.id} className={m.role === "user" ? "flex justify-end" : "space-y-2"}>
-                {m.parts.map((part: any, i) => {
-                  if (part.type === "text") {
-                    return m.role === "user"
-                      ? <div key={i} className="max-w-[85%] rounded-2xl rounded-br-md bg-primary text-primary-foreground px-3.5 py-2 text-sm whitespace-pre-wrap">{part.text}</div>
-                      : <div key={i} className="prose prose-sm max-w-none text-foreground"><ReactMarkdown>{part.text}</ReactMarkdown></div>;
-                  }
-                  if (part.type === "tool-show_products" && part.state === "output-available") {
-                    return <div key={i} className="space-y-2">{(part.output?.products ?? []).map((p: Prod) => <ProductMini key={p.id} p={p} />)}</div>;
-                  }
-                  return null;
-                })}
+                {m.role === "user"
+                  ? <div className="max-w-[85%] rounded-2xl rounded-br-md bg-primary text-primary-foreground px-3.5 py-2 text-sm whitespace-pre-wrap">{m.text}</div>
+                  : <div className="prose prose-sm max-w-none text-foreground"><ReactMarkdown>{m.text}</ReactMarkdown></div>}
+                {!!m.products?.length && <div className="space-y-2">{m.products.map((p) => <ProductMini key={p.id} p={p} />)}</div>}
               </div>
             ))}
-            {status === "submitted" && (
+            {typing && (
               <div className="flex gap-1 items-center text-muted-foreground" aria-label="Assistant is typing">
                 <span className="h-2 w-2 rounded-full bg-current animate-bounce" />
                 <span className="h-2 w-2 rounded-full bg-current animate-bounce [animation-delay:120ms]" />
                 <span className="h-2 w-2 rounded-full bg-current animate-bounce [animation-delay:240ms]" />
               </div>
             )}
-            {error && !busy && <p className="text-xs text-destructive">Something went wrong. Please try again.</p>}
             <div ref={endRef} />
           </div>
 
@@ -145,11 +124,7 @@ export function AiAssistant() {
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
               placeholder="Ask for product suggestions…"
               className="flex-1 resize-none max-h-32 rounded-2xl bg-muted/60 px-4 py-2.5 text-base sm:text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" />
-            {busy ? (
-              <button type="button" onClick={stop} aria-label="Stop" className="h-11 w-11 shrink-0 rounded-full bg-muted flex items-center justify-center"><Square className="h-4 w-4" /></button>
-            ) : (
-              <button type="submit" disabled={!input.trim()} aria-label="Send" className="h-11 w-11 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-50"><Send className="h-4 w-4" /></button>
-            )}
+            <button type="submit" disabled={!input.trim() || busy} aria-label="Send" className="h-11 w-11 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-50"><Send className="h-4 w-4" /></button>
           </form>
         </div>
       )}
