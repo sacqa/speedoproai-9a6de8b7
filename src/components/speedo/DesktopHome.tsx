@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { AiPicks } from "@/components/speedo/AiPicks";
+import { HomePicksSlot } from "@/components/speedo/AiPicks";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -82,6 +82,7 @@ export function DesktopHome() {
         <ServiceBanners />
       </div>
 
+      <HomePicksSlot at="after_services" className="mb-12" limit={8} />
       {/* ===== 2. HERO PROMO (compact) ===== */}
       <section className="relative mb-10 rounded-[32px] overflow-hidden glass-card p-0 h-[260px] xl:h-[300px] group">
         {hero?.image_url ? (
@@ -117,7 +118,7 @@ export function DesktopHome() {
         </div>
       </section>
 
-      <AiPicks className="mb-12" limit={8} />
+      <HomePicksSlot at="after_banner" className="mb-12" limit={8} />
 
       {/* ===== 3. CATEGORIES GRID ===== */}
       {(allCats.data ?? []).length > 0 && (
@@ -153,6 +154,7 @@ export function DesktopHome() {
         </section>
       )}
 
+      <HomePicksSlot at="after_categories" className="mb-12" limit={8} />
       {/* ===== 4. FEATURED PRODUCTS ===== */}
       {(featured.data ?? []).length > 0 && (
         <section className="mb-12">
@@ -167,6 +169,7 @@ export function DesktopHome() {
         </section>
       )}
 
+      <HomePicksSlot at="after_featured" className="mb-12" limit={8} />
       {/* ===== 5. HOT-SELLING / TRENDING ===== */}
       {trending.length > 0 && (
         <section className="mb-6">
@@ -182,7 +185,8 @@ export function DesktopHome() {
                     </span>
                   )}
                   <ProductCard p={p as any} />
-                </div>
+                  <HomePicksSlot at="bottom" className="mb-12" limit={8} />
+    </div>
               );
             })}
           </div>

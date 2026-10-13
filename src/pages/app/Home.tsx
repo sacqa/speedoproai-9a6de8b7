@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AiPicks } from "@/components/speedo/AiPicks";
+import { HomePicksSlot } from "@/components/speedo/AiPicks";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -147,9 +147,10 @@ export default function Home() {
         <ServiceBanners />
       </div>
 
+      <HomePicksSlot at="after_services" className="px-4" limit={6} />
       {/* Hero banner */}
       <BannerSlider banners={banners.data ?? []} />
-      <AiPicks className="px-4 mt-5" limit={6} />
+      <HomePicksSlot at="after_banner" className="px-4" limit={6} />
 
       {/* Popular Categories (admin-curated) */}
       {popularCats.isLoading ? (
@@ -186,6 +187,7 @@ export default function Home() {
         </section>
       )}
 
+      <HomePicksSlot at="after_categories" className="px-4" limit={6} />
       {/* Hot Selling — admin curates a category */}
       {hotCategory.data && (hotProducts.data ?? []).length > 0 && (
         <section>
@@ -214,6 +216,7 @@ export default function Home() {
         </section>
       )}
 
+      <HomePicksSlot at="after_featured" className="px-4" limit={6} />
       {/* Offers / Sale (auto from compare_price) */}
       {(sale.data ?? []).length > 0 && (
         <section>
@@ -247,6 +250,7 @@ export default function Home() {
         </section>
       )}
 
+      <HomePicksSlot at="bottom" className="px-4" limit={6} />
       </div>
     </>
   );
