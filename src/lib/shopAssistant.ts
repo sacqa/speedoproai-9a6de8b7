@@ -76,8 +76,8 @@ export function recommend(catalog: CatalogProduct[], cartIds: string[], limit = 
 }
 
 const FAQ: [string[], string][] = [
-  [["deliver", "delivery", "charge", "fee", "kitne din", "kab tak"], "We deliver same-day in Dipalpur and nearby areas. The delivery fee depends on your area and is shown in your basket before you order."],
   [["pay", "payment", "cash", "cod", "jazzcash", "easypaisa"], "Payment is **Cash on Delivery** — pay our rider when your order arrives."],
+  [["deliver", "delivery", "charge", "fee", "kitne din", "kab tak"], "We deliver same-day in Dipalpur and nearby areas. The delivery fee depends on your area and is shown in your basket before you order."],
   [["track", "status", "kahan", "where is my order"], "You can track your order from the **Track order** page using your order number and phone."],
   [["cancel", "return", "refund", "wapas"], "To cancel or return something, please message us on WhatsApp with your order number and we'll help right away."],
   [["contact", "whatsapp", "number", "phone", "call"], "You can reach us on WhatsApp from the Help page — we usually reply within minutes."],
