@@ -1,0 +1,3 @@
+drop policy if exists "settings public read" on public.app_settings;
+create policy "settings public read" on public.app_settings for select using (key = any (array['receipt','footer','brand','product_card','grid_columns','analytics','home_picks']));
+insert into public.app_settings(key, value) values ('home_picks', '{"enabled":false,"title":"Picked for you","placement":"after_banner","product_ids":[]}') on conflict (key) do nothing;
