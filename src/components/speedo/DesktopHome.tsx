@@ -185,7 +185,7 @@ export function DesktopHome() {
                     </span>
                   )}
                   <ProductCard p={p as any} />
-    </div>
+                </div>
               );
             })}
           </div>
