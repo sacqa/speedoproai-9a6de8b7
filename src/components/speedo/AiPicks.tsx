@@ -2,16 +2,24 @@ import { useMemo } from "react";
 import { Wand2 } from "lucide-react";
 import { useCart } from "@/store/cart";
 import { useCatalog, recommend } from "@/lib/shopAssistant";
+import { useHomePicks, type HomePicksPlacement } from "@/hooks/useHomePicks";
 import { ProductCard } from "./ProductCard";
 
 /** Smart picks from the live catalog (rule-based, free). With cart items → complementary. */
-export function AiPicks({ title, limit = 8, className = "" }: { title?: string; limit?: number; className?: string }) {
+export function AiPicks({ title, limit = 8, className = "", productIds }: { title?: string; limit?: number; className?: string; productIds?: string[] }) {
   const cartIds = useCart((s) => s.items.map((i) => i.product_id).sort().join(","));
   const { data: catalog, isLoading } = useCatalog();
-  const data = useMemo(() => (catalog ? recommend(catalog, cartIds ? cartIds.split(",") : [], limit) : []), [catalog, cartIds, limit]);
+  const data = useMemo(() => {
+    if (!catalog) return [];
+    if (productIds?.length) {
+      const byId = new Map(catalog.map((p) => [p.id, p]));
+      return productIds.map((id) => byId.get(id)).filter(Boolean).slice(0, limit) as typeof catalog;
+    }
+    return recommend(catalog, cartIds ? cartIds.split(",") : [], limit);
+  }, [catalog, cartIds, limit, productIds]);
 
   if (!isLoading && !data.length) return null;
-  const heading = title ?? (cartIds ? "Goes well with your basket" : "Picked for you");
+  const heading = title || (cartIds ? "Goes well with your basket" : "Picked for you");
 
   return (
     <section className={className}>
@@ -26,4 +34,11 @@ export function AiPicks({ title, limit = 8, className = "" }: { title?: string; 
       </div>
     </section>
   );
+}
+
+/** Homepage slot — renders only when admin enabled it and chose this placement. */
+export function HomePicksSlot({ at, className, limit }: { at: HomePicksPlacement; className?: string; limit: number }) {
+  const { data: s } = useHomePicks();
+  if (!s?.enabled || s.placement !== at) return null;
+  return <AiPicks className={className} limit={limit} title={s.title} productIds={s.product_ids} />;
 }
