@@ -99,6 +99,8 @@ export type Reply = { text: string; products: CatalogProduct[] };
 
 export function answer(q: string, catalog: CatalogProduct[], cartIds: string[]): Reply {
   const t = norm(q);
+  // Whole-word matching so "fee" doesn't match "coffee", "cash" doesn't match "cashew", etc.
+  const wordHas = (k: string) => new RegExp(`\\b${k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(t);
   const budgetM = t.match(/(?:under|below|less than|se kam|tak|rs)\s*(\d{2,6})|(\d{2,6})\s*(?:se kam|tak|rs|rupees?)/);
   const budget = budgetM ? Number(budgetM[1] ?? budgetM[2]) : null;
   const withinBudget = (list: CatalogProduct[]) => (budget ? list.filter((p) => p.price <= budget) : list);
