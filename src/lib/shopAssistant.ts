@@ -109,7 +109,7 @@ export function answer(q: string, catalog: CatalogProduct[], cartIds: string[]):
   if (/^(hi|hello|hey|salam|assalam|aoa|asalam)/.test(t.trim()))
     return { text: "Wa Alaikum Assalam! 👋 Tell me what you need — e.g. *breakfast*, *snacks for guests*, *fruits under Rs 300*, or any product name.", products: [] };
 
-  for (const [keys, reply] of FAQ) if (keys.some((k) => t.includes(k))) return { text: reply, products: [] };
+  for (const [keys, reply] of FAQ) if (keys.some((k) => wordHas(k))) return { text: reply, products: [] };
 
   if (/(cart|basket|complement|saath|together|aur kya)/.test(t)) {
     const r = withinBudget(recommend(catalog, cartIds, 6));
