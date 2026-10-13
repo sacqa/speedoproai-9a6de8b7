@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { HomePicksCard } from "@/components/admin/HomePicksCard";
 import { useQueryClient } from "@tanstack/react-query";
 
 type GridCols = { mobile: number; tablet: number; desktop: number };
@@ -60,6 +61,7 @@ export default function LayoutSettings() {
       <Button onClick={save} disabled={saving} className="w-full sm:w-auto">
         {saving ? (<><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</>) : "Save settings"}
       </Button>
+      <HomePicksCard />
     </div>
   );
 }

@@ -185,13 +185,13 @@ export function DesktopHome() {
                     </span>
                   )}
                   <ProductCard p={p as any} />
-                  <HomePicksSlot at="bottom" className="mb-12" limit={8} />
     </div>
               );
             })}
           </div>
         </section>
       )}
+      <HomePicksSlot at="bottom" className="mt-6" limit={8} />
     </div>
   );
 }
