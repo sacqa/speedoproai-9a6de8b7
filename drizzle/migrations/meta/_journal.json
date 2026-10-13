@@ -43,6 +43,13 @@
       "when": 1791453172577,
       "tag": "0005_admin_delete_orders",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791864529203,
+      "tag": "0006_home_picks_setting",
+      "breakpoints": true
     }
   ]
 }
