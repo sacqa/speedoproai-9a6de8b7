@@ -136,3 +136,10 @@ export async function lookupOrder(orderNumber: string, phone: string) {
   if (error) throw new Error((data as any)?.error ?? "Could not look up that order");
   return (data as any)?.order ?? null;
 }
+
+/** Lists all orders placed with a phone number (newest first, no sign-in). */
+export async function ordersByPhone(phone: string) {
+  const { data, error } = await supabase.rpc("my_guest_orders", { _phone: phone });
+  if (error) throw new Error("Could not look up orders for that number");
+  return (data ?? []) as any[];
+}
