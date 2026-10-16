@@ -50,6 +50,13 @@
       "when": 1791864529203,
       "tag": "0006_home_picks_setting",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792132158602,
+      "tag": "0007_guest_orders_by_phone",
+      "breakpoints": true
     }
   ]
 }
