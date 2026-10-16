@@ -1381,6 +1381,27 @@ export type Database = {
           vendor_name: string
         }[]
       }
+      my_guest_orders: {
+        Args: { _phone: string }
+        Returns: {
+          area: string
+          created_at: string
+          customer_name: string
+          delivery_fee: number
+          details: string
+          id: string
+          items: Json
+          notes: string
+          order_number: string
+          service_type: string
+          status: string
+          street: string
+          subtotal: number
+          total: number
+          updated_at: string
+          vendor_name: string
+        }[]
+      }
       my_vendor_id: { Args: never; Returns: string }
       place_guest_order: {
         Args: {
